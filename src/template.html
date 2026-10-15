@@ -174,7 +174,7 @@ details.who summary{font-size:12px}details.who{font-size:12px;margin-top:4px}det
 .pbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent)}
 .pbar b{position:absolute;top:-3px;width:2px;height:18px;background:var(--ink);opacity:.5}
 ul.miles li.ok{color:var(--muted)}
-.numtop{margin-bottom:12px}.nstat{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}.nstat.g{background:color-mix(in srgb,#2f9e44 16%,transparent)}.nstat.r{background:color-mix(in srgb,#c92a2a 16%,transparent)}.nstat.y{background:color-mix(in srgb,#e8a317 20%,transparent)}.nstat.o{background:color-mix(in srgb,#f08c00 16%,transparent)}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
+.numtop{margin-bottom:12px}.ncount{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin:6px 0}.ncount b{font-size:22px;font-variant-numeric:tabular-nums}.ncount .meter{flex:1 1 100%;margin:2px 0 0}.nstat{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}.nstat.g{background:color-mix(in srgb,#2f9e44 16%,transparent)}.nstat.r{background:color-mix(in srgb,#c92a2a 16%,transparent)}.nstat.y{background:color-mix(in srgb,#e8a317 20%,transparent)}.nstat.o{background:color-mix(in srgb,#f08c00 16%,transparent)}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
 .numrisk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.numrisk.hi{border-color:#c2410c}.numrisk .nr-top{display:flex;gap:10px;align-items:center}.numrisk .nr-p{font-size:1.8rem;font-weight:700;min-width:3.2em}.numrisk.hi .nr-p{color:#c2410c}.numrisk .nrbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.numrisk .nrbar i{display:block;height:100%;background:#c2410c}
 .verdict{border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}.verdict.ok{background:color-mix(in srgb,var(--good) 14%,transparent);border:1px solid var(--good)}.verdict.no{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}.verdict b:first-child{margin-right:4px}
 .life{display:flex;flex-direction:column;gap:4px;margin-top:4px}
@@ -451,7 +451,20 @@ function numemonRisk(ctx){
 // 幫玩家達成目標
 /* 鼻涕獸助手：找出令所有候選都少於 3 組的「體重 × 失誤」組合（失誤只會增加）；
    選擇繼續訓練時，先找就算能力全部練滿也成立的組合，找不到才改為列出能力上限。 */
-let NH_PREV=null;  // 上一次的建議（偵測訓練令方案改變）
+let NH_PREV=null;
+let NH_CNT=null;   // 倒數基準：目標時刻（遊戲分鐘總數）
+function nhNowMin(){ if(BUILD==='live' && LIVE.on && LIVE.stat==='ok' && LIVE.clk) return liveClockNow();
+  const v=(S.svList||[])[S.svSel||0]; return v? ((v.year??0)*30+(v.day??0))*1440+(v.hh??0)*60+(v.mm??0) : null; }
+function nhFmt(m){ if(m<=0) return '0:00'; return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`; }
+function nhCountHTML(){
+  const c=NH_CNT; if(!c) return ''; const now=nhNowMin(); if(now==null) return '';
+  const left96=c.t96-now, left72=c.t72-now; const real=m=>{ const r=LIVE.clk&&LIVE.clk.rate>0? m/(LIVE.clk.rate*60000) : m/3/60; return r<1? '不到 1 分鐘' : `約 ${Math.round(r)} 分鐘`; };
+  const age=Math.min(96,Math.max(0,96-left96/60));
+  return (c.red?`<div class="hint" style="flex:1 1 100%">按目前數值，判定時會先進化成 ${c.red}；要照上面的補救做，倒數才有意義。</div>`:'')+`<div><span class="hint">距離 96 小時（變成鼻涕獸）</span><br><b>${nhFmt(left96)}</b> <span class="hint">遊戲時間${left96>0?'・真實時間'+real(left96):''}</span></div>`
+    + (left72>0? `<div><span class="hint">距離 72 小時（開始每小時判定）</span><br><b>${nhFmt(left72)}</b></div>` : `<div><span class="hint">判定期間</span><br><b>${left96>0?'每到整點判定一次':'已到 96 小時'}</b></div>`)
+    + `<div class="meter${left72<=0?' warn':''}"><i style="width:${(age/96*100).toFixed(1)}%"></i></div>`;
+}
+function nhCountPaint(){ const el=$('#nhCount'); if(el) el.innerHTML=nhCountHTML(); }  // 上一次的建議（偵測訓練令方案改變）
 function numemonHelper(){
   const base={cur:S.cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised};
   const train=!!S.numTrain, m0=Math.max(0,base.mis|0), w0=base.weight;
@@ -510,7 +523,11 @@ function numemonHelper(){
       const q=predictEvo({...base,weight:best.w,mis:best.m,stats:st}); if(q.best!==-1) bad.push({t:(g.id==='green'?'':g.name+'・')+n, to:DG[q.best].name, gain}); }));
     if(bad.length){ const by={}; bad.forEach(x=>(by[x.to]=by[x.to]||[]).push(`${x.t}（${Object.entries(x.gain).map(([k,v])=>SN[k]+'+'+v).join('、')}）`));
       warn=`<div class="nstat o">⚠ 差一次訓練：${Object.entries(by).map(([to,l])=>`再做一次 ${l.join('、')} 就會令 <b>${to}</b> 合資格`).join('；')}。</div>`; } }
-  return `<div class="nhelp">${head}${stat}${chg}${warn}${rec}${tbl}${caps}${drl}<p class="hint">判定由成長期 72 小時開始每小時一次，到 96 小時沒有候選合資格就變成鼻涕獸；這段時間都要保持在建議範圍內。</p></div>`;
+  let cnt='';
+  if(known('age') && S.age!=null){ const nm=nhNowMin(); if(nm!=null){ const hs=nm-nm%60;  // 形態計時在每個整點 +1
+      NH_CNT={t96:hs+(96-S.age)*60, t72:hs+(72-S.age)*60, red:now.best!==-1?DG[now.best].name:null}; cnt=`<div class="ncount" id="nhCount">${nhCountHTML()}</div>`; } }
+  else NH_CNT=null;
+  return `<div class="nhelp">${head}${stat}${cnt}${chg}${warn}${rec}${tbl}${caps}${drl}<p class="hint">判定由成長期 72 小時開始每小時一次，到 96 小時沒有候選合資格就變成鼻涕獸；這段時間都要保持在建議範圍內。</p></div>`;
 }
 function evoAdvice(goal, ctx){
   const p=predictEvo(ctx); const tips=[];
@@ -1656,7 +1673,7 @@ function liveClockHTML(){
   const Y=Math.floor(day/30)+1, D=day%30+1;  // 遊戲只有年、日：每年 30 日
   return `<span${LIVE.clk.yr!=null?` title="遊戲開始後第 ${day+1} 日"`:''}>${LIVE.clk.yr!=null?Y+'年':''}${D}日${LIVE.clk.yr==null?'（小程式是舊版，請更新 dw1_bridge.py）':''}</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
 }
-function liveClockPaint(){ const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
+function liveClockPaint(){ nhCountPaint(); const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }
 function liveStatText(){
   if(!LIVE.on) return '<span class="hint">未連線</span>';

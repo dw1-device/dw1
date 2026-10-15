@@ -180,7 +180,7 @@ details.who summary{font-size:12px}details.who{font-size:12px;margin-top:4px}det
 .pbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent)}
 .pbar b{position:absolute;top:-3px;width:2px;height:18px;background:var(--ink);opacity:.5}
 ul.miles li.ok{color:var(--muted)}
-.numtop{margin-bottom:12px}.nstat{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}.nstat.g{background:color-mix(in srgb,#2f9e44 16%,transparent)}.nstat.r{background:color-mix(in srgb,#c92a2a 16%,transparent)}.nstat.y{background:color-mix(in srgb,#e8a317 20%,transparent)}.nstat.o{background:color-mix(in srgb,#f08c00 16%,transparent)}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
+.numtop{margin-bottom:12px}.ncount{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin:6px 0}.ncount b{font-size:22px;font-variant-numeric:tabular-nums}.ncount .meter{flex:1 1 100%;margin:2px 0 0}.nstat{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}.nstat.g{background:color-mix(in srgb,#2f9e44 16%,transparent)}.nstat.r{background:color-mix(in srgb,#c92a2a 16%,transparent)}.nstat.y{background:color-mix(in srgb,#e8a317 20%,transparent)}.nstat.o{background:color-mix(in srgb,#f08c00 16%,transparent)}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
 .numrisk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.numrisk.hi{border-color:#c2410c}.numrisk .nr-top{display:flex;gap:10px;align-items:center}.numrisk .nr-p{font-size:1.8rem;font-weight:700;min-width:3.2em}.numrisk.hi .nr-p{color:#c2410c}.numrisk .nrbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.numrisk .nrbar i{display:block;height:100%;background:#c2410c}
 .verdict{border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}.verdict.ok{background:color-mix(in srgb,var(--good) 14%,transparent);border:1px solid var(--good)}.verdict.no{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}.verdict b:first-child{margin-right:4px}
 .life{display:flex;flex-direction:column;gap:4px;margin-top:4px}
@@ -460,7 +460,20 @@ function numemonRisk(ctx){
 // \u5e6b\u73a9\u5bb6\u9054\u6210\u76ee\u6a19
 /* \u9f3b\u6d95\u7378\u52a9\u624b\uff1a\u627e\u51fa\u4ee4\u6240\u6709\u5019\u9078\u90fd\u5c11\u65bc 3 \u7d44\u7684\u300c\u9ad4\u91cd \u00d7 \u5931\u8aa4\u300d\u7d44\u5408\uff08\u5931\u8aa4\u53ea\u6703\u589e\u52a0\uff09\uff1b
    \u9078\u64c7\u7e7c\u7e8c\u8a13\u7df4\u6642\uff0c\u5148\u627e\u5c31\u7b97\u80fd\u529b\u5168\u90e8\u7df4\u6eff\u4e5f\u6210\u7acb\u7684\u7d44\u5408\uff0c\u627e\u4e0d\u5230\u624d\u6539\u70ba\u5217\u51fa\u80fd\u529b\u4e0a\u9650\u3002 */
-let NH_PREV=null;  // \u4e0a\u4e00\u6b21\u7684\u5efa\u8b70\uff08\u5075\u6e2c\u8a13\u7df4\u4ee4\u65b9\u6848\u6539\u8b8a\uff09
+let NH_PREV=null;
+let NH_CNT=null;   // \u5012\u6578\u57fa\u6e96\uff1a\u76ee\u6a19\u6642\u523b\uff08\u904a\u6232\u5206\u9418\u7e3d\u6578\uff09
+function nhNowMin(){ if(BUILD==='live' && LIVE.on && LIVE.stat==='ok' && LIVE.clk) return liveClockNow();
+  const v=(S.svList||[])[S.svSel||0]; return v? ((v.year??0)*30+(v.day??0))*1440+(v.hh??0)*60+(v.mm??0) : null; }
+function nhFmt(m){ if(m<=0) return '0:00'; return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`; }
+function nhCountHTML(){
+  const c=NH_CNT; if(!c) return ''; const now=nhNowMin(); if(now==null) return '';
+  const left96=c.t96-now, left72=c.t72-now; const real=m=>{ const r=LIVE.clk&&LIVE.clk.rate>0? m/(LIVE.clk.rate*60000) : m/3/60; return r<1? '\u4e0d\u5230 1 \u5206\u9418' : `\u7d04 ${Math.round(r)} \u5206\u9418`; };
+  const age=Math.min(96,Math.max(0,96-left96/60));
+  return (c.red?`<div class="hint" style="flex:1 1 100%">\u6309\u76ee\u524d\u6578\u503c\uff0c\u5224\u5b9a\u6642\u6703\u5148\u9032\u5316\u6210 ${c.red}\uff1b\u8981\u7167\u4e0a\u9762\u7684\u88dc\u6551\u505a\uff0c\u5012\u6578\u624d\u6709\u610f\u7fa9\u3002</div>`:'')+`<div><span class="hint">\u8ddd\u96e2 96 \u5c0f\u6642\uff08\u8b8a\u6210\u9f3b\u6d95\u7378\uff09</span><br><b>${nhFmt(left96)}</b> <span class="hint">\u904a\u6232\u6642\u9593${left96>0?'\u30fb\u771f\u5be6\u6642\u9593'+real(left96):''}</span></div>`
+    + (left72>0? `<div><span class="hint">\u8ddd\u96e2 72 \u5c0f\u6642\uff08\u958b\u59cb\u6bcf\u5c0f\u6642\u5224\u5b9a\uff09</span><br><b>${nhFmt(left72)}</b></div>` : `<div><span class="hint">\u5224\u5b9a\u671f\u9593</span><br><b>${left96>0?'\u6bcf\u5230\u6574\u9ede\u5224\u5b9a\u4e00\u6b21':'\u5df2\u5230 96 \u5c0f\u6642'}</b></div>`)
+    + `<div class="meter${left72<=0?' warn':''}"><i style="width:${(age/96*100).toFixed(1)}%"></i></div>`;
+}
+function nhCountPaint(){ const el=$('#nhCount'); if(el) el.innerHTML=nhCountHTML(); }  // \u4e0a\u4e00\u6b21\u7684\u5efa\u8b70\uff08\u5075\u6e2c\u8a13\u7df4\u4ee4\u65b9\u6848\u6539\u8b8a\uff09
 function numemonHelper(){
   const base={cur:S.cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised};
   const train=!!S.numTrain, m0=Math.max(0,base.mis|0), w0=base.weight;
@@ -519,7 +532,11 @@ function numemonHelper(){
       const q=predictEvo({...base,weight:best.w,mis:best.m,stats:st}); if(q.best!==-1) bad.push({t:(g.id==='green'?'':g.name+'\u30fb')+n, to:DG[q.best].name, gain}); }));
     if(bad.length){ const by={}; bad.forEach(x=>(by[x.to]=by[x.to]||[]).push(`${x.t}\uff08${Object.entries(x.gain).map(([k,v])=>SN[k]+'+'+v).join('\u3001')}\uff09`));
       warn=`<div class="nstat o">\u26a0 \u5dee\u4e00\u6b21\u8a13\u7df4\uff1a${Object.entries(by).map(([to,l])=>`\u518d\u505a\u4e00\u6b21 ${l.join('\u3001')} \u5c31\u6703\u4ee4 <b>${to}</b> \u5408\u8cc7\u683c`).join('\uff1b')}\u3002</div>`; } }
-  return `<div class="nhelp">${head}${stat}${chg}${warn}${rec}${tbl}${caps}${drl}<p class="hint">\u5224\u5b9a\u7531\u6210\u9577\u671f 72 \u5c0f\u6642\u958b\u59cb\u6bcf\u5c0f\u6642\u4e00\u6b21\uff0c\u5230 96 \u5c0f\u6642\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\u5c31\u8b8a\u6210\u9f3b\u6d95\u7378\uff1b\u9019\u6bb5\u6642\u9593\u90fd\u8981\u4fdd\u6301\u5728\u5efa\u8b70\u7bc4\u570d\u5167\u3002</p></div>`;
+  let cnt='';
+  if(known('age') && S.age!=null){ const nm=nhNowMin(); if(nm!=null){ const hs=nm-nm%60;  // \u5f62\u614b\u8a08\u6642\u5728\u6bcf\u500b\u6574\u9ede +1
+      NH_CNT={t96:hs+(96-S.age)*60, t72:hs+(72-S.age)*60, red:now.best!==-1?DG[now.best].name:null}; cnt=`<div class="ncount" id="nhCount">${nhCountHTML()}</div>`; } }
+  else NH_CNT=null;
+  return `<div class="nhelp">${head}${stat}${cnt}${chg}${warn}${rec}${tbl}${caps}${drl}<p class="hint">\u5224\u5b9a\u7531\u6210\u9577\u671f 72 \u5c0f\u6642\u958b\u59cb\u6bcf\u5c0f\u6642\u4e00\u6b21\uff0c\u5230 96 \u5c0f\u6642\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\u5c31\u8b8a\u6210\u9f3b\u6d95\u7378\uff1b\u9019\u6bb5\u6642\u9593\u90fd\u8981\u4fdd\u6301\u5728\u5efa\u8b70\u7bc4\u570d\u5167\u3002</p></div>`;
 }
 function evoAdvice(goal, ctx){
   const p=predictEvo(ctx); const tips=[];
@@ -1665,7 +1682,7 @@ function liveClockHTML(){
   const Y=Math.floor(day/30)+1, D=day%30+1;  // \u904a\u6232\u53ea\u6709\u5e74\u3001\u65e5\uff1a\u6bcf\u5e74 30 \u65e5
   return `<span${LIVE.clk.yr!=null?` title="\u904a\u6232\u958b\u59cb\u5f8c\u7b2c ${day+1} \u65e5"`:''}>${LIVE.clk.yr!=null?Y+'\u5e74':''}${D}\u65e5${LIVE.clk.yr==null?'\uff08\u5c0f\u7a0b\u5f0f\u662f\u820a\u7248\uff0c\u8acb\u66f4\u65b0 dw1_bridge.py\uff09':''}</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
 }
-function liveClockPaint(){ const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
+function liveClockPaint(){ nhCountPaint(); const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }
 function liveStatText(){
   if(!LIVE.on) return '<span class="hint">\u672a\u9023\u7dda</span>';
