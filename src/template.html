@@ -1260,9 +1260,8 @@ function svParse(buf){
     D.digis.forEach(x=>{ const n=512+x.id; if(u[c+656+245+(n>>3)]&(1<<(n&7))) raised.push(x.id); });
     const flag=n=>!!(u[c+656+245+(n>>3)]&(1<<(n&7)));
     const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d? flag(200+d.id) : false; });
-    const chefIntro=DINER_MAIN.filter(nm=>flag(DINER_INTRO[nm]));
     const yr=i16(c+464);
-    out.push({n:out.length+1, title, cur:sp, recruited, chefIntro,
+    out.push({n:out.length+1, title, cur:sp, recruited,
       stats:{hp:i16(c+640), mp:i16(c+642), atk:i16(c+624), def:i16(c+626), spd:i16(c+628), int:i16(c+630)},
       dis:i16(P+40), hap:i16(P+42), days:i16(P+74), fat:i16(P+34), lives:u[c+1167],
       bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(30).keys()].map(i=>[u[c+1182+i],u[c+1212+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
@@ -1442,7 +1441,6 @@ function svApply(){
   if(v.recruited) S.recruited=v.recruited.slice();
   if(v.fat!=null) S.fat=v.fat; if(v.lives!=null) S.lives=v.lives;
   if(v.day!=null){ S.arenaDay=(v.day%30)+1; S.gameDay=v.day; S.gameYear=v.year??null; }
-  if(Array.isArray(v.chefIntro)) S.chefIntro=v.chefIntro.slice(); else if(!v.live) S.chefIntro=null;
   if(v.bag) S.bag=v.bag.map(x=>x.slice()); if(v.bagCap!=null) S.bagCap=v.bagCap; if(v.storage) S.storage=v.storage.map(x=>x.slice()); if(v.boost) S.boost={...v.boost}; if(v.drillCnt) S.drillCnt=v.drillCnt.slice();
   Object.assign(S,{life:v.life, days:v.days, clock:v.hh, evoDays:Math.floor(tot/24), evoClock:((tot%24)+24)%24, cur:v.cur, stats:{...v.stats}, weight:v.weight, mis:v.mis, win:v.win, hap:v.hap, dis:v.dis, age:v.age, tech:v.tech, learned:v.learned.slice(), raised:v.raised.slice(), sample:false});
   if(DG[v.cur].level>=2 && S.svGoal!==undefined) S.evoGoal=S.svGoal;
@@ -1450,12 +1448,9 @@ function svApply(){
 
 /* ---------- 開始之街食堂（DG.SCN 第 274～280 區塊，日版 Rev 1） ----------
    進店時決定廚師（劇本 0x3420 附近；資料統整 §16.16）：
-   0. 最優先：已加入（旗標 200＋編號）但還沒在食堂作開業介紹（介紹旗標未設）的主廚當值，
-      順序火焰獸(旗標 0x3a) → 巨龍獸(0x3d) → 加魯魯獸(0x3c) → 雪人獸(0x3b)。和他說話聽完開業台詞後設定介紹旗標。
-      2026-10-15 實測：四位都已加入、只有火焰獸介紹過，12 時後仍是巨龍獸當值。
    1. 宇宙腦魔已加入：亂數 0～99 ≤ 19 → 宇宙腦魔（約 20%）
    2. 蛋蛋獸已加入：再擲一次 ≤ 9 → 蛋蛋獸（約 10%）
-   3. 按時鐘：0～5 時加魯魯獸、6～11 時巨龍獸、12～17 時火焰獸、18～23 時雪人獸（該廚師已加入並介紹過）
+   3. 按時鐘：0～5 時加魯魯獸、6～11 時巨龍獸、12～17 時火焰獸、18～23 時雪人獸（該廚師已加入）
    4. 否則：火焰獸 → 巨龍獸 → 加魯魯獸 → 雪人獸 中第一個已加入的
    每道菜：攻、防、速、智、HP、MP、疲勞、心情、教養、飽足、體重（劇本指令 0x35 加、0x36 減）。肚子不餓不能吃。 */
 const DINER_KEYS=['atk','def','spd','int','hp','mp','fat','hap','dis','food','w'];
@@ -1487,16 +1482,11 @@ const DINER=[
    ['謎之雞蛋丼','謎のタマゴどん',6000,[[3,0,3,0,30,0,-5,3,1,36,3],[0,3,0,3,0,30,-5,3,1,36,3],[4,4,4,4,40,40,-5,4,3,36,3]]]]},
 ];
 const DINER_MAIN=['火焰獸','巨龍獸','加魯魯獸','雪人獸'];
-const DINER_INTRO={'火焰獸':0x3a,'巨龍獸':0x3d,'加魯魯獸':0x3c,'雪人獸':0x3b};  // 開業介紹旗標
-// 已加入但未介紹的主廚（未知時當全部介紹過）
-function dinerNew(got){ const iv=S.chefIntro; return Array.isArray(iv)? DINER_MAIN.filter(n=>got.has(n)&&!iv.includes(n)) : []; }
-function dinerChef(hour, got, noIntro){
-  const fresh=noIntro? null : dinerNew(got)[0];
-  if(fresh) return {base:fresh, fresh:true, vade:false, digi:false};
+function dinerChef(hour, got){
   const main=DINER.filter(c=>c.hours&&got.has(c.chef));
   const slot=main.find(c=>hour>=c.hours[0]&&hour<c.hours[1]);
   const base= slot? slot.chef : (DINER_MAIN.find(n=>got.has(n))||null);
-  return {base, fresh:false, vade:got.has('宇宙腦魔'), digi:got.has('蛋蛋獸')};
+  return {base, vade:got.has('宇宙腦魔'), digi:got.has('蛋蛋獸')};
 }
 function dinerFx(v){ return DINER_KEYS.map((k,i)=>[k,v[i]]).filter(([k,x])=>x).map(([k,x])=>`<span class="fx ${k==='fat'?(x<0?'g':'b'):x>0?'g':'b'}">${DINER_LAB[k]} ${x>0?'+':''}${x}</span>`).join(' '); }
 function vDiner(){
@@ -1506,18 +1496,16 @@ function vDiner(){
   const anyChef=DINER.some(c=>got0.has(c.chef));
   const anyMain=DINER_MAIN.some(n=>got0.has(n));
   const got= anyMain? got0 : new Set([...got0,...DINER_MAIN]);   // 當值表用
-  const now=dinerChef(hr,got,!anyMain);
+  const now=dinerChef(hr,got);
   const want=S.dinerWant||'';
   const loc=n=>{ const r=RECRUITS.find(r=>r[0]===n); return r? r[1] : ''; };
   let nowHTML;
   if(known&&!anyMain) nowHTML=`<div class="note">${anyChef?'四位主廚都還沒加入':'還沒有廚師加入'}，食堂未開張；招募火焰獸、巨龍獸、加魯魯獸、雪人獸其中一隻後開張。下面是主廚加入後的輪班：${hr} 時是<b>${now.base}</b>。</div>`;
   else {
     const parts=[]; if(now.vade) parts.push('約 20% 是宇宙腦魔'); if(now.digi) parts.push(`約 ${now.vade?'8':'10'}% 是蛋蛋獸`);
-    const fresh=anyMain? dinerNew(got) : [];
-    nowHTML= now.fresh? `<div class="note ok-note">現在進店：<b>${now.base}</b>當值，不論時間。${now.base}剛加入，還未在食堂和你打招呼；他會一直當值，直到你和他說話、聽完開業介紹為止${fresh.length>1?`。之後輪到${fresh.slice(1).join('、')}，同樣要逐一打招呼`:''}。打過招呼後才按時間輪班。</div>`
-      : `<div class="note ok-note">現在 ${hr} 時進店：${now.base?`<b>${now.base}</b>當值`:'沒有當值廚師'}${parts.length?`；${parts.join('、')}（每次進店重新決定）`:''}。${known?'':'<span class="hint">（未勾選主廚，按四位都已加入計算）</span>'}</div>`;
+    nowHTML= `<div class="note ok-note">現在 ${hr} 時進店：${now.base?`<b>${now.base}</b>當值`:'沒有當值廚師'}${parts.length?`；${parts.join('、')}（每次進店重新決定）`:''}。${known?'':'<span class="hint">（未勾選主廚，按四位都已加入計算）</span>'}</div>`;
   }
-  const sched=`<div class="dsched">${[...Array(24).keys()].map(h=>{ const c=dinerChef(h,got,!anyMain).base; const on=h===hr; return `<div class="dh${on?' on':''}" title="${h} 時：${c||'—'}"><span>${h}</span><i class="dc${c?DINER_MAIN.indexOf(c):'x'}"></i></div>`; }).join('')}</div>
+  const sched=`<div class="dsched">${[...Array(24).keys()].map(h=>{ const c=dinerChef(h,got).base; const on=h===hr; return `<div class="dh${on?' on':''}" title="${h} 時：${c||'—'}"><span>${h}</span><i class="dc${c?DINER_MAIN.indexOf(c):'x'}"></i></div>`; }).join('')}</div>
     <div class="dleg">${DINER_MAIN.map((n,i)=>`<span><i class="dc${i}"></i>${n}${known&&!got0.has(n)?'（未加入）':''}</span>`).join('')}<span class="rnd"><i></i>宇宙腦魔（約 20%）、蛋蛋獸（約 10%）：不跟時間表，每次進店隨機出現${known&&!got0.has('宇宙腦魔')&&!got0.has('蛋蛋獸')?'（未加入）':''}</span></div>`;
   const wantOpts=[['','全部'],['atk','攻擊'],['def','防禦'],['spd','速度'],['int','智力'],['hp','HP'],['mp','MP'],['dis','教養'],['hap','心情']];
   const cards=DINER.map(c=>{
@@ -1534,7 +1522,6 @@ function vDiner(){
     <section class="panel dtop" style="grid-column:1/-1"><h2>開始之街食堂 <small>誰在當值</small></h2>
       <div class="dchefs"><b>已加入的主廚</b>${DINER_MAIN.map((n,i)=>`<label><input type="checkbox" data-rec="${n}"${got0.has(n)?' checked':''}><i class="dc${i}"></i>${n}</label>`).join('')}
         <b>隨機出現</b>${['宇宙腦魔','蛋蛋獸'].map(n=>`<label class="rnd"><input type="checkbox" data-rec="${n}"${got0.has(n)?' checked':''}><i></i>${n}</label>`).join('')}
-        ${anyMain?`<span class="sep"></span><b>已在食堂打過招呼</b>${DINER_MAIN.filter(n=>got0.has(n)).map(n=>`<label><input type="checkbox" data-intro="${n}"${!Array.isArray(S.chefIntro)||S.chefIntro.includes(n)?' checked':''}>${n}</label>`).join('')}<small>剛加入、未打招呼的主廚不論時間都當值</small>`:''}
         ${known?'':'<span class="sep"></span><small>還沒有勾選：當值表先按四位主廚都已加入顯示。勾選已加入的主廚，當值表會即時按實際情況改變。</small>'}</div>
       <div class="row"><label class="f" style="max-width:170px">現在時間（時，0～23）<input type="number" id="f-clock" data-k="clock" value="${hr}" min="0" max="23"></label>${nowHTML}
       <label class="f" style="max-width:170px">想加哪一項能力<select id="sel-dwant">${wantOpts.map(([k,n])=>`<option value="${k}"${k===want?' selected':''}>${n}</option>`).join('')}</select></label></div>
@@ -1543,7 +1530,6 @@ function vDiner(){
       <ul class="ml2 tips">
         <li>兩隻或以上廚師加入後，四位主廚輪班：0～5 時加魯魯獸、6～11 時巨龍獸、12～17 時火焰獸、18～23 時雪人獸。只有一位加入時，全日都是他。</li>
         <li>當值的主廚還沒加入時，由火焰獸 → 巨龍獸 → 加魯魯獸 → 雪人獸中第一位已加入的代班。</li>
-        <li><b>剛加入的主廚優先</b>：主廚加入後要先到食堂和他說話，聽完開業介紹。未打招呼前，不論時間都是他當值（宇宙腦魔、蛋蛋獸也不會出現）；幾位都未打招呼時，按火焰獸 → 巨龍獸 → 加魯魯獸 → 雪人獸的次序。上載存檔會自動讀取；手動使用時在上面勾選「已在食堂打過招呼」。</li>
         <li>宇宙腦魔、蛋蛋獸加入後，每次進店先擲骰：約 20% 是宇宙腦魔，其次約 10% 是蛋蛋獸。不是想要的廚師，可以出店再進。</li>
         <li>肚子不餓不能點菜。每道菜都會回復疲勞（雪人獸 −2，其他 −5），並增加心情、飽足和體重；能力加成是永久的。</li>
         <li>蛋蛋獸的菜有程式錯誤：判斷「肚子不餓」失敗時會繼續往下執行，有機會不餓也能吃。</li>
@@ -1558,7 +1544,7 @@ function liveUrl(){ if(S.liveUrl) return S.liveUrl; return (location.protocol.st
 function liveToV(j){
   const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d && j.recruitedIds.includes(d.id); });
   return {n:1,title:'RetroArch 實時',cur:j.cur,stats:j.stats,dis:j.dis,hap:j.hap,days:j.days,weight:j.weight,life:j.life,mis:j.mis,win:j.win,age:j.age,poop:j.poop,fat:j.fat,lives:j.lives,
-    tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,year:Number.isInteger(j.year)&&j.year>=0&&j.year<100?j.year:null,hh:j.hh,mm:j.mm,live:true,chefIntro:Array.isArray(j.chefIntro)?DINER_MAIN.filter(nm=>j.chefIntro.includes(DINER_INTRO[nm])):null,
+    tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,year:Number.isInteger(j.year)&&j.year>=0&&j.year<100?j.year:null,hh:j.hh,mm:j.mm,live:true,
     bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined};
 }
 function liveBusyInput(){ const a=document.activeElement; return a && a.closest && a.closest('#view') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.id!=='liveBtn'; }
@@ -2046,7 +2032,6 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-recsort'){ S.recSort=t.value; render(); return; }
   if(t.id==='sel-recreg'){ S.recReg=t.value; render(); return; }
   if(t.id==='sel-dwant'){ S.dinerWant=t.value; render(); return; }
-  if(t.dataset.intro){ const iv=new Set(Array.isArray(S.chefIntro)? S.chefIntro : DINER_MAIN); t.checked? iv.add(t.dataset.intro) : iv.delete(t.dataset.intro); S.chefIntro=DINER_MAIN.filter(n=>iv.has(n)); render(); return; }
   if(t.id==='sel-svgoal'){ S.svGoal=+t.value; render(); return; }
   S.sample=false;
   if(t.dataset.rec){ const n=t.dataset.rec; S.recruited=(S.recruited||[]).filter(x=>x!==n); if(t.checked) S.recruited.push(n); render(); return; }
