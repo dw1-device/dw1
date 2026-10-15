@@ -2157,7 +2157,7 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
     if(DG[nw].level===1 && DG[old].level!==1){ S.ageKnown=true; S.life=360; S.days=0; S.age=0; S.evoDays=0; S.evoClock=S.clock??0; }
     const evo=(D.evo[old]?.to||[]).includes(nw) || (DG[old].level===3&&(nw===11||nw===39)) || SPECIAL.some(x=>x.to===DG[nw].name&&((x.from&&x.from.includes(DG[old].name))||(x.stage&&x.stage===DG[old].level)||(x.stageMin&&DG[old].level>=x.stageMin)));
-    if(evo && DG[nw].level!==DG[old].level){ S.ageKnown=true; S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.log.push(`${DG[old].name} \u2192 ${DG[nw].name}\uff1a\u5df2\u8a18\u4e0b\u9032\u5316\u6642\u9593\uff08${S.days??'?'} \u6b72 ${S.clock??'?'} \u6642\uff09\uff0c\u8a08\u6642\u3001\u5931\u8aa4\u3001\u6230\u9b25\u6b21\u6578\u6b78\u96f6\u3002`); }
+    if(evo && DG[nw].level!==DG[old].level){ S.ageKnown=true; S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.fat=0; S.fatKnown=true; S.log.push(`${DG[old].name} \u2192 ${DG[nw].name}\uff1a\u5df2\u8a18\u4e0b\u9032\u5316\u6642\u9593\uff08${S.days??'?'} \u6b72 ${S.clock??'?'} \u6642\uff09\uff0c\u8a08\u6642\u3001\u5931\u8aa4\u3001\u6230\u9b25\u6b21\u6578\u3001\u75b2\u52de\u6b78\u96f6\u3002`); }
     render(); return; }
   if(t.id==='sel-target'){ S.target=+t.value; render(); return; }
   if(t.id==='sel-gym'){ S.gym=t.value; render(); return; }

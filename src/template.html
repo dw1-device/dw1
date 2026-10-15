@@ -2148,7 +2148,7 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
     if(DG[nw].level===1 && DG[old].level!==1){ S.ageKnown=true; S.life=360; S.days=0; S.age=0; S.evoDays=0; S.evoClock=S.clock??0; }
     const evo=(D.evo[old]?.to||[]).includes(nw) || (DG[old].level===3&&(nw===11||nw===39)) || SPECIAL.some(x=>x.to===DG[nw].name&&((x.from&&x.from.includes(DG[old].name))||(x.stage&&x.stage===DG[old].level)||(x.stageMin&&DG[old].level>=x.stageMin)));
-    if(evo && DG[nw].level!==DG[old].level){ S.ageKnown=true; S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.log.push(`${DG[old].name} → ${DG[nw].name}：已記下進化時間（${S.days??'?'} 歲 ${S.clock??'?'} 時），計時、失誤、戰鬥次數歸零。`); }
+    if(evo && DG[nw].level!==DG[old].level){ S.ageKnown=true; S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.fat=0; S.fatKnown=true; S.log.push(`${DG[old].name} → ${DG[nw].name}：已記下進化時間（${S.days??'?'} 歲 ${S.clock??'?'} 時），計時、失誤、戰鬥次數、疲勞歸零。`); }
     render(); return; }
   if(t.id==='sel-target'){ S.target=+t.value; render(); return; }
   if(t.id==='sel-gym'){ S.gym=t.value; render(); return; }
