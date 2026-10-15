@@ -1615,7 +1615,7 @@ function renderLCD(){
   const d=DG[S.cur];
   $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>${BUILD==='live'&&LIVE.on&&LIVE.stat==='ok'&&LIVE.clk?`<div class="gclk" id="lcdClock">${liveClockHTML()}</div>`:''}
     <div class="st">${STATKEYS.map(k=>`<div><span>${SN[k]}</span><b>${S.stats[k]}</b></div>`).join('')}
-    ${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>疲勞</span><b>${S.fat}</b></div><div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div><div><span>招式</span><b>${S.learned.length}</b></div></div>`;
+    ${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>疲勞</span><b>${S.fat}</b></div><div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div><div title="漠視數碼精靈呼叫的次數"><span>失誤</span><b>${S.mis??0}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' ・ 網頁版'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` ・ 實時版 ・ <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">網頁版（手機、上載存檔）↗</a>`; }
 function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); save(); liveDecorate(); }
