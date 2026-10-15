@@ -913,19 +913,22 @@ function fillItems(){
   tb.innerHTML=rows.map(r=>`<tr><td><span class="pill">${r[0]}</span></td><td><b>${esc(r[1])}</b><br><span class="hint">${esc(r[2])}</span></td><td>${esc(r[3])}</td><td class="num">${r[4]===''?'<span class="hint">—</span>':r[4]}</td><td class="num">${r[5]||''}</td><td>${esc(r[6])}</td><td class="src">${esc(r[7])}</td></tr>`).join('')||'<tr><td colspan="7">沒有符合的道具。</td></tr>';
   $('#item-count').textContent=`${rows.length} 件`;
 }
-function vItems(){
-  const cat=S.itemCat||'全部';
-  const bagRows=list=>`<div class="tw"><table class="stk"><thead><tr><th>道具</th><th class="num">數量</th><th>效果</th></tr></thead><tbody>${list.map(([id,n])=>{ const r=itemRow(id); return `<tr><td class="c1"><b>${esc(itemName(id))}</b> <span class="hint">${esc(ITEM_JP[id]||'')}</span></td><td class="num" data-l="數量">${n}</td><td data-l="效果">${r?esc(r[6]):''}</td></tr>`; }).join('')}</tbody></table></div>`;
+function vCards(){
   const cardSec=Array.isArray(S.cards)? (()=>{ const own=new Map(S.cards); const kinds=S.cards.length, total=S.cards.reduce((a,x)=>a+x[1],0);
     return `<section class="panel"><h2>卡片收藏 <small>${LIVE.on?'實時讀取':'取自存檔'}・${kinds}／66 種・共 ${total} 張</small></h2>
       <div class="cardgrid">${[...Array(66).keys()].map(i=>{ const n=i+1, k=own.get(n)||0; return `<div class="cg${k?' y':''}" title="${n}. ${esc(cardName(n))}${CARDS[n]?'（'+CARDS[n]+'）':''}"><span>${n}</span><b>${esc(cardName(n))}</b>${k?`<i>×${k}</i>`:''}</div>`; }).join('')}</div>
       <details class="dtips"><summary>卡片怎樣取得</summary><p class="hint">齒輪莽原卡片市場的抽卡機「カードダス」每次 100｛｝抽 1 張（1～5 號較稀有）；65 號無限龍獸是打倒無限龍獸後的獎品；66 號的名稱還未在遊戲資料中找到。每張最多記 15 張。</p></details></section>`; })() : '';
+  $('#view').innerHTML= cardSec || `<section class="panel"><h2>卡片收藏</h2><p class="hint">${BUILD==='live'?'連上遊戲後會自動讀取卡片（需要新版小程式）。':'上載存檔後會顯示你收集了哪些卡片。'}</p><div class="cardgrid">${[...Array(66).keys()].map(i=>`<div class="cg"><span>${i+1}</span><b>${esc(cardName(i+1))}</b></div>`).join('')}</div></section>`;
+}
+function vItems(){
+  const cat=S.itemCat||'全部';
+  const bagRows=list=>`<div class="tw"><table class="stk"><thead><tr><th>道具</th><th class="num">數量</th><th>效果</th></tr></thead><tbody>${list.map(([id,n])=>{ const r=itemRow(id); return `<tr><td class="c1"><b>${esc(itemName(id))}</b> <span class="hint">${esc(ITEM_JP[id]||'')}</span></td><td class="num" data-l="數量">${n}</td><td data-l="效果">${r?esc(r[6]):''}</td></tr>`; }).join('')}</tbody></table></div>`;
   const store=S.storage&&S.storage.length? `<section class="panel"><h2>倉庫 <small>預り屋・${S.storage.length} 種</small></h2>${bagRows(S.storage)}<p class="hint">倉庫的道具不算「持有」，例如訓練手冊要放在背包才有效。</p></section>`:'';
   const bag=S.bag? `<section class="panel"><h2>我的背包 <small>${LIVE.on?'實時讀取':'取自存檔'}・${S.bag.length}${S.bagCap?'／'+S.bagCap:''} 格</small></h2>
     ${S.bag.length?`<div class="tw"><table class="stk"><thead><tr><th>道具</th><th class="num">數量</th><th>效果</th></tr></thead><tbody>${S.bag.map(([id,n])=>{ const r=itemRow(id); return `<tr><td class="c1"><b>${esc(itemName(id))}</b> <span class="hint">${esc(ITEM_JP[id]||'')}</span></td><td class="num" data-l="數量">${n}</td><td data-l="效果">${r?esc(r[6]):''}</td></tr>`; }).join('')}</tbody></table></div>`:'<p class="hint">背包是空的。</p>'}
     ${hasItem(33)?'<p class="hint">背包有訓練手冊：所有訓練 ×1.1 已自動計入。</p>':''}
     <p class="hint">目前食物加成：${boostText(S.boost)}</p></section>`:'';
-  $('#view').innerHTML=bag+store+cardSec+`<section class="panel"><h2>道具一覽 <small id="item-count"></small></h2>
+  $('#view').innerHTML=bag+store+`<section class="panel"><h2>道具一覽 <small id="item-count"></small></h2>
     <div class="row"><label class="f" style="flex:1 1 220px">搜尋（名稱、效果、取得地點）<input type="search" id="item-q" value="${esc(S.itemQ||'')}" placeholder="例如：疲勞、教養、天使獸、肉田"></label></div>
     <div class="row">${ITEM_CATS.map(c=>`<button class="b${c===cat?' p':''}" data-icat="${c}">${c}</button>`).join('')}</div>
     <div class="tw"><table><thead><tr><th>分類</th><th>道具</th><th>使用時機</th><th class="num">價格</th><th class="num">功績</th><th>效果</th><th>主要取得方式</th></tr></thead><tbody id="item-body"></tbody></table></div>
@@ -1753,7 +1756,7 @@ function livePanel(){
 if(BUILD==='live') setTimeout(liveStart,300);
 
 /* ---------- views ---------- */
-const TABS=[['save',BUILD==='live'?'實時連線':'上載存檔'],['me','我的精靈'],['raise','育成紀錄'],['plan','進化目標'],['egg','選蛋路線'],['tech','招式查詢'],['battle','戰鬥學招'],['brain','智力學招'],['items','道具'],['map','地圖'],['recruit','繁榮度'],['diner','食堂'],['arena','鬥技場']];
+const TABS=[['save',BUILD==='live'?'實時連線':'上載存檔'],['me','我的精靈'],['raise','育成紀錄'],['plan','進化目標'],['egg','選蛋路線'],['tech','招式查詢'],['battle','戰鬥學招'],['brain','智力學招'],['items','道具'],['cards','卡片'],['map','地圖'],['recruit','繁榮度'],['diner','食堂'],['arena','鬥技場']];
 function renderTabs(){
   $('#tabs').innerHTML=TABS.map(([k,n])=>`<button role="tab" id="tab-${k}" aria-selected="${S.tab===k}" data-tab="${k}">${n}</button>`).join('');
 }
@@ -1764,7 +1767,7 @@ function renderLCD(){
     <div><span>開心度</span><b>${S.hap??0}</b></div><div><span>教養</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** 代表上載存檔才可以獲得該項數值"'}><span>疲勞</span><b>${known('fat')?S.fat:'***'}</b></div><div title="漠視數碼精靈呼叫的次數"><span>失誤</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${NOSAVE()?'<div title="*** 代表上載存檔才可以獲得該項數值"><span>壽命</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' ・ 網頁版'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` ・ 實時版 ・ <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">網頁版（手機、上載存檔）↗</a>`; }
-function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
+function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
 
 /* 網頁版沒有上載存檔時：遊戲畫面不顯示的數值以 *** 代替（實時版不受影響） */
 const NOSAVE=()=>BUILD!=='live' && !S.svFile;
