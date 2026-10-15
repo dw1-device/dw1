@@ -174,6 +174,7 @@ details.who summary{font-size:12px}details.who{font-size:12px;margin-top:4px}det
 .pbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent)}
 .pbar b{position:absolute;top:-3px;width:2px;height:18px;background:var(--ink);opacity:.5}
 ul.miles li.ok{color:var(--muted)}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:4px}.cg{border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:12px;opacity:.45;position:relative}.cg span{color:var(--muted);margin-right:4px;font-variant-numeric:tabular-nums}.cg b{font-weight:500}.cg i{position:absolute;right:5px;top:3px;font-style:normal;font-weight:700}.cg.y{opacity:1;background:color-mix(in srgb,#2f9e44 12%,transparent)}
 .numtop{margin-bottom:12px}.ncount{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin:6px 0}.ncount b{font-size:22px;font-variant-numeric:tabular-nums}.ncount .meter{flex:1 1 100%;margin:2px 0 0}.nstat{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}.nstat.g{background:color-mix(in srgb,#2f9e44 16%,transparent)}.nstat.r{background:color-mix(in srgb,#c92a2a 16%,transparent)}.nstat.y{background:color-mix(in srgb,#e8a317 20%,transparent)}.nstat.o{background:color-mix(in srgb,#f08c00 16%,transparent)}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
 .numrisk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.numrisk.hi{border-color:#c2410c}.numrisk .nr-top{display:flex;gap:10px;align-items:center}.numrisk .nr-p{font-size:1.8rem;font-weight:700;min-width:3.2em}.numrisk.hi .nr-p{color:#c2410c}.numrisk .nrbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.numrisk .nrbar i{display:block;height:100%;background:#c2410c}
 .verdict{border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}.verdict.ok{background:color-mix(in srgb,var(--good) 14%,transparent);border:1px solid var(--good)}.verdict.no{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}.verdict b:first-child{margin-right:4px}
@@ -619,6 +620,10 @@ const DRILL_ORDER=['hp','mp','atk','def','spd','int'];
 const STAT_BIT={atk:1,def:2,spd:4,int:8,hp:16,mp:32};
 const FOOD_BOOST={none:null,carrot:{mask:0x29,mult:12},radish:{mask:0x16,mult:12},cone:{mask:0x3f,mult:15}};
 const ITEM_JP=["回復フロッピー", "中回復フロッピー", "大回復フロッピー", "超回復フロッピー", "ＭＰフロッピー", "中ＭＰフロッピー", "大ＭＰフロッピー", "ダブルフロッピー", "色々フロッピー", "万能フロッピー", "対変化フロッピー", "再生フロッピー", "超再生フロッピー", "ばんそうこう", "薬", "攻撃プラグイン", "防御プラグイン", "高速プラグイン", "万能プラグイン", "攻撃プラグインＳ", "防御プラグインＳ", "高速プラグインＳ", "オートパイロット", "攻撃チップ", "防御チップ", "かしこさチップ", "すばやさチップ", "ＨＰチップ", "ＭＰチップ", "デビルチップＡ", "デビルチップＤ", "デビルチップＥ", "けいたいトイレ", "トレーマニュアル", "安眠まくら", "敵よけお守り", "敵よせシグナル", "健康サンダル", "肉", "巨大肉", "極上肉", "挑戦ニンジン", "サクラ鳥大根", "ペンペンペン草", "デジタケ", "雪割りキノコ", "デラックスキノコ", "デジぼっくり", "ブルーリンゴ", "アセラロ", "黄金ドングリ", "ヘビーいちご", "天然あまぐり", "モンドレイク", "食用サボテン", "オレンジバナナ", "ごうりき草の実", "じょうぶ草の実", "はやあし草の実", "ものしり草の実", "もりもり草の実", "やすらぎ草の実", "デジジャコ", "デジブナ", "デジマス", "ブラックデジマス", "デジナマズ", "デジカムル", "くさった肉", "運だめしキノコ", "クサリカケメロン", "灰色の爪", "炎のかけら", "燃える羽", "鉄のヒヅメ", "モノクロストーン", "鋼のドリル", "牙の化石", "黒い羽", "トゲこん棒", "輝くたてがみ", "白い羽", "ボロ布", "電気リング", "虹色の笛", "風見鶏", "聖なる角", "重い兜", "ギザギザはさみ", "有機肥料", "イガ流の秘伝書", "お供え酒", "北極星の印", "赤い貝がら", "硬いウロコ", "ミスリル", "氷水晶", "けはえ薬", "サングラス", "メタルパーツ", "死を呼ぶ骨", "サイバーパーツ", "メガハンド", "銀玉", "メタルアーマー", "チェンソー", "小さな槍", "愛のばんそうこう", "ビームガン", "金のバナナ", "謎のタマゴ", "奇跡のルビー", "ビートルダイヤ", "サンゴのお守り", "月光の鏡", "湖のぬしの笛", "ぼろい釣ざお", "すごい釣ざお", "レオモン族の石板", "館のカギ", "はぐるま", "雨ふり草の実", "血のしたたる肉", "れいぞうこのカギ", "古代文字解読機", "ギガハンド", "高貴なたてがみ", "メタルバナナ"];
+// 卡片 1～65（DG.SCN 第 332 段抽卡機「カードダス」的名單次序，與遊戲卡片畫面編號一致；65 是打倒無限龍獸的獎品；66 名稱未明）
+const CARDS=[null,'ホウオウモン','ヘラクルカブテリモン','メガシードラモン','トノサマゲコモン','ヴァンデモン','メタルグレイモン','マメモン','もんざえモン','スカルグレイモン','メタルマメモン','ベーダモン','アンドロモン','ギロモン','エテモン','メガドラモン','ピッコロモン','デジタマモン','ゲコモン','ワルモンザエモン','ジジモン','スカモン大王','ジュレイモン','ガードロモン','ハグルモン','ブラキモン','グレイモン','デビモン','エアドラモン','ティラノモン','メラモン','シードラモン','カブテリモン','エンジェモン','バードラモン','ガルルモン','ユキダルモン','ホエーモン','ユニモン','オーガモン','シェルモン','ケンタルモン','バケモン','ドリモゲモン','モノクロモン','レオモン','シーラモン','コカトリモン','クワガーモン','モジャモン','イガモン','ペンモン','オタマモン','テントモン','ヤンマモン','ゴツモン','フレアリザモン','トイアグモン','プチメラモン','タンクモン','ゴブリモン','ヌメモン','ベジーモン','スカモン','ナニモン','ムゲンドラモン',null];
+const CARD_CN={'ヘラクルカブテリモン':'力神比多獸','トノサマゲコモン':'怪蛙皇','ヴァンデモン':'吸血魔獸','ゲコモン':'怪蛙獸','ワルモンザエモン':'惡霸熊仔獸','ジジモン':'老爺爺','スカモン大王':'大便獸大王','ジュレイモン':'樹妖','ガードロモン':'守衛獸','ハグルモン':'齒輪獸','ブラキモン':'腕龍獸','オタマモン':'蝌蚪獸','テントモン':'甲蟲獸','ヤンマモン':'蜻蜓獸','ゴツモン':'礦石獸','フレアリザモン':'火蜥蜴獸','トイアグモン':'玩具亞古獸','プチメラモン':'小火焰獸','タンクモン':'坦克獸','ゴブリモン':'野人獸','ムゲンドラモン':'無限龍獸'};
+function cardName(n){ const jp=CARDS[n]; if(!jp) return '（名稱未明）'; return CARD_CN[jp]||(D.digis.find(x=>x.jp===jp)||{}).name||jp; }
 // 遊戲內名稱用全形英數（ＭＰ、Ｓ、Ａ…），道具表用半形，所以比對前統一（NFKC）；個別名稱不同的另外對應
 const ITEM_ALIAS={'ペンペンペン草':'ペンペン草'};
 const ITEM_NORM=t=>String(t||'').normalize('NFKC');
@@ -911,12 +916,16 @@ function fillItems(){
 function vItems(){
   const cat=S.itemCat||'全部';
   const bagRows=list=>`<div class="tw"><table class="stk"><thead><tr><th>道具</th><th class="num">數量</th><th>效果</th></tr></thead><tbody>${list.map(([id,n])=>{ const r=itemRow(id); return `<tr><td class="c1"><b>${esc(itemName(id))}</b> <span class="hint">${esc(ITEM_JP[id]||'')}</span></td><td class="num" data-l="數量">${n}</td><td data-l="效果">${r?esc(r[6]):''}</td></tr>`; }).join('')}</tbody></table></div>`;
+  const cardSec=Array.isArray(S.cards)? (()=>{ const own=new Map(S.cards); const kinds=S.cards.length, total=S.cards.reduce((a,x)=>a+x[1],0);
+    return `<section class="panel"><h2>卡片收藏 <small>${LIVE.on?'實時讀取':'取自存檔'}・${kinds}／66 種・共 ${total} 張</small></h2>
+      <div class="cardgrid">${[...Array(66).keys()].map(i=>{ const n=i+1, k=own.get(n)||0; return `<div class="cg${k?' y':''}" title="${n}. ${esc(cardName(n))}${CARDS[n]?'（'+CARDS[n]+'）':''}"><span>${n}</span><b>${esc(cardName(n))}</b>${k?`<i>×${k}</i>`:''}</div>`; }).join('')}</div>
+      <details class="dtips"><summary>卡片怎樣取得</summary><p class="hint">齒輪莽原卡片市場的抽卡機「カードダス」每次 100｛｝抽 1 張（1～5 號較稀有）；65 號無限龍獸是打倒無限龍獸後的獎品；66 號的名稱還未在遊戲資料中找到。每張最多記 15 張。</p></details></section>`; })() : '';
   const store=S.storage&&S.storage.length? `<section class="panel"><h2>倉庫 <small>預り屋・${S.storage.length} 種</small></h2>${bagRows(S.storage)}<p class="hint">倉庫的道具不算「持有」，例如訓練手冊要放在背包才有效。</p></section>`:'';
   const bag=S.bag? `<section class="panel"><h2>我的背包 <small>${LIVE.on?'實時讀取':'取自存檔'}・${S.bag.length}${S.bagCap?'／'+S.bagCap:''} 格</small></h2>
     ${S.bag.length?`<div class="tw"><table class="stk"><thead><tr><th>道具</th><th class="num">數量</th><th>效果</th></tr></thead><tbody>${S.bag.map(([id,n])=>{ const r=itemRow(id); return `<tr><td class="c1"><b>${esc(itemName(id))}</b> <span class="hint">${esc(ITEM_JP[id]||'')}</span></td><td class="num" data-l="數量">${n}</td><td data-l="效果">${r?esc(r[6]):''}</td></tr>`; }).join('')}</tbody></table></div>`:'<p class="hint">背包是空的。</p>'}
     ${hasItem(33)?'<p class="hint">背包有訓練手冊：所有訓練 ×1.1 已自動計入。</p>':''}
     <p class="hint">目前食物加成：${boostText(S.boost)}</p></section>`:'';
-  $('#view').innerHTML=bag+store+`<section class="panel"><h2>道具一覽 <small id="item-count"></small></h2>
+  $('#view').innerHTML=bag+store+cardSec+`<section class="panel"><h2>道具一覽 <small id="item-count"></small></h2>
     <div class="row"><label class="f" style="flex:1 1 220px">搜尋（名稱、效果、取得地點）<input type="search" id="item-q" value="${esc(S.itemQ||'')}" placeholder="例如：疲勞、教養、天使獸、肉田"></label></div>
     <div class="row">${ITEM_CATS.map(c=>`<button class="b${c===cat?' p':''}" data-icat="${c}">${c}</button>`).join('')}</div>
     <div class="tw"><table><thead><tr><th>分類</th><th>道具</th><th>使用時機</th><th class="num">價格</th><th class="num">功績</th><th>效果</th><th>主要取得方式</th></tr></thead><tbody id="item-body"></tbody></table></div>
@@ -1378,7 +1387,8 @@ function svParse(buf){
     const flag=n=>!!(u[c+656+245+(n>>3)]&(1<<(n&7)));
     const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d? flag(200+d.id) : false; });
     const yr=i16(c+464);
-    out.push({n:out.length+1, title, cur:sp, recruited,
+    const cards=[]; for(let n=1;n<=66;n++){ const k=(u[c+656+212+(n>>1)]>>(4*(n&1)))&15; if(k) cards.push([n,k]); }  // 卡片：旗標表 +212，每張半個 byte
+    out.push({n:out.length+1, title, cur:sp, recruited, cards,
       stats:{hp:i16(c+640), mp:i16(c+642), atk:i16(c+624), def:i16(c+626), spd:i16(c+628), int:i16(c+630)},
       dis:i16(P+40), hap:i16(P+42), days:i16(P+74), fat:i16(P+34), lives:u[c+1167],
       bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(30).keys()].map(i=>[u[c+1182+i],u[c+1212+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
@@ -1556,6 +1566,7 @@ function svApply(){
   const v=(S.svList||[])[S.svSel]; if(!v) return;
   const tot=v.days*24+v.hh-v.age;
   if(v.recruited) S.recruited=v.recruited.slice();
+  if(Array.isArray(v.cards)) S.cards=v.cards.map(x=>x.slice());
   if(v.fat!=null) S.fat=v.fat; if(v.lives!=null) S.lives=v.lives;
   if(v.day!=null){ S.arenaDay=(v.day%30)+1; S.gameDay=v.day; S.gameYear=v.year??null; }
   if(v.bag) S.bag=v.bag.map(x=>x.slice()); if(v.bagCap!=null) S.bagCap=v.bagCap; if(v.storage) S.storage=v.storage.map(x=>x.slice()); if(v.boost) S.boost={...v.boost}; if(v.drillCnt) S.drillCnt=v.drillCnt.slice();
@@ -1662,7 +1673,7 @@ function liveToV(j){
   const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d && j.recruitedIds.includes(d.id); });
   return {n:1,title:'RetroArch 實時',cur:j.cur,stats:j.stats,dis:j.dis,hap:j.hap,days:j.days,weight:j.weight,life:j.life,mis:j.mis,win:j.win,age:j.age,poop:j.poop,fat:j.fat,lives:j.lives,
     tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,year:Number.isInteger(j.year)&&j.year>=0&&j.year<100?j.year:null,hh:j.hh,mm:j.mm,live:true,
-    bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined};
+    bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, cards: Array.isArray(j.cards)? j.cards : undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined};
 }
 function liveBusyInput(){ const a=document.activeElement; return a && a.closest && a.closest('#view') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.id!=='liveBtn'; }
 async function liveTick(){
