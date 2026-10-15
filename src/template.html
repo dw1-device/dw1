@@ -635,6 +635,17 @@ function vPlan(){
     const stages=makePlan(path); let total=0,restT=0;
     body=stages.map((sg,si)=>{
       const head=`<h3>${DG[sg.from].name} → ${DG[sg.to].name} <span class="hint">（${LV[DG[sg.from].level]}，訓練係數 ${(1+stageMult(DG[sg.from].level)).toFixed(1)}）</span></h3>`;
+      if(!sg.r && sg.to===NUMEMON && sg.from===S.cur){
+        const A=evoAdvice(NUMEMON); const P=A.p;
+        const caps=P.rows.filter(r=>{ const st=r.groups.find(g=>g.k==='stat'); return st && !st.ok && r.groups.filter(g=>g.k!=='stat'&&g.ok).length>=2 && D.evo[r.id]?.stats; })
+          .map(r=>{ const e=Object.entries(D.evo[r.id].stats); return `<b>${DG[r.id].name}</b>：`+(e.length===1? `${SN[e[0][0]]}不要練到 ${e[0][1]}` : `${e.map(([k,v])=>SN[k]+' '+v).join('、')}不要全部練到（任何一項保持未達標即可）`); });
+        return head+`<p class="hint">${esc(sg.note)}</p>
+          <div class="note${A.ok?' ok-note':''}">${A.ok?'按目前數值，到 96 小時會變成 <b>鼻涕獸</b>。':`按目前數值會進化成 <b>${P.best!==-1?DG[P.best].name:'—'}</b>，不是鼻涕獸。`}</div>
+          <ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
+          <p><b>訓練要注意</b>：訓練只會提高能力，不能令候選失去資格，所以鼻涕獸不靠訓練達成；體重靠飲食、睡覺、大便調整（例如挑戰胡蘿蔔 −2、食用仙人掌 −5，肉類會增重），失誤靠不回應呼叫增加。</p>
+          ${caps.length?`<p class="hint">想繼續訓練的話，避免以下能力全部達標，否則該候選會重新合資格：</p><ul class="ml2 tips">${caps.map(c=>`<li>${c}</li>`).join('')}</ul>`:''}
+          <p class="hint">判定由成長期 72 小時開始每小時一次，直到 96 小時；這段時間數值都要保持。</p>`;
+      }
       if(!sg.r) return head+`<p class="hint">${esc(sg.note)}</p>`;
       total+=sg.r.n; restT+=sg.r.restH;
       const need=STAGE_AGE[DG[sg.from].level];
