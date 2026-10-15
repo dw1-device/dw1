@@ -1488,8 +1488,8 @@ const DINER_MAIN=['火焰獸','巨龍獸','加魯魯獸','雪人獸'];
 const DINER_INTRO={'火焰獸':0x3a,'巨龍獸':0x3d,'加魯魯獸':0x3c,'雪人獸':0x3b};  // 開業介紹旗標
 // 已加入但未介紹的主廚（未知時當全部介紹過）
 function dinerNew(got){ const iv=S.chefIntro; return Array.isArray(iv)? DINER_MAIN.filter(n=>got.has(n)&&!iv.includes(n)) : []; }
-function dinerChef(hour, got){
-  const fresh=dinerNew(got)[0];
+function dinerChef(hour, got, noIntro){
+  const fresh=noIntro? null : dinerNew(got)[0];
   if(fresh) return {base:fresh, fresh:true, vade:false, digi:false};
   const main=DINER.filter(c=>c.hours&&got.has(c.chef));
   const slot=main.find(c=>hour>=c.hours[0]&&hour<c.hours[1]);
@@ -1498,29 +1498,34 @@ function dinerChef(hour, got){
 }
 function dinerFx(v){ return DINER_KEYS.map((k,i)=>[k,v[i]]).filter(([k,x])=>x).map(([k,x])=>`<span class="fx ${k==='fat'?(x<0?'g':'b'):x>0?'g':'b'}">${DINER_LAB[k]} ${x>0?'+':''}${x}</span>`).join(' '); }
 function vDiner(){
-  const got=new Set(S.recruited||[]); const hr=S.clock??12;
-  const now=dinerChef(hr,got); const anyChef=DINER.some(c=>got.has(c.chef));
+  const got0=new Set(S.recruited||[]); const hr=S.clock??12;
+  // 沒有上載存檔、也沒有在「繁榮度」勾選任何廚師：當作四位主廚都已加入，照常顯示輪班
+  const known=!!S.svFile || DINER.some(c=>got0.has(c.chef));
+  const anyChef=DINER.some(c=>got0.has(c.chef));
+  const anyMain=DINER_MAIN.some(n=>got0.has(n));
+  const got= anyMain? got0 : new Set([...got0,...DINER_MAIN]);   // 當值表用
+  const now=dinerChef(hr,got,!anyMain);
   const want=S.dinerWant||'';
   const loc=n=>{ const r=RECRUITS.find(r=>r[0]===n); return r? r[1] : ''; };
   let nowHTML;
-  if(!anyChef) nowHTML='<div class="note">還沒有廚師加入，食堂未開張。招募火焰獸、巨龍獸、加魯魯獸、雪人獸其中一隻後開張（在「繁榮度」勾選已加入的精靈，或上載存檔自動讀取）。</div>';
+  if(known&&!anyMain) nowHTML=`<div class="note">${anyChef?'四位主廚都還沒加入':'還沒有廚師加入'}，食堂未開張；招募火焰獸、巨龍獸、加魯魯獸、雪人獸其中一隻後開張。下面是主廚加入後的輪班：${hr} 時是<b>${now.base}</b>。</div>`;
   else {
     const parts=[]; if(now.vade) parts.push('約 20% 是宇宙腦魔'); if(now.digi) parts.push(`約 ${now.vade?'8':'10'}% 是蛋蛋獸`);
-    const fresh=dinerNew(got);
+    const fresh=anyMain? dinerNew(got) : [];
     nowHTML= now.fresh? `<div class="note ok-note">現在進店：<b>${now.base}</b>當值，不論時間。${now.base}剛加入，還未在食堂和你打招呼；他會一直當值，直到你和他說話、聽完開業介紹為止${fresh.length>1?`。之後輪到${fresh.slice(1).join('、')}，同樣要逐一打招呼`:''}。打過招呼後才按時間輪班。</div>`
-      : `<div class="note ok-note">現在 ${hr} 時進店：${now.base?`<b>${now.base}</b>當值`:'沒有當值廚師'}${parts.length?`；${parts.join('、')}（每次進店重新決定）`:''}。</div>`;
+      : `<div class="note ok-note">現在 ${hr} 時進店：${now.base?`<b>${now.base}</b>當值`:'沒有當值廚師'}${parts.length?`；${parts.join('、')}（每次進店重新決定）`:''}。${known?'':'<span class="hint">（沒有上載存檔，按四位主廚都已加入計算；已招募宇宙腦魔、蛋蛋獸的話，每次進店有機會換成牠們。）</span>'}</div>`;
   }
-  const sched=`<div class="dsched">${[...Array(24).keys()].map(h=>{ const c=dinerChef(h,got).base; const on=h===hr; return `<div class="dh${on?' on':''}" title="${h} 時：${c||'—'}"><span>${h}</span><i class="dc${c?DINER_MAIN.indexOf(c):'x'}"></i></div>`; }).join('')}</div>
-    <div class="dleg">${DINER_MAIN.map((n,i)=>`<span><i class="dc${i}"></i>${n}${got.has(n)?'':'（未加入）'}</span>`).join('')}<span class="rnd"><i></i>宇宙腦魔（約 20%）、蛋蛋獸（約 10%）：不跟時間表，每次進店隨機出現${got.has('宇宙腦魔')||got.has('蛋蛋獸')?'':'（未加入）'}</span></div>`;
+  const sched=`<div class="dsched">${[...Array(24).keys()].map(h=>{ const c=dinerChef(h,got,!anyMain).base; const on=h===hr; return `<div class="dh${on?' on':''}" title="${h} 時：${c||'—'}"><span>${h}</span><i class="dc${c?DINER_MAIN.indexOf(c):'x'}"></i></div>`; }).join('')}</div>
+    <div class="dleg">${DINER_MAIN.map((n,i)=>`<span><i class="dc${i}"></i>${n}${known&&!got0.has(n)?'（未加入）':''}</span>`).join('')}<span class="rnd"><i></i>宇宙腦魔（約 20%）、蛋蛋獸（約 10%）：不跟時間表，每次進店隨機出現${known&&!got0.has('宇宙腦魔')&&!got0.has('蛋蛋獸')?'（未加入）':''}</span></div>`;
   const wantOpts=[['','全部'],['atk','攻擊'],['def','防禦'],['spd','速度'],['int','智力'],['hp','HP'],['mp','MP'],['dis','教養'],['hap','心情']];
   const cards=DINER.map(c=>{
-    const joined=got.has(c.chef); const when=c.hours? `${c.hours[0]}～${c.hours[1]-1} 時` : `進店時${c.rand}`;
+    const joined=got0.has(c.chef); const when=c.hours? `${c.hours[0]}～${c.hours[1]-1} 時` : `進店時${c.rand}`;
     const rows=c.dishes.map(([tc,jp,price,fx])=>{
       const multi=Array.isArray(fx[0]); const list=multi?fx:[fx];
       const hit=!want || list.some(v=>v[DINER_KEYS.indexOf(want)]>0);
       return `<tr class="${hit?'':'dim'}"><td class="c1"><b>${tc}</b><br><span class="hint">${jp}</span></td><td class="num" data-l="價錢">${price}</td><td data-l="效果">${multi? list.map((v,i)=>`<div><span class="hint">${['甲','乙','丙'][i]}：</span>${dinerFx(v)}</div>`).join('') : dinerFx(fx)}</td></tr>`; }).join('');
-    return `<section class="panel${joined?'':' faded'}"><h2>${c.chef} <small>${when}</small></h2>
-      <p class="hint">${joined?'<span class="pill ok">已加入</span> ':'<span class="pill">未加入</span> '}${joined&&c.hours?`<label style="white-space:nowrap"><input type="checkbox" data-intro="${c.chef}"${!Array.isArray(S.chefIntro)||S.chefIntro.includes(c.chef)?' checked':''}> 已在食堂打過招呼</label> `:''}招募地點：${esc(loc(c.chef))}${c.chef==='蛋蛋獸'?'。三款效果（甲、乙、丙）隨機出其中一款，各約 1/3。':''}</p>
+    return `<section class="panel${joined||!known?'':' faded'}"><h2>${c.chef} <small>${when}</small></h2>
+      <p class="hint">${!known?'':joined?'<span class="pill ok">已加入</span> ':'<span class="pill">未加入</span> '}${(joined||!known)&&c.hours?`<label style="white-space:nowrap"><input type="checkbox" data-intro="${c.chef}"${!Array.isArray(S.chefIntro)||S.chefIntro.includes(c.chef)?' checked':''}> 已在食堂打過招呼</label> `:''}招募地點：${esc(loc(c.chef))}${c.chef==='蛋蛋獸'?'。三款效果（甲、乙、丙）隨機出其中一款，各約 1/3。':''}</p>
       <div class="tw"><table class="stk"><thead><tr><th>料理</th><th class="num">價錢 ｛｝</th><th>效果</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
   }).join('');
   $('#view').innerHTML=`<div class="grid">
