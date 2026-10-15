@@ -174,6 +174,7 @@ details.who summary{font-size:12px}details.who{font-size:12px;margin-top:4px}det
 .pbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent)}
 .pbar b{position:absolute;top:-3px;width:2px;height:18px;background:var(--ink);opacity:.5}
 ul.miles li.ok{color:var(--muted)}
+.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
 .numrisk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.numrisk.hi{border-color:#c2410c}.numrisk .nr-top{display:flex;gap:10px;align-items:center}.numrisk .nr-p{font-size:1.8rem;font-weight:700;min-width:3.2em}.numrisk.hi .nr-p{color:#c2410c}.numrisk .nrbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.numrisk .nrbar i{display:block;height:100%;background:#c2410c}
 .verdict{border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}.verdict.ok{background:color-mix(in srgb,var(--good) 14%,transparent);border:1px solid var(--good)}.verdict.no{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}.verdict b:first-child{margin-right:4px}
 .life{display:flex;flex-direction:column;gap:4px;margin-top:4px}
@@ -448,6 +449,47 @@ function numemonRisk(ctx){
     + (close.length? `差 1 組就合資格的：${close.map(r=>DG[r.id].name).join('、')}。` : '所有候選都差 2 組或以上，很可能會變成鼻涕獸。')};
 }
 // 幫玩家達成目標
+/* 鼻涕獸助手：找出令所有候選都少於 3 組的「體重 × 失誤」組合（失誤只會增加）；
+   選擇繼續訓練時，先找就算能力全部練滿也成立的組合，找不到才改為列出能力上限。 */
+function numemonHelper(){
+  const base={cur:S.cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised};
+  const train=!!S.numTrain, m0=Math.max(0,base.mis|0), w0=base.weight;
+  const maxSt={hp:9999,mp:9999,atk:999,def:999,spd:999,int:999};
+  const okAt=(w,m,st)=>predictEvo({...base,weight:w,mis:m,stats:st}).best===-1;
+  const grid=st=>{ const rows=[]; for(let m=m0;m<=m0+10;m++){ const ws=[]; for(let w=1;w<=99;w++) if(okAt(w,m,st)) ws.push(w); rows.push({m,ws}); } return rows; };
+  let proof=train, G=grid(train?maxSt:base.stats);
+  if(train && !G.some(r=>r.ws.length)){ proof=false; G=grid(base.stats); }
+  const rng=ws=>{ const out=[]; let a=null,b=null; ws.forEach(w=>{ if(a===null){a=b=w;} else if(w===b+1) b=w; else { out.push([a,b]); a=b=w; } }); if(a!==null) out.push([a,b]); return out; };
+  const rtxt=ws=>rng(ws).map(([a,b])=>a===1&&b===99?'任何體重':a===b?`${a}g`:a===1?`${b}g 或以下`:b===99?`${a}g 或以上`:`${a}～${b}g`).join('、');
+  // 合併相同體重範圍的失誤次數
+  const merged=[]; G.forEach(r=>{ const k=r.ws.join(','); const L=merged[merged.length-1]; if(L&&L.k===k) L.m2=r.m; else merged.push({k,m1:r.m,m2:r.m,ws:r.ws}); });
+  let best=null; G.forEach(r=>r.ws.forEach(w=>{ const c=(r.m-m0)*3+Math.abs(w-w0); if(!best||c<best.c) best={c,w,m:r.m}; }));
+  const head=`<h3>鼻涕獸助手</h3><label style="display:block;margin-bottom:6px"><input type="checkbox" id="c-numtrain"${train?' checked':''}> 我會繼續訓練（只建議練多少都不怕的組合，並列出安全的訓練）</label>`;
+  if(!best) return `<div class="nhelp">${head}<div class="note">在失誤 ${m0}～${m0+10} 次、體重 1～99g 內都找不到令所有候選少於 3 組的組合：已達成的能力、技能、戰勝這些條件不會下降，這隻成長期很難變成鼻涕獸。可以考慮下一隻精靈在幼年期 II 時選另一個成長期。</div></div>`;
+  const tbl=`<div class="tw"><table class="stk"><thead><tr><th>失誤次數</th><th>體重要在</th></tr></thead><tbody>${merged.map(x=>`<tr${best.m>=x.m1&&best.m<=x.m2?' class="hl"':''}><td data-l="失誤">${x.m1===x.m2?x.m1+' 次':x.m2===m0+10?x.m1+' 次或以上':x.m1+'～'+x.m2+' 次'}${x.m1===m0?'（目前 '+m0+' 次）':''}</td><td data-l="體重">${x.ws.length?rtxt(x.ws):'<span class="hint">沒有可行的體重</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+  const add=best.m-m0, dw=best.w-w0;
+  let rec=`<p><b>建議</b>：失誤 <b>${best.m} 次</b>${add?`（再漠視呼叫 ${add} 次）`:'（維持現在，不要再犯）'}，體重保持在 <b>${rtxt(G.find(r=>r.m===best.m).ws)}</b>${dw?`（目前 ${w0}g，${dw<0?'減':'增'} ${Math.abs(dw)}g 就夠）`:`（目前 ${w0}g，已經符合）`}。</p>`;
+  rec+=`<p class="hint">失誤只會增加（進化後才歸零），所以表內由目前的 ${m0} 次開始。漠視肚餓、便意、想睡等呼叫一次算一次失誤，頂部的「失誤」會即時更新；多犯了可能會進入別的候選的範圍，請對照上表。</p>`;
+  // 能力上限與安全訓練
+  let caps='', drl='';
+  if(!proof){
+    const P=predictEvo({...base,weight:best.w,mis:best.m});
+    const cs=P.rows.filter(r=>{ const st=r.groups.find(g=>g.k==='stat'); return st&&!st.ok&&r.groups.filter(g=>g.k!=='stat'&&g.ok).length>=2&&D.evo[r.id]?.stats; })
+      .map(r=>{ const e=Object.entries(D.evo[r.id].stats); return `<li><b>${DG[r.id].name}</b>：${e.map(([k,v])=>`${SN[k]} ${base.stats[k]}/${v}`).join('、')} ${e.length>1?'——任何一項保持未達標即可':'——不要練到'}</li>`; });
+    if(cs.length) caps=`<p>${train?'就算能力練滿也成立的組合找不到，所以要控制能力：':'按上面的建議，這些能力不要達標：'}</p><ul class="ml2 tips">${cs.join('')}</ul>`;
+  } else {
+    caps='<p class="hint">上表的組合就算能力全部練滿也成立，可以放心訓練。</p>';
+    let alt=null; for(let m=m0;m<=m0+10&&!alt;m++){ const ws=[]; for(let w=1;w<=99;w++) if(okAt(w,m,base.stats)) ws.push(w); if(ws.length&&m<best.m) alt={m,ws}; }
+    if(alt) caps+=`<p class="hint">不想犯那麼多失誤的話：失誤 ${alt.m} 次、體重 ${rtxt(alt.ws)} 按目前能力也可以，但之後訓練要控制能力（取消勾選「我會繼續訓練」看要避開哪些能力）。</p>`;
+  }
+  if(train){
+    const lv=DG[S.cur].level; const items=[];
+    GYMS.forEach(g=>g.items.forEach(([n,b,main])=>{ const gain=trainGain(g,b,lv,false,main); const st={...base.stats}; for(const k in gain) st[k]=Math.min(k==='hp'||k==='mp'?9999:999,st[k]+gain[k]);
+      items.push({t:(g.id==='green'?'':g.name+'・')+n, ok:okAt(best.w,best.m,st), gain}); }));
+    drl=`<p>${proof?'所有訓練都安全：':'按建議組合，下一次訓練是否安全（已計附帶的能力）：'}</p><div class="drl">${items.map(x=>`<span class="${x.ok?'y':'n'}" title="${Object.entries(x.gain).map(([k,v])=>SN[k]+'+'+v).join('、')}">${x.ok?'✓':'✗'} ${x.t}</span>`).join('')}</div>${items.some(x=>!x.ok)?'<p class="hint">✗ 的訓練再做一次就會令某個候選合資格；能力每次訓練後都會重新計算。</p>':''}`;
+  }
+  return `<div class="nhelp">${head}${rec}${tbl}${caps}${drl}<p class="hint">判定由成長期 72 小時開始每小時一次，到 96 小時沒有候選合資格就變成鼻涕獸；這段時間都要保持在建議範圍內。</p></div>`;
+}
 function evoAdvice(goal, ctx){
   const p=predictEvo(ctx); const tips=[];
   if(goal===NUMEMON){
@@ -1735,7 +1777,8 @@ function vRaise(){
         <p class="hint">遊戲這一步沒有隨機成分：年齡 72～95 小時每過一小時判定一次，只要有候選合資格就會立即進化；到 96 小時仍沒有，就一定變成鼻涕獸。所以「機會」只會是 0% 或 100%，關鍵是在 96 小時前數值會不會改變。</p></div>`; }
     if(goals.length){ const A=evoAdvice(S.evoGoal);
       evoHTML+=`<div class="goalbox"><label class="f">我想進化成<select id="sel-evogoal">${goals.map(id=>`<option value="${id}"${id===S.evoGoal?' selected':''}>${DG[id].name}${id===NUMEMON?'（成長期期滿未進化）':''}</option>`).join('')}</select></label>
-        ${A.ok?`<p><span class="pill ok">目前路線正確</span> ${S.evoGoal===NUMEMON?'沒有任何候選合資格。':'保持現況到進化時間即可。'}</p>${A.tips.length?`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:'<p class="hint">留意之後的訓練、體重和失誤不要令其他候選追上。</p>'}`:`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`}</div>`; }
+        ${A.ok?`<p><span class="pill ok">目前路線正確</span> ${S.evoGoal===NUMEMON?'沒有任何候選合資格。':'保持現況到進化時間即可。'}</p>${A.tips.length?`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:'<p class="hint">留意之後的訓練、體重和失誤不要令其他候選追上。</p>'}`:`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`}</div>`;
+      if(S.evoGoal===NUMEMON && d.level===3) evoHTML+=numemonHelper(); }
     evoHTML += P.rows.map(t=>`<div class="cand${P.best===t.id?' best':''}${S.evoGoal===t.id?' goal':''}">
       <header><b>${t.order}. ${DG[t.id].name}</b><span>${P.best===t.id?'<span class="pill ok">預計進化</span> ':''}${t.raised?'<span class="pill">養過</span> ':''}${P.avgMode&&t.avg!==undefined?`<span class="pill">平均 ${t.avg}</span> `:''}<span class="pill ${t.eff>=3?'ok':t.met===2?'w':'no'}">${t.met}／4 組${t.eff!==t.met?' → '+t.eff:''}</span></span></header>
       <div class="groups">${t.groups.map(g=>`<div><span class="mark ${g.ok?'y':'n'}">${g.ok?'○':'×'}</span><span><b>${g.name}</b> ${esc(g.detail)}</span></div>`).join('')}</div>${t.adj?`<p class="hint">${esc(t.adj)}</p>`:''}${P.avgMode&&t.avg!==undefined?`<p class="hint">比較分數：要求能力的平均 ${t.own}${t.carry?`；前面落敗候選的累計（平均 ${t.carry.s}、${t.carry.n} 項）一併計入 → ${t.avg}`:''}。${t.win?(t.prevBest!==-1?`高於當時領先的 ${t.beat}，取代領先。`:'第一個合資格，暫時領先。'):`沒有高於當時領先的 ${t.beat}。`}</p>`:''}</div>`).join('');
@@ -2048,6 +2091,7 @@ document.addEventListener('change',e=>{
   S.sample=false;
   if(t.dataset.rec){ const n=t.dataset.rec; S.recruited=(S.recruited||[]).filter(x=>x!==n); if(t.checked) S.recruited.push(n); render(); return; }
   if(t.id==='sel-evogoal'){ S.evoGoal=+t.value; render(); return; }
+  if(t.id==='c-numtrain'){ S.numTrain=t.checked; render(); return; }
   if(t.dataset.raised){ const id=+t.dataset.raised; S.raised=(S.raised||[]).filter(x=>x!==id); if(t.checked) S.raised.push(id); render(); return; }
   if(t.id==='sel-mreg'){ S.mapRegion=t.value; if(!t.value) S._mapWasZoom=true; render(); return; }
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
