@@ -700,7 +700,7 @@ function vPlan(){
     body=stages.map((sg,si)=>{
       const head=`<h3>${DG[sg.from].name} → ${DG[sg.to].name} <span class="hint">（${LV[DG[sg.from].level]}，訓練係數 ${(1+stageMult(DG[sg.from].level)).toFixed(1)}）</span></h3>`;
       if(!sg.r && sg.to===NUMEMON && sg.from===S.cur){ const P=predictEvo();
-        return head+`<p class="hint">${esc(sg.note)}</p><div class="note${P.best===-1?' ok-note':''}">${P.best===-1?'按目前數值，到 96 小時會變成 <b>鼻涕獸</b>。':`按目前數值會進化成 <b>${DG[P.best].name}</b>，不是鼻涕獸。`}</div><p class="hint">${S.planNumemon?'怎樣控制失誤、體重和能力，見上面的鼻涕獸助手。':'勾選上面的「進化成鼻涕獸」，查看鼻涕獸助手。'}</p>`;
+        return head+`<p class="hint">${esc(sg.note)}</p><div class="note${P.best===-1?' ok-note':''}">${P.best===-1?'按目前數值，到 96 小時會變成 <b>鼻涕獸</b>。':`按目前數值會進化成 <b>${DG[P.best].name}</b>，不是鼻涕獸。`}</div><p class="hint">${BUILD!=='live'&&NOSAVE()?'上載存檔後，可以在上面勾選「進化成鼻涕獸」使用鼻涕獸助手。':S.planNumemon?'怎樣控制失誤、體重和能力，見上面的鼻涕獸助手。':'勾選上面的「進化成鼻涕獸」，查看鼻涕獸助手。'}</p>`;
       }
       if(!sg.r) return head+`<p class="hint">${esc(sg.note)}</p>`;
       total+=sg.r.n; restT+=sg.r.restH;
@@ -721,7 +721,9 @@ function vPlan(){
     body=`<div class="kpis"><div><span>總訓練次數</span><b class="big">${total}</b></div><div><span>總休息時數</span><b class="big">${restT}</b></div></div>`+body;
   }
   const rookie=d.level===3;
-  const numTop=`<section class="panel numtop"><label><input type="checkbox" id="c-plannum"${S.planNumemon&&rookie?' checked':''}${rookie?'':' disabled'}> <b>進化成鼻涕獸</b></label> <span class="hint">${rookie?'劇情需要養一次鼻涕獸時使用：建議失誤次數、體重和可以做的訓練。':'只有成長期可以變成鼻涕獸。'}</span>${S.planNumemon&&rookie?numemonHelper():''}</section>`;
+  // 網頁版沒有上載存檔時不能用：助手要靠失誤次數等遊戲畫面不顯示的數值（實時版不受影響）
+  const numOk=rookie && !(BUILD!=='live' && NOSAVE());
+  const numTop=`<section class="panel numtop"><label><input type="checkbox" id="c-plannum"${S.planNumemon&&numOk?' checked':''}${numOk?'':' disabled'}> <b>進化成鼻涕獸</b></label> <span class="hint">${!rookie?'只有成長期可以變成鼻涕獸。':numOk?'劇情需要養一次鼻涕獸時使用：建議失誤次數、體重和可以做的訓練。':'上載存檔後才可以使用（需要失誤次數等遊戲不顯示的數值）。'}</span>${S.planNumemon&&numOk?numemonHelper():''}</section>`;
   $('#view').innerHTML=numTop+`<div class="grid plangrid">
   <section class="panel"><h2>計劃設定</h2>
     <p class="hint">從目前的數碼精靈「${esc(d.name)}」和「育成紀錄」裡的能力、疲勞開始計算。訓練手冊、村民和擅長項目的設定也一樣沿用；食物不計入。</p>${known('fat')?'':'<p class="hint">疲勞值是 ***（上載存檔才可以獲得），計劃假設由 0 開始，即剛睡醒或剛休息完。</p>'}
