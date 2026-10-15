@@ -174,7 +174,7 @@ details.who summary{font-size:12px}details.who{font-size:12px;margin-top:4px}det
 .pbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent)}
 .pbar b{position:absolute;top:-3px;width:2px;height:18px;background:var(--ink);opacity:.5}
 ul.miles li.ok{color:var(--muted)}
-.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
+.numtop{margin-bottom:12px}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
 .numrisk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.numrisk.hi{border-color:#c2410c}.numrisk .nr-top{display:flex;gap:10px;align-items:center}.numrisk .nr-p{font-size:1.8rem;font-weight:700;min-width:3.2em}.numrisk.hi .nr-p{color:#c2410c}.numrisk .nrbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.numrisk .nrbar i{display:block;height:100%;background:#c2410c}
 .verdict{border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}.verdict.ok{background:color-mix(in srgb,var(--good) 14%,transparent);border:1px solid var(--good)}.verdict.no{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}.verdict b:first-child{margin-right:4px}
 .life{display:flex;flex-direction:column;gap:4px;margin-top:4px}
@@ -677,16 +677,8 @@ function vPlan(){
     const stages=makePlan(path); let total=0,restT=0;
     body=stages.map((sg,si)=>{
       const head=`<h3>${DG[sg.from].name} → ${DG[sg.to].name} <span class="hint">（${LV[DG[sg.from].level]}，訓練係數 ${(1+stageMult(DG[sg.from].level)).toFixed(1)}）</span></h3>`;
-      if(!sg.r && sg.to===NUMEMON && sg.from===S.cur){
-        const A=evoAdvice(NUMEMON); const P=A.p;
-        const caps=P.rows.filter(r=>{ const st=r.groups.find(g=>g.k==='stat'); return st && !st.ok && r.groups.filter(g=>g.k!=='stat'&&g.ok).length>=2 && D.evo[r.id]?.stats; })
-          .map(r=>{ const e=Object.entries(D.evo[r.id].stats); return `<b>${DG[r.id].name}</b>：`+(e.length===1? `${SN[e[0][0]]}不要練到 ${e[0][1]}` : `${e.map(([k,v])=>SN[k]+' '+v).join('、')}不要全部練到（任何一項保持未達標即可）`); });
-        return head+`<p class="hint">${esc(sg.note)}</p>
-          <div class="note${A.ok?' ok-note':''}">${A.ok?'按目前數值，到 96 小時會變成 <b>鼻涕獸</b>。':`按目前數值會進化成 <b>${P.best!==-1?DG[P.best].name:'—'}</b>，不是鼻涕獸。`}</div>
-          <ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
-          <p><b>訓練要注意</b>：訓練只會提高能力，不能令候選失去資格，所以鼻涕獸不靠訓練達成；體重靠飲食、睡覺、大便調整（例如挑戰胡蘿蔔 −2、食用仙人掌 −5，肉類會增重），失誤靠不回應呼叫增加。</p>
-          ${caps.length?`<p class="hint">想繼續訓練的話，避免以下能力全部達標，否則該候選會重新合資格：</p><ul class="ml2 tips">${caps.map(c=>`<li>${c}</li>`).join('')}</ul>`:''}
-          <p class="hint">判定由成長期 72 小時開始每小時一次，直到 96 小時；這段時間數值都要保持。</p>`;
+      if(!sg.r && sg.to===NUMEMON && sg.from===S.cur){ const P=predictEvo();
+        return head+`<p class="hint">${esc(sg.note)}</p><div class="note${P.best===-1?' ok-note':''}">${P.best===-1?'按目前數值，到 96 小時會變成 <b>鼻涕獸</b>。':`按目前數值會進化成 <b>${DG[P.best].name}</b>，不是鼻涕獸。`}</div><p class="hint">${S.planNumemon?'怎樣控制失誤、體重和能力，見上面的鼻涕獸助手。':'勾選上面的「進化成鼻涕獸」，查看鼻涕獸助手。'}</p>`;
       }
       if(!sg.r) return head+`<p class="hint">${esc(sg.note)}</p>`;
       total+=sg.r.n; restT+=sg.r.restH;
@@ -706,7 +698,9 @@ function vPlan(){
     }).join('');
     body=`<div class="kpis"><div><span>總訓練次數</span><b class="big">${total}</b></div><div><span>總休息時數</span><b class="big">${restT}</b></div></div>`+body;
   }
-  $('#view').innerHTML=`<div class="grid plangrid">
+  const rookie=d.level===3;
+  const numTop=`<section class="panel numtop"><label><input type="checkbox" id="c-plannum"${S.planNumemon&&rookie?' checked':''}${rookie?'':' disabled'}> <b>進化成鼻涕獸</b></label> <span class="hint">${rookie?'劇情需要養一次鼻涕獸時使用：建議失誤次數、體重和可以做的訓練。':'只有成長期可以變成鼻涕獸。'}</span>${S.planNumemon&&rookie?numemonHelper():''}</section>`;
+  $('#view').innerHTML=numTop+`<div class="grid plangrid">
   <section class="panel"><h2>計劃設定</h2>
     <p class="hint">從目前的數碼精靈「${esc(d.name)}」和「育成紀錄」裡的能力、疲勞開始計算。訓練手冊、村民和擅長項目的設定也一樣沿用；食物不計入。</p>${known('fat')?'':'<p class="hint">疲勞值是 ***（上載存檔才可以獲得），計劃假設由 0 開始，即剛睡醒或剛休息完。</p>'}
     <label class="f">目標<select id="sel-ptarget">${digiOptions(S.planTarget,x=>targets.includes(x))}</select></label>
@@ -1471,7 +1465,7 @@ function vSave(){
       goalHTML=`<section class="panel"><h2>選擇進化目標 <small>訓練一次＝遊戲 1 小時</small></h2>
         <label class="f">我想進化成<select id="sel-svgoal">${goals.map(id=>`<option value="${id}"${id===g?' selected':''}>${DG[id].name}${id===NUMEMON?'（成長期期滿未進化）':''}</option>`).join('')}</select></label>
         ${res}
-        <details><summary>訓練設定（和「訓練計劃」共用）</summary><div class="list" style="margin-top:6px">${GYMS.map(g=>`<label><input type="checkbox" data-pgym="${g.id}" ${S.planGyms.includes(g.id)?'checked':''}> ${g.name}</label>`).join('')}</div>
+        <details><summary>訓練設定（和「進化目標」共用）</summary><div class="list" style="margin-top:6px">${GYMS.map(g=>`<label><input type="checkbox" data-pgym="${g.id}" ${S.planGyms.includes(g.id)?'checked':''}> ${g.name}</label>`).join('')}</div>
           <label class="f">休息方式<select id="sel-prest">${Object.entries(REST).map(([k,x])=>`<option value="${k}"${k===S.planRest?' selected':''}>${x.name}（每小時 −${x.per}）</option>`).join('')}</select></label>
           <label class="f">疲勞到多少前要休息<input type="number" id="f-planCap" data-k="planCap" value="${S.planCap}" min="20" max="100"></label></details>
         <p class="hint">模擬方法：每次訓練或休息都是遊戲 1 小時，年齡 +1；年齡到了進化時間後，每小時照遊戲規則判定一次，所以訓練途中其他候選先合資格就會先進化。體重、失誤和額外加成假設照「先處理」一欄做好且不再改變；吃飯、睡覺的時間沒有計入，實際需要的時間會更長。</p></section>`;
@@ -1678,7 +1672,7 @@ function livePanel(){
 if(BUILD==='live') setTimeout(liveStart,300);
 
 /* ---------- views ---------- */
-const TABS=[['save',BUILD==='live'?'實時連線':'上載存檔'],['me','我的精靈'],['raise','育成紀錄'],['plan','訓練計劃'],['egg','選蛋路線'],['tech','招式查詢'],['battle','戰鬥學招'],['brain','智力學招'],['items','道具'],['map','地圖'],['recruit','繁榮度'],['diner','食堂'],['arena','鬥技場']];
+const TABS=[['save',BUILD==='live'?'實時連線':'上載存檔'],['me','我的精靈'],['raise','育成紀錄'],['plan','進化目標'],['egg','選蛋路線'],['tech','招式查詢'],['battle','戰鬥學招'],['brain','智力學招'],['items','道具'],['map','地圖'],['recruit','繁榮度'],['diner','食堂'],['arena','鬥技場']];
 function renderTabs(){
   $('#tabs').innerHTML=TABS.map(([k,n])=>`<button role="tab" id="tab-${k}" aria-selected="${S.tab===k}" data-tab="${k}">${n}</button>`).join('');
 }
@@ -1777,8 +1771,7 @@ function vRaise(){
         <p class="hint">遊戲這一步沒有隨機成分：年齡 72～95 小時每過一小時判定一次，只要有候選合資格就會立即進化；到 96 小時仍沒有，就一定變成鼻涕獸。所以「機會」只會是 0% 或 100%，關鍵是在 96 小時前數值會不會改變。</p></div>`; }
     if(goals.length){ const A=evoAdvice(S.evoGoal);
       evoHTML+=`<div class="goalbox"><label class="f">我想進化成<select id="sel-evogoal">${goals.map(id=>`<option value="${id}"${id===S.evoGoal?' selected':''}>${DG[id].name}${id===NUMEMON?'（成長期期滿未進化）':''}</option>`).join('')}</select></label>
-        ${A.ok?`<p><span class="pill ok">目前路線正確</span> ${S.evoGoal===NUMEMON?'沒有任何候選合資格。':'保持現況到進化時間即可。'}</p>${A.tips.length?`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:'<p class="hint">留意之後的訓練、體重和失誤不要令其他候選追上。</p>'}`:`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`}</div>`;
-      if(S.evoGoal===NUMEMON && d.level===3) evoHTML+=numemonHelper(); }
+        ${A.ok?`<p><span class="pill ok">目前路線正確</span> ${S.evoGoal===NUMEMON?'沒有任何候選合資格。':'保持現況到進化時間即可。'}</p>${A.tips.length?`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:'<p class="hint">留意之後的訓練、體重和失誤不要令其他候選追上。</p>'}`:`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`}</div>`; }
     evoHTML += P.rows.map(t=>`<div class="cand${P.best===t.id?' best':''}${S.evoGoal===t.id?' goal':''}">
       <header><b>${t.order}. ${DG[t.id].name}</b><span>${P.best===t.id?'<span class="pill ok">預計進化</span> ':''}${t.raised?'<span class="pill">養過</span> ':''}${P.avgMode&&t.avg!==undefined?`<span class="pill">平均 ${t.avg}</span> `:''}<span class="pill ${t.eff>=3?'ok':t.met===2?'w':'no'}">${t.met}／4 組${t.eff!==t.met?' → '+t.eff:''}</span></span></header>
       <div class="groups">${t.groups.map(g=>`<div><span class="mark ${g.ok?'y':'n'}">${g.ok?'○':'×'}</span><span><b>${g.name}</b> ${esc(g.detail)}</span></div>`).join('')}</div>${t.adj?`<p class="hint">${esc(t.adj)}</p>`:''}${P.avgMode&&t.avg!==undefined?`<p class="hint">比較分數：要求能力的平均 ${t.own}${t.carry?`；前面落敗候選的累計（平均 ${t.carry.s}、${t.carry.n} 項）一併計入 → ${t.avg}`:''}。${t.win?(t.prevBest!==-1?`高於當時領先的 ${t.beat}，取代領先。`:'第一個合資格，暫時領先。'):`沒有高於當時領先的 ${t.beat}。`}</p>`:''}</div>`).join('');
@@ -2092,6 +2085,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.rec){ const n=t.dataset.rec; S.recruited=(S.recruited||[]).filter(x=>x!==n); if(t.checked) S.recruited.push(n); render(); return; }
   if(t.id==='sel-evogoal'){ S.evoGoal=+t.value; render(); return; }
   if(t.id==='c-numtrain'){ S.numTrain=t.checked; render(); return; }
+  if(t.id==='c-plannum'){ S.planNumemon=t.checked; render(); return; }
   if(t.dataset.raised){ const id=+t.dataset.raised; S.raised=(S.raised||[]).filter(x=>x!==id); if(t.checked) S.raised.push(id); render(); return; }
   if(t.id==='sel-mreg'){ S.mapRegion=t.value; if(!t.value) S._mapWasZoom=true; render(); return; }
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
