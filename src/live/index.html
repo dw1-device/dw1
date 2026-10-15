@@ -461,6 +461,13 @@ function numemonRisk(ctx){
 /* \u9f3b\u6d95\u7378\u52a9\u624b\uff1a\u627e\u51fa\u4ee4\u6240\u6709\u5019\u9078\u90fd\u5c11\u65bc 3 \u7d44\u7684\u300c\u9ad4\u91cd \u00d7 \u5931\u8aa4\u300d\u7d44\u5408\uff08\u5931\u8aa4\u53ea\u6703\u589e\u52a0\uff09\uff1b
    \u9078\u64c7\u7e7c\u7e8c\u8a13\u7df4\u6642\uff0c\u5148\u627e\u5c31\u7b97\u80fd\u529b\u5168\u90e8\u7df4\u6eff\u4e5f\u6210\u7acb\u7684\u7d44\u5408\uff0c\u627e\u4e0d\u5230\u624d\u6539\u70ba\u5217\u51fa\u80fd\u529b\u4e0a\u9650\u3002 */
 let NH_PREV=null;
+// \u4e0a\u4e00\u6b21\u7684\u5efa\u8b70\u8981\u8b93 Mac \u548c iPad \u7b49\u6240\u6709\u88dd\u7f6e\u90fd\u770b\u5230\uff1a\u5be6\u6642\u7248\u5b58\u5230\u5c0f\u7a0b\u5f0f\uff08/memo\uff09\uff0c\u7db2\u9801\u7248\u5b58\u5230\u700f\u89bd\u5668
+function nhLoad(){ if(BUILD==='live'){ fetch(liveUrl()+'/memo',{cache:'no-store'}).then(r=>r.json()).then(j=>{ if(j&&j.nh&&!NH_PREV){ NH_PREV=j.nh; if(S.tab==='plan') render(); } }).catch(()=>{}); }
+  else { try{ const v=JSON.parse(localStorage.getItem('dw1nh')||'null'); if(v) NH_PREV=v; }catch(e){} } }
+function nhSave(){ const body=JSON.stringify({nh:NH_PREV});
+  if(BUILD==='live') fetch(liveUrl()+'/memo',{method:'POST',body,headers:{'Content-Type':'application/json'}}).catch(()=>{});
+  else { try{ localStorage.setItem('dw1nh',JSON.stringify(NH_PREV)); }catch(e){} } }
+setTimeout(nhLoad,800);
 let NH_CNT=null;   // \u5012\u6578\u57fa\u6e96\uff1a\u76ee\u6a19\u6642\u523b\uff08\u904a\u6232\u5206\u9418\u7e3d\u6578\uff09
 function nhNowMin(){ if(BUILD==='live' && LIVE.on && LIVE.stat==='ok' && LIVE.clk) return liveClockNow();
   const v=(S.svList||[])[S.svSel||0]; return v? ((v.year??0)*30+(v.day??0))*1440+(v.hh??0)*60+(v.mm??0) : null; }
@@ -484,6 +491,7 @@ function numemonHelper(){
   let proof=train, G=grid(train?maxSt:base.stats);
   if(train && !G.some(r=>r.ws.length)){ proof=false; G=grid(base.stats); }
   const rng=ws=>{ const out=[]; let a=null,b=null; ws.forEach(w=>{ if(a===null){a=b=w;} else if(w===b+1) b=w; else { out.push([a,b]); a=b=w; } }); if(a!==null) out.push([a,b]); return out; };
+  const wtxt=ws=>{ const t=rtxt(ws); return t==='\u4efb\u4f55\u9ad4\u91cd'?'\u9ad4\u91cd\u4e0d\u9650':'\u9ad4\u91cd '+t; };
   const rtxt=ws=>rng(ws).map(([a,b])=>a===1&&b===99?'\u4efb\u4f55\u9ad4\u91cd':a===b?`${a}g`:a===1?`${b}g \u6216\u4ee5\u4e0b`:b===99?`${a}g \u6216\u4ee5\u4e0a`:`${a}\uff5e${b}g`).join('\u3001');
   // \u5408\u4f75\u76f8\u540c\u9ad4\u91cd\u7bc4\u570d\u7684\u5931\u8aa4\u6b21\u6578
   const merged=[]; G.forEach(r=>{ const k=r.ws.join(','); const L=merged[merged.length-1]; if(L&&L.k===k) L.m2=r.m; else merged.push({k,m1:r.m,m2:r.m,ws:r.ws}); });
@@ -492,7 +500,7 @@ function numemonHelper(){
   if(!best) return `<div class="nhelp">${head}<div class="note">\u5728\u5931\u8aa4 ${m0}\uff5e${m0+10} \u6b21\u3001\u9ad4\u91cd 1\uff5e99g \u5167\u90fd\u627e\u4e0d\u5230\u4ee4\u6240\u6709\u5019\u9078\u5c11\u65bc 3 \u7d44\u7684\u7d44\u5408\uff1a\u5df2\u9054\u6210\u7684\u80fd\u529b\u3001\u6280\u80fd\u3001\u6230\u52dd\u9019\u4e9b\u689d\u4ef6\u4e0d\u6703\u4e0b\u964d\uff0c\u9019\u96bb\u6210\u9577\u671f\u5f88\u96e3\u8b8a\u6210\u9f3b\u6d95\u7378\u3002\u53ef\u4ee5\u8003\u616e\u4e0b\u4e00\u96bb\u7cbe\u9748\u5728\u5e7c\u5e74\u671f II \u6642\u9078\u53e6\u4e00\u500b\u6210\u9577\u671f\u3002</div></div>`;
   const tbl=`<div class="tw"><table class="stk"><thead><tr><th>\u5931\u8aa4\u6b21\u6578</th><th>\u9ad4\u91cd\u8981\u5728</th></tr></thead><tbody>${merged.map(x=>`<tr${best.m>=x.m1&&best.m<=x.m2?' class="hl"':''}><td data-l="\u5931\u8aa4">${x.m1===x.m2?x.m1+' \u6b21':x.m2===m0+10?x.m1+' \u6b21\u6216\u4ee5\u4e0a':x.m1+'\uff5e'+x.m2+' \u6b21'}${x.m1===m0?'\uff08\u76ee\u524d '+m0+' \u6b21\uff09':''}</td><td data-l="\u9ad4\u91cd">${x.ws.length?rtxt(x.ws):'<span class="hint">\u6c92\u6709\u53ef\u884c\u7684\u9ad4\u91cd</span>'}</td></tr>`).join('')}</tbody></table></div>`;
   const add=best.m-m0, dw=best.w-w0;
-  let rec=`<p><b>\u5efa\u8b70</b>\uff1a\u5931\u8aa4 <b>${best.m} \u6b21</b>${add?`\uff08\u518d\u6f20\u8996\u547c\u53eb ${add} \u6b21\uff09`:'\uff08\u7dad\u6301\u73fe\u5728\uff0c\u4e0d\u8981\u518d\u72af\uff09'}\uff0c\u9ad4\u91cd\u4fdd\u6301\u5728 <b>${rtxt(G.find(r=>r.m===best.m).ws)}</b>${dw?`\uff08\u76ee\u524d ${w0}g\uff0c${dw<0?'\u6e1b':'\u589e'} ${Math.abs(dw)}g \u5c31\u5920\uff09`:`\uff08\u76ee\u524d ${w0}g\uff0c\u5df2\u7d93\u7b26\u5408\uff09`}\u3002</p>`;
+  let rec=`<p><b>\u5efa\u8b70</b>\uff1a\u5931\u8aa4 <b>${best.m} \u6b21</b>${add?`\uff08\u518d\u6f20\u8996\u547c\u53eb ${add} \u6b21\uff09`:'\uff08\u7dad\u6301\u73fe\u5728\uff0c\u4e0d\u8981\u518d\u72af\uff09'}\uff0c${wtxt(G.find(r=>r.m===best.m).ws).replace('\u9ad4\u91cd ','\u9ad4\u91cd\u4fdd\u6301\u5728 ').replace(/(\u9ad4\u91cd\u4fdd\u6301\u5728 |\u9ad4\u91cd\u4e0d\u9650)(.*)/,(m,a,c)=>a==='\u9ad4\u91cd\u4e0d\u9650'?'<b>\u9ad4\u91cd\u4e0d\u9650</b>':a+'<b>'+c+'</b>')}${dw?`\uff08\u76ee\u524d ${w0}g\uff0c${dw<0?'\u6e1b':'\u589e'} ${Math.abs(dw)}g \u5c31\u5920\uff09`:`\uff08\u76ee\u524d ${w0}g\uff0c\u5df2\u7d93\u7b26\u5408\uff09`}\u3002</p>`;
   rec+=`<p class="hint">\u5931\u8aa4\u53ea\u6703\u589e\u52a0\uff08\u9032\u5316\u5f8c\u624d\u6b78\u96f6\uff09\uff0c\u6240\u4ee5\u8868\u5167\u7531\u76ee\u524d\u7684 ${m0} \u6b21\u958b\u59cb\u3002\u6f20\u8996\u809a\u9913\u3001\u4fbf\u610f\u3001\u60f3\u7761\u7b49\u547c\u53eb\u4e00\u6b21\u7b97\u4e00\u6b21\u5931\u8aa4\uff0c\u9802\u90e8\u7684\u300c\u5931\u8aa4\u300d\u6703\u5373\u6642\u66f4\u65b0\uff1b\u591a\u72af\u4e86\u53ef\u80fd\u6703\u9032\u5165\u5225\u7684\u5019\u9078\u7684\u7bc4\u570d\uff0c\u8acb\u5c0d\u7167\u4e0a\u8868\u3002</p>`;
   // \u80fd\u529b\u4e0a\u9650\u8207\u5b89\u5168\u8a13\u7df4
   let caps='', drl='';
@@ -520,12 +528,16 @@ function numemonHelper(){
   // \u65b9\u6848\u6539\u8b8a\u63d0\u9192
   const key=`${best.m}|${rtxt(G.find(r=>r.m===best.m).ws)}|${proof}`; let chg='';
   if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key!==key){
-    const flipped=now.rows.filter(r=>{ const was=critOf(r.id,{...base,stats:NH_PREV.stats}); const a=was&&was.groups.find(g=>g.k==='stat'), b=r.groups.find(g=>g.k==='stat'); return a&&b&&!a.ok&&b.ok; }).map(r=>DG[r.id].name);
-    const why= flipped.length? `\u525b\u624d\u7684\u80fd\u529b\u8b8a\u5316\u4ee4 ${flipped.join('\u3001')} \u7684\u80fd\u529b\u7d44\u9054\u6a19` : (NH_PREV.mis!==m0? `\u5931\u8aa4\u7531 ${NH_PREV.mis} \u6b21\u8b8a\u6210 ${m0} \u6b21` : NH_PREV.w!==w0? `\u9ad4\u91cd\u7531 ${NH_PREV.w}g \u8b8a\u6210 ${w0}g` : '\u6578\u503c\u6539\u8b8a');
-    chg=`<div class="nstat y">\u26a0 ${why}\uff1a\u5efa\u8b70\u7531\u300c${NH_PREV.txt}\u300d\u6539\u70ba\u300c\u5931\u8aa4 ${best.m} \u6b21\u3001\u9ad4\u91cd ${rtxt(G.find(r=>r.m===best.m).ws)}\u300d\u3002</div>`;
+    const pv={...base,...(NH_PREV.ctx||{}),stats:NH_PREV.stats||base.stats};
+    const flipped=[]; now.rows.forEach(r=>{ const was=critOf(r.id,pv); if(!was) return; r.groups.forEach(g=>{ const a=was.groups.find(x=>x.k===g.k); if(a&&!a.ok&&g.ok && !(proof&&g.k==='stat')) flipped.push(`${DG[r.id].name}\u7684${g.name.replace(/\uff08.*\uff09/,'')}`); }); });
+    const lab={hap:'\u5fc3\u60c5',dis:'\u6559\u990a',tech:'\u6280\u80fd\u6578',win:'\u6230\u52dd\u6b21\u6578'}; const moved=Object.keys(lab).filter(k=>NH_PREV.ctx&&NH_PREV.ctx[k]!==base[k]).map(k=>`${lab[k]} ${NH_PREV.ctx[k]}\u2192${base[k]}`);
+    const why= flipped.length? `\u6578\u503c\u8b8a\u5316\u4ee4 ${flipped.join('\u3001')}\u7d44\u9054\u6a19${moved.length?'\uff08'+moved.join('\u3001')+'\uff09':''}` : moved.length? `${moved.join('\u3001')}` : (NH_PREV.mis!==m0? `\u5931\u8aa4\u7531 ${NH_PREV.mis} \u6b21\u8b8a\u6210 ${m0} \u6b21` : NH_PREV.w!==w0? `\u9ad4\u91cd\u7531 ${NH_PREV.w}g \u8b8a\u6210 ${w0}g` : '\u6578\u503c\u6539\u8b8a');
+    chg=`<div class="nstat y">\u26a0 ${why}\uff1a\u5efa\u8b70\u7531\u300c${NH_PREV.txt}\u300d\u6539\u70ba\u300c\u5931\u8aa4 ${best.m} \u6b21\u3001${wtxt(G.find(r=>r.m===best.m).ws)}\u300d\u3002</div>`;
     NH_PREV.alert=chg; }
   else if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key===key && NH_PREV.alert) chg=NH_PREV.alert;  // \u4fdd\u7559\u63d0\u9192\u76f4\u5230\u65b9\u6848\u518d\u8b8a
-  NH_PREV={cur:S.cur,key,stats:{...base.stats},mis:m0,w:w0,txt:`\u5931\u8aa4 ${best.m} \u6b21\u3001\u9ad4\u91cd ${rtxt(G.find(r=>r.m===best.m).ws)}`,alert:chg};
+  const changed=!NH_PREV||NH_PREV.key!==key||NH_PREV.cur!==S.cur||NH_PREV.alert!==chg;
+  NH_PREV={cur:S.cur,key,stats:{...base.stats},ctx:{hap:base.hap,dis:base.dis,tech:base.tech,win:base.win},mis:m0,w:w0,txt:`\u5931\u8aa4 ${best.m} \u6b21\u3001${wtxt(G.find(r=>r.m===best.m).ws)}`,alert:chg,at:Date.now()};
+  if(changed) nhSave();
   // \u5dee\u4e00\u6b21\u8a13\u7df4\u5c31\u51fa\u4e8b\u7684\u9810\u8b66\uff08\u4e0d\u8ad6\u662f\u5426\u52fe\u9078\u7e7c\u7e8c\u8a13\u7df4\uff09
   let warn='';
   if(!proof){ const lv=DG[S.cur].level; const bad=[];

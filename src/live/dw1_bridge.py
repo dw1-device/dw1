@@ -111,16 +111,32 @@ def snapshot(ra):
     }
 
 class Handler(BaseHTTPRequestHandler):
-    ra = None; cache = {"t": 0, "data": None}; here = os.path.dirname(os.path.abspath(__file__))
+    ra = None; memo = b"{}"; cache = {"t": 0, "data": None}; here = os.path.dirname(os.path.abspath(__file__))
     def log_message(self, *a): pass
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Private-Network", "true")
         self.send_header("Access-Control-Allow-Headers", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Cache-Control", "no-store")
     def do_OPTIONS(self):
         self.send_response(204); self._cors(); self.end_headers()
+    def do_POST(self):
+        # 網頁之間共用的小筆記（例如鼻涕獸助手上一次的建議），只存在記憶體，最多 8 KB
+        if self.path.startswith("/memo"):
+            n = int(self.headers.get("Content-Length") or 0)
+            if 0 < n <= 8192:
+                body = self.rfile.read(n)
+                try:
+                    json.loads(body); Handler.memo = body
+                except Exception:
+                    pass
+            self.send_response(204); self._cors(); self.end_headers(); return
+        self.send_response(404); self.end_headers()
     def do_GET(self):
+        if self.path.startswith("/memo"):
+            self.send_response(200); self._cors()
+            self.send_header("Content-Type", "application/json; charset=utf-8"); self.end_headers(); self.wfile.write(Handler.memo); return
         if self.path.startswith("/state"):
             now = time.time(); c = Handler.cache
             if now - c["t"] > 0.3:

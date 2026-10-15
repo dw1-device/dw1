@@ -452,6 +452,13 @@ function numemonRisk(ctx){
 /* 鼻涕獸助手：找出令所有候選都少於 3 組的「體重 × 失誤」組合（失誤只會增加）；
    選擇繼續訓練時，先找就算能力全部練滿也成立的組合，找不到才改為列出能力上限。 */
 let NH_PREV=null;
+// 上一次的建議要讓 Mac 和 iPad 等所有裝置都看到：實時版存到小程式（/memo），網頁版存到瀏覽器
+function nhLoad(){ if(BUILD==='live'){ fetch(liveUrl()+'/memo',{cache:'no-store'}).then(r=>r.json()).then(j=>{ if(j&&j.nh&&!NH_PREV){ NH_PREV=j.nh; if(S.tab==='plan') render(); } }).catch(()=>{}); }
+  else { try{ const v=JSON.parse(localStorage.getItem('dw1nh')||'null'); if(v) NH_PREV=v; }catch(e){} } }
+function nhSave(){ const body=JSON.stringify({nh:NH_PREV});
+  if(BUILD==='live') fetch(liveUrl()+'/memo',{method:'POST',body,headers:{'Content-Type':'application/json'}}).catch(()=>{});
+  else { try{ localStorage.setItem('dw1nh',JSON.stringify(NH_PREV)); }catch(e){} } }
+setTimeout(nhLoad,800);
 let NH_CNT=null;   // 倒數基準：目標時刻（遊戲分鐘總數）
 function nhNowMin(){ if(BUILD==='live' && LIVE.on && LIVE.stat==='ok' && LIVE.clk) return liveClockNow();
   const v=(S.svList||[])[S.svSel||0]; return v? ((v.year??0)*30+(v.day??0))*1440+(v.hh??0)*60+(v.mm??0) : null; }
@@ -475,6 +482,7 @@ function numemonHelper(){
   let proof=train, G=grid(train?maxSt:base.stats);
   if(train && !G.some(r=>r.ws.length)){ proof=false; G=grid(base.stats); }
   const rng=ws=>{ const out=[]; let a=null,b=null; ws.forEach(w=>{ if(a===null){a=b=w;} else if(w===b+1) b=w; else { out.push([a,b]); a=b=w; } }); if(a!==null) out.push([a,b]); return out; };
+  const wtxt=ws=>{ const t=rtxt(ws); return t==='任何體重'?'體重不限':'體重 '+t; };
   const rtxt=ws=>rng(ws).map(([a,b])=>a===1&&b===99?'任何體重':a===b?`${a}g`:a===1?`${b}g 或以下`:b===99?`${a}g 或以上`:`${a}～${b}g`).join('、');
   // 合併相同體重範圍的失誤次數
   const merged=[]; G.forEach(r=>{ const k=r.ws.join(','); const L=merged[merged.length-1]; if(L&&L.k===k) L.m2=r.m; else merged.push({k,m1:r.m,m2:r.m,ws:r.ws}); });
@@ -483,7 +491,7 @@ function numemonHelper(){
   if(!best) return `<div class="nhelp">${head}<div class="note">在失誤 ${m0}～${m0+10} 次、體重 1～99g 內都找不到令所有候選少於 3 組的組合：已達成的能力、技能、戰勝這些條件不會下降，這隻成長期很難變成鼻涕獸。可以考慮下一隻精靈在幼年期 II 時選另一個成長期。</div></div>`;
   const tbl=`<div class="tw"><table class="stk"><thead><tr><th>失誤次數</th><th>體重要在</th></tr></thead><tbody>${merged.map(x=>`<tr${best.m>=x.m1&&best.m<=x.m2?' class="hl"':''}><td data-l="失誤">${x.m1===x.m2?x.m1+' 次':x.m2===m0+10?x.m1+' 次或以上':x.m1+'～'+x.m2+' 次'}${x.m1===m0?'（目前 '+m0+' 次）':''}</td><td data-l="體重">${x.ws.length?rtxt(x.ws):'<span class="hint">沒有可行的體重</span>'}</td></tr>`).join('')}</tbody></table></div>`;
   const add=best.m-m0, dw=best.w-w0;
-  let rec=`<p><b>建議</b>：失誤 <b>${best.m} 次</b>${add?`（再漠視呼叫 ${add} 次）`:'（維持現在，不要再犯）'}，體重保持在 <b>${rtxt(G.find(r=>r.m===best.m).ws)}</b>${dw?`（目前 ${w0}g，${dw<0?'減':'增'} ${Math.abs(dw)}g 就夠）`:`（目前 ${w0}g，已經符合）`}。</p>`;
+  let rec=`<p><b>建議</b>：失誤 <b>${best.m} 次</b>${add?`（再漠視呼叫 ${add} 次）`:'（維持現在，不要再犯）'}，${wtxt(G.find(r=>r.m===best.m).ws).replace('體重 ','體重保持在 ').replace(/(體重保持在 |體重不限)(.*)/,(m,a,c)=>a==='體重不限'?'<b>體重不限</b>':a+'<b>'+c+'</b>')}${dw?`（目前 ${w0}g，${dw<0?'減':'增'} ${Math.abs(dw)}g 就夠）`:`（目前 ${w0}g，已經符合）`}。</p>`;
   rec+=`<p class="hint">失誤只會增加（進化後才歸零），所以表內由目前的 ${m0} 次開始。漠視肚餓、便意、想睡等呼叫一次算一次失誤，頂部的「失誤」會即時更新；多犯了可能會進入別的候選的範圍，請對照上表。</p>`;
   // 能力上限與安全訓練
   let caps='', drl='';
@@ -511,12 +519,16 @@ function numemonHelper(){
   // 方案改變提醒
   const key=`${best.m}|${rtxt(G.find(r=>r.m===best.m).ws)}|${proof}`; let chg='';
   if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key!==key){
-    const flipped=now.rows.filter(r=>{ const was=critOf(r.id,{...base,stats:NH_PREV.stats}); const a=was&&was.groups.find(g=>g.k==='stat'), b=r.groups.find(g=>g.k==='stat'); return a&&b&&!a.ok&&b.ok; }).map(r=>DG[r.id].name);
-    const why= flipped.length? `剛才的能力變化令 ${flipped.join('、')} 的能力組達標` : (NH_PREV.mis!==m0? `失誤由 ${NH_PREV.mis} 次變成 ${m0} 次` : NH_PREV.w!==w0? `體重由 ${NH_PREV.w}g 變成 ${w0}g` : '數值改變');
-    chg=`<div class="nstat y">⚠ ${why}：建議由「${NH_PREV.txt}」改為「失誤 ${best.m} 次、體重 ${rtxt(G.find(r=>r.m===best.m).ws)}」。</div>`;
+    const pv={...base,...(NH_PREV.ctx||{}),stats:NH_PREV.stats||base.stats};
+    const flipped=[]; now.rows.forEach(r=>{ const was=critOf(r.id,pv); if(!was) return; r.groups.forEach(g=>{ const a=was.groups.find(x=>x.k===g.k); if(a&&!a.ok&&g.ok && !(proof&&g.k==='stat')) flipped.push(`${DG[r.id].name}的${g.name.replace(/（.*）/,'')}`); }); });
+    const lab={hap:'心情',dis:'教養',tech:'技能數',win:'戰勝次數'}; const moved=Object.keys(lab).filter(k=>NH_PREV.ctx&&NH_PREV.ctx[k]!==base[k]).map(k=>`${lab[k]} ${NH_PREV.ctx[k]}→${base[k]}`);
+    const why= flipped.length? `數值變化令 ${flipped.join('、')}組達標${moved.length?'（'+moved.join('、')+'）':''}` : moved.length? `${moved.join('、')}` : (NH_PREV.mis!==m0? `失誤由 ${NH_PREV.mis} 次變成 ${m0} 次` : NH_PREV.w!==w0? `體重由 ${NH_PREV.w}g 變成 ${w0}g` : '數值改變');
+    chg=`<div class="nstat y">⚠ ${why}：建議由「${NH_PREV.txt}」改為「失誤 ${best.m} 次、${wtxt(G.find(r=>r.m===best.m).ws)}」。</div>`;
     NH_PREV.alert=chg; }
   else if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key===key && NH_PREV.alert) chg=NH_PREV.alert;  // 保留提醒直到方案再變
-  NH_PREV={cur:S.cur,key,stats:{...base.stats},mis:m0,w:w0,txt:`失誤 ${best.m} 次、體重 ${rtxt(G.find(r=>r.m===best.m).ws)}`,alert:chg};
+  const changed=!NH_PREV||NH_PREV.key!==key||NH_PREV.cur!==S.cur||NH_PREV.alert!==chg;
+  NH_PREV={cur:S.cur,key,stats:{...base.stats},ctx:{hap:base.hap,dis:base.dis,tech:base.tech,win:base.win},mis:m0,w:w0,txt:`失誤 ${best.m} 次、${wtxt(G.find(r=>r.m===best.m).ws)}`,alert:chg,at:Date.now()};
+  if(changed) nhSave();
   // 差一次訓練就出事的預警（不論是否勾選繼續訓練）
   let warn='';
   if(!proof){ const lv=DG[S.cur].level; const bad=[];
