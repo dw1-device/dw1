@@ -1604,7 +1604,7 @@ function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); clearInterval(LIV
 document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if(!liveBusyInput()&&LIVE.pending){ LIVE.pending=false; render(); } },50); } });
 function livePanel(){
   const para=LIVE.para? `<details><summary>\u539f\u59cb\u80b2\u6210\u6578\u503c\uff08\u7528\u4f86\u627e\u51fa\u5176\u4ed6\u6b04\u4f4d\uff09</summary><div class="paragrid">${LIVE.para.map((x,i)=>`<span><b>+${i*2}</b> ${x}</span>`).join('')}</div></details>`:'';
-  const raw=LIVE.clkRaw? `<details><summary>\u539f\u59cb\u6642\u9418\u5340\u8a18\u61b6\u9ad4\uff080x8013ECB0 \u8d77\uff0c\u7528\u4f86\u6838\u5c0d\u5e74\u6708\u65e5\uff09</summary><pre class="hint" style="white-space:pre-wrap">${LIVE.clkRaw.match(/.{1,32}/g).map((r,i)=>(0x8013ECB0+i*16).toString(16)+'  '+r.match(/../g).join(' ')).join('\n')}</pre></details>`:'';
+  const raw=LIVE.clkRaw? `<details><summary>\u539f\u59cb\u6642\u9418\u5340\u8a18\u61b6\u9ad4\uff080x8013EC00 \u8d77\uff0c\u7528\u4f86\u6838\u5c0d\u5e74\u6708\u65e5\uff09</summary><pre class="hint" style="white-space:pre-wrap">${LIVE.clkRaw.match(/.{1,32}/g).map((r,i)=>(0x8013EC00+i*16).toString(16)+'  '+r.match(/../g).join(' ')).join('\n')}</pre></details>`:'';
   return `<section class="panel"><h2>RetroArch \u5be6\u6642\u9023\u7dda <small>\u96fb\u8166\u7248</small></h2>
     <div class="row"><button class="b p" id="liveBtn">${LIVE.on?'\u4e2d\u65b7\u9023\u7dda':'\u5be6\u6642\u9023\u7dda'}</button><span id="liveStat">${liveStatText()}</span></div>
     <label class="f">\u5c0f\u7a0b\u5f0f\u4f4d\u5740<input id="f-liveurl" value="${esc(liveUrl())}"></label>

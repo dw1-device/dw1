@@ -1595,7 +1595,7 @@ function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); clearInterval(LIV
 document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if(!liveBusyInput()&&LIVE.pending){ LIVE.pending=false; render(); } },50); } });
 function livePanel(){
   const para=LIVE.para? `<details><summary>原始育成數值（用來找出其他欄位）</summary><div class="paragrid">${LIVE.para.map((x,i)=>`<span><b>+${i*2}</b> ${x}</span>`).join('')}</div></details>`:'';
-  const raw=LIVE.clkRaw? `<details><summary>原始時鐘區記憶體（0x8013ECB0 起，用來核對年月日）</summary><pre class="hint" style="white-space:pre-wrap">${LIVE.clkRaw.match(/.{1,32}/g).map((r,i)=>(0x8013ECB0+i*16).toString(16)+'  '+r.match(/../g).join(' ')).join('\n')}</pre></details>`:'';
+  const raw=LIVE.clkRaw? `<details><summary>原始時鐘區記憶體（0x8013EC00 起，用來核對年月日）</summary><pre class="hint" style="white-space:pre-wrap">${LIVE.clkRaw.match(/.{1,32}/g).map((r,i)=>(0x8013EC00+i*16).toString(16)+'  '+r.match(/../g).join(' ')).join('\n')}</pre></details>`:'';
   return `<section class="panel"><h2>RetroArch 實時連線 <small>電腦版</small></h2>
     <div class="row"><button class="b p" id="liveBtn">${LIVE.on?'中斷連線':'實時連線'}</button><span id="liveStat">${liveStatText()}</span></div>
     <label class="f">小程式位址<input id="f-liveurl" value="${esc(liveUrl())}"></label>
