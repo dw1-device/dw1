@@ -85,12 +85,13 @@ def snapshot(ra):
     year = i16(ra.read(A_YEAR, 2), 0)
     clk_raw = ra.read(0x8013EC00, 0x200)  # 時鐘一帶的原始記憶體，用來核對年月日
     ptr = struct.unpack("<I", ra.read(A_FLAGPTR, 4))[0]
-    recruited, raised = [], []
+    recruited, raised, chef_intro = [], [], []
     if 0x80000000 <= ptr < 0x80200000:
         F = ra.read(ptr + 245, 80)          # 旗標 0～639
         bit = lambda n: bool(F[n >> 3] & (1 << (n & 7)))
         recruited = [i for i in range(1, 66) if bit(200 + i)]
         raised = [i for i in range(1, 66) if bit(512 + i)]
+        chef_intro = [n for n in range(0x3a, 0x3e) if bit(n)]   # 食堂主廚已打招呼（開業介紹）旗標
     learned = [i for i in range(58) if L[i >> 3] & (1 << (i & 7))]
     B = ra.read(A_BAG, 91)
     bag = [[B[i], B[30 + i]] for i in range(30) if B[30 + i] > 0]
@@ -105,7 +106,7 @@ def snapshot(ra):
         "life": i16(P, 72), "days": i16(P, 74), "mis": i16(P, 82), "win": i16(P, 84),
         "age": i16(P, 86), "poop": i16(P, 30), "lives": lives,
         "hh": i16(clk, 0), "mm": i16(clk, 2), "day": day, "year": year,
-        "learned": learned, "recruitedIds": recruited, "raisedIds": raised, "bag": bag, "bagCap": B[90], "storage": storage,
+        "learned": learned, "recruitedIds": recruited, "chefIntro": chef_intro, "raisedIds": raised, "bag": bag, "bagCap": B[90], "storage": storage,
         "clkRaw": clk_raw.hex(),
         "para": list(struct.unpack("<66h", P)),   # 原始數值，用來找其他欄位
     }
