@@ -1833,6 +1833,7 @@ function pathsTo(id){
     if(!e){ return; }
     let prev=e.prev;
     if(!prev.length){ const sp=SPECIAL.filter(s=>s.to===dc.name && s.from); prev=[...new Set(sp.flatMap(s=>s.from.map(nid)))]; }
+    if(!prev.length && SPECIAL.some(s=>s.to===dc.name && s.stage===3 && !s.from)) prev=D.digis.filter(x=>x.level===3).map(x=>x.id);  // \u9f3b\u6d95\u7378\uff1a\u4efb\u4f55\u6210\u9577\u671f 96 \u5c0f\u6642\u4e0d\u5408\u8cc7\u683c
     prev.forEach(p=>{ if(acc.length<4) back(p,[cur,...acc]); });
   }
   back(id,[]); return res;
@@ -1856,7 +1857,7 @@ function vEgg(){
     <label class="f">\u76ee\u6a19\u6578\u78bc\u7cbe\u9748<select id="sel-target">${digiOptions(tgt,d=>d.level>=3)}</select></label>
     <p class="hint">\u5217\u51fa\u5f9e\u6578\u78bc\u86cb\u958b\u59cb\u3001\u7d93\u4e00\u822c\u9032\u5316\uff08\u52a0\u4e0a\u6703\u7528\u5230\u7684\u7279\u6b8a\u9032\u5316\uff09\u5230\u9054\u76ee\u6a19\u7684\u6240\u6709\u8def\u7dda\u3002</p>
     <div class="kpis"><div><span>\u53ef\u9078\u7684\u6578\u78bc\u86cb</span><b class="big">${eggs.length||0}</b></div><div><span>\u8def\u7dda\u6578</span><b class="big">${paths.length}</b></div></div>
-    ${EGGS.map(e=>`<div class="cand${byEgg[e.egg]?' best':''}"><header><b>${e.egg}</b><span class="pill ${byEgg[e.egg]?'ok':''}">${byEgg[e.egg]?byEgg[e.egg].length+' \u689d\u8def\u7dda':'\u5230\u4e0d\u4e86'}</span></header><span class="hint">${e.fresh} \u2192 ${e.it}\uff1b\u521d\u59cb ${STATKEYS.map(k=>SN[k]+' '+e.base[k]).join('\u3001')}</span></div>`).join('')}
+    ${EGGS.map(e=>`<div class="cand${byEgg[e.egg]?' best':''}"><header><b>${e.egg}</b><span class="pill ${byEgg[e.egg]?'ok':''}">${byEgg[e.egg]?byEgg[e.egg].length+' \u689d\u8def\u7dda':'\u9032\u5316\u4e0d\u80fd'}</span></header><span class="hint">${e.fresh} \u2192 ${e.it}\uff1b\u521d\u59cb ${STATKEYS.map(k=>SN[k]+' '+e.base[k]).join('\u3001')}</span></div>`).join('')}
   </section>
   <section class="panel"><h2>\u8def\u7dda\u8207\u689d\u4ef6 <small>${DG[tgt].name}</small></h2>
     ${paths.length? paths.map(p=>`<div class="cand"><div class="path">${p.map((id,i)=>`<span class="step">${DG[id].name}</span>${i<p.length-1?'<span class="arrow">\u2192</span>':''}`).join('')}</div>
