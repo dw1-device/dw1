@@ -807,7 +807,7 @@ function itemRows(){
 function fillItems(){
   const rows=itemRows();
   const tb=$('#item-body'); if(!tb) return;
-  tb.innerHTML=rows.map(r=>`<tr><td><span class="pill">${r[0]}</span></td><td><b>${esc(r[1])}</b><br><span class="hint">${esc(r[2])}</span></td><td>${esc(r[3])}</td><td class="num">${r[4]}</td><td class="num">${r[5]||''}</td><td>${esc(r[6])}</td><td class="src">${esc(r[7])}</td></tr>`).join('')||'<tr><td colspan="7">\u6c92\u6709\u7b26\u5408\u7684\u9053\u5177\u3002</td></tr>';
+  tb.innerHTML=rows.map(r=>`<tr><td><span class="pill">${r[0]}</span></td><td><b>${esc(r[1])}</b><br><span class="hint">${esc(r[2])}</span></td><td>${esc(r[3])}</td><td class="num">${r[0]==='\u9032\u5316'?'':r[4]}</td><td class="num">${r[5]||''}</td><td>${esc(r[6])}</td><td class="src">${esc(r[7])}</td></tr>`).join('')||'<tr><td colspan="7">\u6c92\u6709\u7b26\u5408\u7684\u9053\u5177\u3002</td></tr>';
   $('#item-count').textContent=`${rows.length} \u4ef6`;
 }
 function vItems(){
