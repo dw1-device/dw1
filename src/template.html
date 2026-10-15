@@ -460,9 +460,10 @@ function nhCountHTML(){
   const c=NH_CNT; if(!c) return ''; const now=nhNowMin(); if(now==null) return '';
   const left96=c.t96-now, left72=c.t72-now; const real=m=>{ const r=LIVE.clk&&LIVE.clk.rate>0? m/(LIVE.clk.rate*60000) : m/3/60; return r<1? '不到 1 分鐘' : `約 ${Math.round(r)} 分鐘`; };
   const age=Math.min(96,Math.max(0,96-left96/60));
-  return (c.red?`<div class="hint" style="flex:1 1 100%">按目前數值，判定時會先進化成 ${c.red}；要照上面的補救做，倒數才有意義。</div>`:'')+`<div><span class="hint">距離 96 小時（變成鼻涕獸）</span><br><b>${nhFmt(left96)}</b> <span class="hint">遊戲時間${left96>0?'・真實時間'+real(left96):''}</span></div>`
-    + (left72>0? `<div><span class="hint">距離 72 小時（開始每小時判定）</span><br><b>${nhFmt(left72)}</b></div>` : `<div><span class="hint">判定期間</span><br><b>${left96>0?'每到整點判定一次':'已到 96 小時'}</b></div>`)
-    + `<div class="meter${left72<=0?' warn':''}"><i style="width:${(age/96*100).toFixed(1)}%"></i></div>`;
+  return (c.red?`<div class="hint" style="flex:1 1 100%">按目前數值，判定時會先進化成 ${c.red}；要照上面的補救做，倒數才有意義。</div>`:'')
+    + `<div><span class="hint">距離變成鼻涕獸（96 小時）</span><br><b>${left96>0?nhFmt(left96):'已到'}</b> <span class="hint">遊戲時間${left96>0?'・真實時間'+real(left96):''}</span></div>`
+    + `<div class="meter${left72<=0?' warn':''}" style="position:relative"><i style="width:${(age/96*100).toFixed(1)}%"></i><s style="position:absolute;left:75%;top:-3px;bottom:-3px;border-left:2px solid var(--ink);opacity:.5"></s></div>`
+    + `<div class="hint" style="flex:1 1 100%">${left72>0?`豎線是 72 小時：再過 ${nhFmt(left72)}（遊戲時間）開始每到整點判定一次，期間數值都要保持。`:left96>0?'已過 72 小時：每到整點判定一次，數值要保持到倒數完畢。':''}</div>`;
 }
 function nhCountPaint(){ const el=$('#nhCount'); if(el) el.innerHTML=nhCountHTML(); }  // 上一次的建議（偵測訓練令方案改變）
 function numemonHelper(){
