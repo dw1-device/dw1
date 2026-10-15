@@ -134,6 +134,19 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(204); self._cors(); self.end_headers(); return
         self.send_response(404); self.end_headers()
     def do_GET(self):
+        if self.path.startswith("/peek"):
+            # 研究用：只讀一段遊戲記憶體（/peek?a=8013ec00&n=256，最多 4096 bytes），不會改動遊戲
+            from urllib.parse import urlparse, parse_qs
+            q = parse_qs(urlparse(self.path).query)
+            try:
+                addr = int(q.get("a", ["0"])[0], 16); n = max(1, min(4096, int(q.get("n", ["256"])[0])))
+                if not (0x80000000 <= addr and addr + n <= 0x80200000): raise ValueError("位址要在 80000000～80200000")
+                out = {"ok": True, "a": f"{addr:08x}", "hex": Handler.ra.read(addr, n).hex()}
+            except Exception as e:
+                out = {"ok": False, "error": str(e)}
+            body = json.dumps(out).encode()
+            self.send_response(200); self._cors()
+            self.send_header("Content-Type", "application/json; charset=utf-8"); self.end_headers(); self.wfile.write(body); return
         if self.path.startswith("/memo"):
             self.send_response(200); self._cors()
             self.send_header("Content-Type", "application/json; charset=utf-8"); self.end_headers(); self.wfile.write(Handler.memo); return
