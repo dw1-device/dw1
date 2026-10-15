@@ -590,7 +590,7 @@ function simulate(st0, lv, goalFn, pickStat, cap){
 }
 function topOK(st,t){ const v=k=>scaled(k,st[k]); return STATKEYS.every(k=>k===t||v(t)>v(k)); }
 function makePlan(path){
-  let st={...S.stats}; PF=S.fat; const stages=[]; const cap=S.planCap;
+  let st={...S.stats}; PF=known('fat')?S.fat:0; const stages=[]; const cap=S.planCap;
   const finalId=path[path.length-1]; const finalE=D.evo[finalId];
   const later = new Set(); path.forEach(id=>{ const e=D.evo[id]; if(e&&e.stats) Object.keys(e.stats).forEach(k=>later.add(k)); });
   for(let i=0;i<path.length-1;i++){
@@ -654,7 +654,7 @@ function vPlan(){
   }
   $('#view').innerHTML=`<div class="grid plangrid">
   <section class="panel"><h2>計劃設定</h2>
-    <p class="hint">從目前的數碼精靈「${esc(d.name)}」和「育成紀錄」裡的能力、疲勞開始計算。訓練手冊、村民和擅長項目的設定也一樣沿用；食物不計入。</p>
+    <p class="hint">從目前的數碼精靈「${esc(d.name)}」和「育成紀錄」裡的能力、疲勞開始計算。訓練手冊、村民和擅長項目的設定也一樣沿用；食物不計入。</p>${known('fat')?'':'<p class="hint">疲勞值是 ***（上載存檔才可以獲得），計劃假設由 0 開始，即剛睡醒或剛休息完。</p>'}
     <label class="f">目標<select id="sel-ptarget">${digiOptions(S.planTarget,x=>targets.includes(x))}</select></label>
     <label class="f">路線<select id="sel-ppath">${paths.map((p,i)=>`<option value="${i}"${i===S.planPath?' selected':''}>${p.map(id=>DG[id].name).join(' → ')}</option>`).join('')}</select></label>
     <h3>可以用的訓練場地</h3>
@@ -1101,19 +1101,20 @@ function itemTC(jp){ const r=ITEMS.find(x=>x[2]===jp||x[2].replace('ＭＰ','MP'
 function arenaCan(c){ const d=DG[S.cur]; if(d.level<3) return false; return !c[5]||c[5].includes(S.cur); }
 function vArena(){
   const day=Math.min(30,Math.max(1,+S.arenaDay||1)); const d=DG[S.cur];
+  const dayKnown= BUILD==='live' || !!S.svFile || !!S.arenaDaySet;
   const chip=(i,big)=>{ const c=ARENA[i]; const ok=arenaCan(c); return `<span class="ac${ok?'':' no'}" style="--c:${ARENA_CAT[c[3]][1]}" title="${esc(c[1])}${ok?'':'（'+d.name+'不能參加）'}">${c[0].normalize('NFKC')}</span>`; };
-  const cal=ARENA_SCHED.map((cups,k)=>{ const n=k+1; const tag=n===day?'今天':n===day%30+1?'明天':'';
+  const cal=ARENA_SCHED.map((cups,k)=>{ const n=k+1; const tag=!dayKnown?'':n===day?'今天':n===day%30+1?'明天':'';
     return `<div class="ad${tag?' on':''}"><div class="an">${n} 日${tag?` <b>${tag}</b>`:''}</div><div class="acs">${cups.map(i=>chip(i)).join('')||'<span class="hint">休息</span>'}</div></div>`; }).join('');
   const nextOf=i=>{ for(let k=0;k<30;k++){ const n=(day-1+k)%30; if(ARENA_SCHED[n].includes(i)) return n+1; } return null; };
   const rows=ARENA.map((c,i)=>{ const ok=arenaCan(c); const nx=i===22?22:nextOf(i);
     const who=c[5]?c[5].filter(x=>DG[x]).map(x=>`<span class="${x===S.cur?'me':''}">${esc(DG[x].name)}</span>`).join('、'):'';
     return `<tr><td class="c1">${chip(i)} <b>${esc(c[1])}</b> <span class="hint">${esc(c[2])}</span></td>
       <td data-l="參加資格">${esc(c[4])}${who?`<details class="who"><summary>可參加的精靈（${c[5].filter(x=>DG[x]).length}）</summary>${who}</details>`:''}</td>
-      <td data-l="${esc(d.name)}">${i===5?'<span class="pill">不舉行</span>':ok?`<span class="pill ok">${i===4?'可以參加（需先在 A 奪冠）':'可以參加'}</span>`:'<span class="pill no">不能參加</span>'}${nx&&i!==5?`<br><span class="hint">${nx===day?'今天舉行':nx===day%30+1?'明天舉行':'下次：'+nx+' 日'}</span>`:''}</td>
+      <td data-l="${esc(d.name)}">${i===5?'<span class="pill">不舉行</span>':ok?`<span class="pill ok">${i===4?'可以參加（需先在 A 奪冠）':'可以參加'}</span>`:'<span class="pill no">不能參加</span>'}${nx&&i!==5?`<br><span class="hint">${!dayKnown? '每年 '+ARENA_SCHED.map((x,k)=>x.includes(i)?k+1:0).filter(Boolean).join('、')+' 日' : nx===day?'今天舉行':nx===day%30+1?'明天舉行':'下次：'+nx+' 日'}</span>`:''}</td>
       <td data-l="冠軍">${arenaItem(c[6])}</td><td data-l="亞軍">${arenaItem(c[7])}</td><td data-l="備註" class="hint">${esc(c[8])}</td></tr>`; }).join('');
   $('#view').innerHTML=`<div class="grid">
   <section class="panel" style="grid-column:1/-1"><h2>鬥技場賽程 <small>起始鎮鬥技場，每年 30 日循環</small></h2>
-    <div class="row"><label class="f" style="max-width:160px">遊戲日期（日）<input type="number" data-k="arenaDay" min="1" max="30" value="${day}"></label>${(LIVE.on&&LIVE.stat==='ok')||S.svFile?`<span class="pill ok">${LIVE.on&&LIVE.stat==='ok'?'實時':'取自存檔'}：${S.gameYear!=null&&S.gameDay!=null&&S.gameDay%30+1===day?(S.gameYear+1)+'年':''}${day}日${S.clock!=null?'・'+S.clock+' 時':''}</span>`:''}
+    <div class="row"><label class="f" style="max-width:160px">遊戲日期（日）<input type="number" data-k="arenaDay" min="1" max="30" value="${dayKnown?day:''}" placeholder="例如 12"></label>${dayKnown?'':'<span class="pill w">請輸入遊戲選單上「X年X日」的日，才會標示今天、明天的比賽</span>'}${(LIVE.on&&LIVE.stat==='ok')||S.svFile?`<span class="pill ok">${LIVE.on&&LIVE.stat==='ok'?'實時':'取自存檔'}：${S.gameYear!=null&&S.gameDay!=null&&S.gameDay%30+1===day?(S.gameYear+1)+'年':''}${day}日${S.clock!=null?'・'+S.clock+' 時':''}</span>`:''}
       <p class="hint" style="flex:1 1 260px;margin:0">可以報名當天（早上 10 時前）和明天的比賽。灰色代碼＝${esc(d.name)}不能參加。</p></div>
     <div class="acal">${cal}</div>
     <p class="hint">${Object.values(ARENA_CAT).map(([n,c])=>`<span class="ac" style="--c:${c}">&nbsp;</span> ${n}`).join('　')}</p>
@@ -1641,19 +1642,27 @@ function renderLCD(){
   const d=DG[S.cur];
   $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>${BUILD==='live'&&LIVE.on&&LIVE.stat==='ok'&&LIVE.clk?`<div class="gclk" id="lcdClock">${liveClockHTML()}</div>`:''}
     <div class="st">${STATKEYS.map(k=>`<div><span>${SN[k]}</span><b>${S.stats[k]}</b></div>`).join('')}
-    <div><span>開心度</span><b>${S.hap??0}</b></div><div><span>教養</span><b>${S.dis??0}</b></div><div><span>疲勞</span><b>${S.fat}</b></div><div title="漠視數碼精靈呼叫的次數"><span>失誤</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
+    <div><span>開心度</span><b>${S.hap??0}</b></div><div><span>教養</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** 代表上載存檔才可以獲得該項數值"'}><span>疲勞</span><b>${known('fat')?S.fat:'***'}</b></div><div title="漠視數碼精靈呼叫的次數"><span>失誤</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${NOSAVE()?'<div title="*** 代表上載存檔才可以獲得該項數值"><span>壽命</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' ・ 網頁版'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` ・ 實時版 ・ <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">網頁版（手機、上載存檔）↗</a>`; }
-function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); save(); liveDecorate(); }
+function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
 
+/* 網頁版沒有上載存檔時：遊戲畫面不顯示的數值以 *** 代替（實時版不受影響） */
+const NOSAVE=()=>BUILD!=='live' && !S.svFile;
+function known(k){ if(!NOSAVE()) return true; if(k==='life') return false; if(k==='fat') return !!S.fatKnown; if(k==='age'||k==='evoDays'||k==='evoClock') return !!S.ageKnown; return true; }
+function estTag(k){ return NOSAVE()&&(k==='fat'||k==='age')&&known(k)? '<span class="hint">（推算）</span>' : ''; }
+const STAR_NOTE='<p class="hint">*** 代表上載存檔才可以獲得該項數值。</p>';
+const SAMPLE_NOTE='<div class="note info">目前顯示的是範例數值（一隻剛成為成長期的亞古獸，沒有學會招式）。到「我的精靈」改成你的數碼精靈和數值，或上載存檔後，這個提示就會消失。</div>';
 function numField(key,label,obj='S',step=1,min=-9999,max=99999){
-  const v = (obj==='stats'? S.stats[key] : S[key]) ?? '';
-  return `<label class="f">${label}<input type="number" id="f-${key}" data-k="${key}" data-o="${obj}" value="${v}" step="${step}" min="${min}" max="${max}"></label>`;
+  const k=obj==='stats'?'':key, show=known(k);
+  const v = show? ((obj==='stats'? S.stats[key] : S[key]) ?? '') : '';
+  return `<label class="f">${label}${show?estTag(k):''}<input type="number" id="f-${key}" data-k="${key}" data-o="${obj}" value="${v}" step="${step}" min="${min}" max="${max}"${show?'':` placeholder="***"${k==='life'?' disabled':''}`}></label>`;
 }
 
 // 招式在所屬系統裡的編號（1～8），與遊戲內招式表、攻略本的編號相同
 function techNo(id){ const t=TK[id]; return D.techs.filter(x=>x.school===t.school&&x.id!==48&&x.id!==57&&x.id<=id).length; }
 function lifeHTML(){
+  if(NOSAVE()) return '<p class="hint">剩餘壽命 <b>***</b>（遊戲畫面不顯示；新孵化的精靈是 360 小時，自然進化成完全體 +96 小時）。</p>';
   if(S.life==null||S.life==='') return '<p class="hint">剩餘壽命：上載存檔會自動讀出。新孵化的精靈是 360 小時。</p>';
   const d=DG[S.cur], ex=lifeExtra(S.hap), h=lifeLeftHours(S.life,S.hap,S.clock); const need=STAGE_AGE[d.level];
   const pct=Math.max(0,Math.min(100,S.life/360*100));
@@ -1667,13 +1676,15 @@ function lifeHTML(){
 function ageBlock(){
   const d=DG[S.cur], need=STAGE_AGE[d.level]; const est=ageFromClock();
   let st='';
-  if(need){ const left=need-S.age; st = left>0? `${LV[d.level]}要過 ${need} 小時才開始判定進化，還差 <b>${left} 小時</b>（約 ${whenHours(left)}）。`
+  if(need && !known('age')){ st=`${LV[d.level]}要過 ${need} 小時才開始判定進化；這個形態已過 <b>***</b> 小時。${d.level===3?'到 96 小時仍未進化就會變成鼻涕獸。':''}在上面把數碼精靈改成進化後的形態，或填上「進化時」的歲數和時間，網頁就會開始推算。`; }
+  else if(need){ const left=need-S.age; st = left>0? `${LV[d.level]}要過 ${need} 小時才開始判定進化，還差 <b>${left} 小時</b>（約 ${whenHours(left)}）。`
       : `${LV[d.level]}已過 ${need} 小時，之後每過一小時判定一次進化。`;
     if(d.level===3){ const l2=96-S.age; st+= l2>0? `到 96 小時（約 ${whenHours(l2)}）仍未進化就會變成鼻涕獸。` : '已過 96 小時。'; } }
   return `<h3>年齡與進化計時</h3>
     <div class="stats">${numField('days','年齡（歲）',undefined,1,0,99)}${numField('clock','現在（時）',undefined,1,0,23)}${numField('age','形態已過（小時）',undefined,1,0)}${numField('evoDays','進化時（歲）',undefined,1,0,99)}${numField('evoClock','進化時（時）',undefined,1,0,23)}${numField('life','剩餘壽命（小時）',undefined,1,0,999)}</div>
     ${lifeHTML()}
-    ${est!=null&&est!==S.age?`<p class="hint">按歲數和時間推算是 ${est} 小時。<button class="b" id="useAgeEst">用 ${est} 小時</button></p>`:''}
+    ${NOSAVE()?STAR_NOTE:''}
+    ${known('age')&&est!=null&&est!==S.age?`<p class="hint">按歲數和時間推算是 ${est} 小時。<button class="b" id="useAgeEst">用 ${est} 小時</button></p>`:''}
     ${st?`<p class="hint">${st}</p>`:''}
     <p class="hint">「年齡（歲）」和「現在（時）」照遊戲畫面輸入，「進化時」填上次進化那一刻的歲數和時間。遊戲決定進化看的是「這個形態已過多少小時」，每次進化都會歸零，畫面上看不到。所以請記下進化那一刻的歲數和時間，網頁會自動推算；在上面把數碼精靈改成進化後的形態時，網頁會自動記下這一刻。戰鬥剛好跨過整點時遊戲會少算 1 小時，所以推算可能差 1～2 小時。</p>`;
 }
@@ -1709,15 +1720,16 @@ function vRaise(){
   else if(d.level===5){ evoHTML='<p class="hint">完全體沒有下一階段。</p>'; }
   else {
     const P=predictEvo(); const need=STAGE_AGE[d.level];
-    evoHTML += `<p class="hint">進化時間：這個形態過了 ${need} 小時（每次進化歸零）。目前 ${S.age} 小時${S.age>=need?'，已到時間。':'，還差 '+(need-S.age)+' 小時（約 '+whenHours(need-S.age)+'）。'}</p>`;
+    evoHTML += !known('age')? `<p class="hint">進化時間：這個形態過了 ${need} 小時（每次進化歸零）。目前已過 *** 小時（*** 代表上載存檔才可以獲得該項數值；可在「我的精靈」記下進化時間來推算）。</p>` : `<p class="hint">進化時間：這個形態過了 ${need} 小時（每次進化歸零）。目前 ${S.age} 小時${estTag('age')}${S.age>=need?'，已到時間。':'，還差 '+(need-S.age)+' 小時（約 '+whenHours(need-S.age)+'）。'}</p>`;
     if(!P.rows.length) evoHTML+='<p class="hint">這隻數碼精靈沒有一般進化，只能經特殊方式進化。</p>';
     else evoHTML+= P.best===-1? '<div class="note">按目前數值，沒有候選合資格（3 組），不會進化'+(d.level===3?'；成長期滿 96 小時仍是這樣就會變成鼻涕獸':'')+'。</div>'
       : `<div class="note ok-note">按目前數值會進化成 <b>${DG[P.best].name}</b>。</div>`;
+    if(NOSAVE() && !(S.raised||[]).length && P.rows.filter(r=>r.met>=3).length>=2) evoHTML+='<div class="note info">有幾個候選同時合資格，結果會受「以前養過的數碼精靈」影響。記得在下面勾選以前養過的精靈（老爺爺家的進化圖鑑可以查看），預測才準確。</div>';
     const goals=P.rows.map(r=>r.id); if(d.level===3) goals.push(NUMEMON);
     if(!goals.includes(S.evoGoal)) S.evoGoal=goals[0];
     if(d.level===3){ const R=numemonRisk();
       evoHTML+=`<div class="numrisk${R.p?' hi':''}"><div class="nr-top"><span class="nr-p">${R.p}%</span><span><b>變成鼻涕獸的機會</b><br><span class="hint">數值維持不變時的結果</span></span></div>
-        <div class="nrbar"><i style="width:${R.p}%"></i></div><p>${R.text}</p>
+        <div class="nrbar"><i style="width:${R.p}%"></i></div><p>${known('age')?R.text:R.text.replace(/（還有 \d+ 小時）/g,'').replace(/還有 \d+ 小時/g,'還有 *** 小時')}</p>
         <p class="hint">遊戲這一步沒有隨機成分：年齡 72～95 小時每過一小時判定一次，只要有候選合資格就會立即進化；到 96 小時仍沒有，就一定變成鼻涕獸。所以「機會」只會是 0% 或 100%，關鍵是在 96 小時前數值會不會改變。</p></div>`; }
     if(goals.length){ const A=evoAdvice(S.evoGoal);
       evoHTML+=`<div class="goalbox"><label class="f">我想進化成<select id="sel-evogoal">${goals.map(id=>`<option value="${id}"${id===S.evoGoal?' selected':''}>${DG[id].name}${id===NUMEMON?'（成長期期滿未進化）':''}</option>`).join('')}</select></label>
@@ -1768,9 +1780,9 @@ function vRaise(){
   </section>
 
   <section class="panel" aria-labelledby="h-fat"><h2 id="h-fat">疲勞與訓練 <small>${LIVE.on&&LIVE.stat==='ok'?'下一次的預計增長':'按一下即記錄'}</small></h2>
-    <div><div class="row" style="justify-content:space-between"><span>疲勞值 <b class="big">${S.fat}</b>／100</span><span class="pill ${S.fat>=80?'no':S.fat>=60?'w':'ok'}">${S.fat>=80?'疲倦中':S.fat>=60?'接近疲倦':'正常'}</span></div>
-    <div class="meter ${fatCls}"><i style="width:${Math.min(100,S.fat)}%"></i></div></div>
-    ${S.fat>=80?'<div class="note">疲勞 ≥ 80：每次訓練心情 −4、教養 −3，疲勞 100 時訓練只加 1 點。先去休息。</div>':''}
+    <div><div class="row" style="justify-content:space-between"><span>疲勞值${estTag('fat')} <b class="big">${known('fat')?S.fat:'***'}</b>／100</span>${known('fat')?`<span class="pill ${S.fat>=80?'no':S.fat>=60?'w':'ok'}">${S.fat>=80?'疲倦中':S.fat>=60?'接近疲倦':'正常'}</span>`:''}</div>
+    <div class="meter ${known('fat')?fatCls:''}"><i style="width:${known('fat')?Math.min(100,S.fat):0}%"></i></div>${known('fat')?'':'<p class="hint">*** 代表上載存檔才可以獲得該項數值。睡醒後疲勞大約是 0，按下面的訓練、休息按鈕就會開始推算。</p>'}</div>
+    ${known('fat')&&S.fat>=80?'<div class="note">疲勞 ≥ 80：每次訓練心情 −4、教養 −3，疲勞 100 時訓練只加 1 點。先去休息。</div>':''}
     <div class="row">
       <button class="b" data-rest="-20">人馬醫院休息 1 小時（−20）</button>
       <button class="b" data-rest="-10">布尼獸椅子 1 小時（−10）</button>
@@ -1987,12 +1999,13 @@ document.addEventListener('click',e=>{
   if(t.dataset.recf){ S.recFilter=t.dataset.recf; render(); return; }
   if(t.id==='liveBtn'){ LIVE.on?liveStop():liveStart(); return; }
   if(t.id==='clearSaveData'){ S.bag=null; S.storage=null; S.bagCap=null; S.boost=null; S.drillCnt=null; render(); return; }
-  if(t.id==='useAgeEst'){ const e=ageFromClock(); if(e!=null) S.age=e; render(); return; }
+  if(t.id==='useAgeEst'){ const e=ageFromClock(); if(e!=null) S.age=e; S.ageKnown=true; render(); return; }
   if(t.dataset.svapply){ svApply(); t.textContent='已套用 ✓'; save(); renderLCD(); return; }
   if(t.dataset.mtime){ S.mapTime=t.dataset.mtime; render(); return; }
   if(t.dataset.tab){ S.tab=t.dataset.tab; render(); return; }
   if(t.dataset.icat){ S.itemCat=t.dataset.icat; render(); return; }
   if(t.dataset.inc||t.dataset.train!==undefined||t.dataset.rest) S.sample=false;
+  if(t.dataset.train!==undefined||t.dataset.rest){ if(!known('fat')) S.fat=0; S.fatKnown=true; }
   if(LIVE.on && LIVE.stat==='ok' && (t.dataset.rest||t.dataset.train!==undefined||t.dataset.inc||t.id==='syncTech')) return;
   if(t.dataset.inc){ const k=t.dataset.inc; S[k]=Math.max(0,(+S[k]||0)+(+t.dataset.d)); render(); return; }
   if(t.id==='syncTech'){ S.tech=techCount(); render(); return; }
@@ -2036,9 +2049,9 @@ document.addEventListener('change',e=>{
   if(t.dataset.raised){ const id=+t.dataset.raised; S.raised=(S.raised||[]).filter(x=>x!==id); if(t.checked) S.raised.push(id); render(); return; }
   if(t.id==='sel-mreg'){ S.mapRegion=t.value; if(!t.value) S._mapWasZoom=true; render(); return; }
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
-    if(DG[nw].level===1 && DG[old].level!==1){ S.life=360; S.days=0; S.age=0; S.evoDays=0; S.evoClock=S.clock??0; }
+    if(DG[nw].level===1 && DG[old].level!==1){ S.ageKnown=true; S.life=360; S.days=0; S.age=0; S.evoDays=0; S.evoClock=S.clock??0; }
     const evo=(D.evo[old]?.to||[]).includes(nw) || (DG[old].level===3&&(nw===11||nw===39)) || SPECIAL.some(x=>x.to===DG[nw].name&&((x.from&&x.from.includes(DG[old].name))||(x.stage&&x.stage===DG[old].level)||(x.stageMin&&DG[old].level>=x.stageMin)));
-    if(evo && DG[nw].level!==DG[old].level){ S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.log.push(`${DG[old].name} → ${DG[nw].name}：已記下進化時間（${S.days??'?'} 歲 ${S.clock??'?'} 時），計時、失誤、戰鬥次數歸零。`); }
+    if(evo && DG[nw].level!==DG[old].level){ S.ageKnown=true; S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.log.push(`${DG[old].name} → ${DG[nw].name}：已記下進化時間（${S.days??'?'} 歲 ${S.clock??'?'} 時），計時、失誤、戰鬥次數歸零。`); }
     render(); return; }
   if(t.id==='sel-target'){ S.target=+t.value; render(); return; }
   if(t.id==='sel-gym'){ S.gym=t.value; render(); return; }
@@ -2056,7 +2069,7 @@ document.addEventListener('change',e=>{
   if(t.id==='c-it'){ S.itTen=t.checked; render(); return; }
   if(t.dataset.learn){ const id=+t.dataset.learn; S.learned=S.learned.filter(x=>x!==id); if(t.checked) S.learned.push(id); render(); return; }
   if(t.dataset.used){ const foe=enemyList().find(x=>x[0]===S.foe)[1]; let u=S.foeUsed[S.foe]||[...foe.techs]; const id=+t.dataset.used; u=u.filter(x=>x!==id); if(t.checked) u.push(id); S.foeUsed[S.foe]=u; render(); return; }
-  if(t.dataset.k){ const v=+t.value; if(Number.isNaN(v)) return; if(t.dataset.o==='stats') S.stats[t.dataset.k]=v; else S[t.dataset.k]=v; if(['days','clock','evoDays','evoClock'].includes(t.dataset.k)){ const e=ageFromClock(); if(e!=null&&e>=0) S.age=e; } render(); }
+  if(t.dataset.k){ const v=+t.value; if(Number.isNaN(v)) return; if(t.dataset.o==='stats') S.stats[t.dataset.k]=v; else S[t.dataset.k]=v; if(t.dataset.k==='fat') S.fatKnown=true; if(t.dataset.k==='arenaDay') S.arenaDaySet=true; if(['age','evoDays','evoClock'].includes(t.dataset.k)) S.ageKnown=true; if(['days','clock','evoDays','evoClock'].includes(t.dataset.k)){ const e=ageFromClock(); if(e!=null&&e>=0) S.age=e; } render(); }
 });
 document.addEventListener('input',e=>{ if(e.target.id==='item-q'){ S.itemQ=e.target.value; save(); fillItems(); } });
 document.addEventListener('toggle',e=>{ if(e.target.id==='d-others'){ S.othersOpen=e.target.open; save(); } if(e.target.id==='d-evorule'){ S.evoRuleOpen=e.target.open; save(); } if(e.target.id==='d-raised'){ S.raisedOpen=e.target.open; save(); } if(e.target.id==='d-mapfoes'){ S.mapFoesOpen=e.target.open; save(); } if(e.target.id&&e.target.id.startsWith('d-rules-')){ S.rulesOpen=Object.assign({},S.rulesOpen,{[e.target.id.slice(8)]:e.target.open}); save(); } },true);

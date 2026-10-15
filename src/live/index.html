@@ -599,7 +599,7 @@ function simulate(st0, lv, goalFn, pickStat, cap){
 }
 function topOK(st,t){ const v=k=>scaled(k,st[k]); return STATKEYS.every(k=>k===t||v(t)>v(k)); }
 function makePlan(path){
-  let st={...S.stats}; PF=S.fat; const stages=[]; const cap=S.planCap;
+  let st={...S.stats}; PF=known('fat')?S.fat:0; const stages=[]; const cap=S.planCap;
   const finalId=path[path.length-1]; const finalE=D.evo[finalId];
   const later = new Set(); path.forEach(id=>{ const e=D.evo[id]; if(e&&e.stats) Object.keys(e.stats).forEach(k=>later.add(k)); });
   for(let i=0;i<path.length-1;i++){
@@ -663,7 +663,7 @@ function vPlan(){
   }
   $('#view').innerHTML=`<div class="grid plangrid">
   <section class="panel"><h2>\u8a08\u5283\u8a2d\u5b9a</h2>
-    <p class="hint">\u5f9e\u76ee\u524d\u7684\u6578\u78bc\u7cbe\u9748\u300c${esc(d.name)}\u300d\u548c\u300c\u80b2\u6210\u7d00\u9304\u300d\u88e1\u7684\u80fd\u529b\u3001\u75b2\u52de\u958b\u59cb\u8a08\u7b97\u3002\u8a13\u7df4\u624b\u518a\u3001\u6751\u6c11\u548c\u64c5\u9577\u9805\u76ee\u7684\u8a2d\u5b9a\u4e5f\u4e00\u6a23\u6cbf\u7528\uff1b\u98df\u7269\u4e0d\u8a08\u5165\u3002</p>
+    <p class="hint">\u5f9e\u76ee\u524d\u7684\u6578\u78bc\u7cbe\u9748\u300c${esc(d.name)}\u300d\u548c\u300c\u80b2\u6210\u7d00\u9304\u300d\u88e1\u7684\u80fd\u529b\u3001\u75b2\u52de\u958b\u59cb\u8a08\u7b97\u3002\u8a13\u7df4\u624b\u518a\u3001\u6751\u6c11\u548c\u64c5\u9577\u9805\u76ee\u7684\u8a2d\u5b9a\u4e5f\u4e00\u6a23\u6cbf\u7528\uff1b\u98df\u7269\u4e0d\u8a08\u5165\u3002</p>${known('fat')?'':'<p class="hint">\u75b2\u52de\u503c\u662f ***\uff08\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\uff09\uff0c\u8a08\u5283\u5047\u8a2d\u7531 0 \u958b\u59cb\uff0c\u5373\u525b\u7761\u9192\u6216\u525b\u4f11\u606f\u5b8c\u3002</p>'}
     <label class="f">\u76ee\u6a19<select id="sel-ptarget">${digiOptions(S.planTarget,x=>targets.includes(x))}</select></label>
     <label class="f">\u8def\u7dda<select id="sel-ppath">${paths.map((p,i)=>`<option value="${i}"${i===S.planPath?' selected':''}>${p.map(id=>DG[id].name).join(' \u2192 ')}</option>`).join('')}</select></label>
     <h3>\u53ef\u4ee5\u7528\u7684\u8a13\u7df4\u5834\u5730</h3>
@@ -1110,19 +1110,20 @@ function itemTC(jp){ const r=ITEMS.find(x=>x[2]===jp||x[2].replace('\uff2d\uff30
 function arenaCan(c){ const d=DG[S.cur]; if(d.level<3) return false; return !c[5]||c[5].includes(S.cur); }
 function vArena(){
   const day=Math.min(30,Math.max(1,+S.arenaDay||1)); const d=DG[S.cur];
+  const dayKnown= BUILD==='live' || !!S.svFile || !!S.arenaDaySet;
   const chip=(i,big)=>{ const c=ARENA[i]; const ok=arenaCan(c); return `<span class="ac${ok?'':' no'}" style="--c:${ARENA_CAT[c[3]][1]}" title="${esc(c[1])}${ok?'':'\uff08'+d.name+'\u4e0d\u80fd\u53c3\u52a0\uff09'}">${c[0].normalize('NFKC')}</span>`; };
-  const cal=ARENA_SCHED.map((cups,k)=>{ const n=k+1; const tag=n===day?'\u4eca\u5929':n===day%30+1?'\u660e\u5929':'';
+  const cal=ARENA_SCHED.map((cups,k)=>{ const n=k+1; const tag=!dayKnown?'':n===day?'\u4eca\u5929':n===day%30+1?'\u660e\u5929':'';
     return `<div class="ad${tag?' on':''}"><div class="an">${n} \u65e5${tag?` <b>${tag}</b>`:''}</div><div class="acs">${cups.map(i=>chip(i)).join('')||'<span class="hint">\u4f11\u606f</span>'}</div></div>`; }).join('');
   const nextOf=i=>{ for(let k=0;k<30;k++){ const n=(day-1+k)%30; if(ARENA_SCHED[n].includes(i)) return n+1; } return null; };
   const rows=ARENA.map((c,i)=>{ const ok=arenaCan(c); const nx=i===22?22:nextOf(i);
     const who=c[5]?c[5].filter(x=>DG[x]).map(x=>`<span class="${x===S.cur?'me':''}">${esc(DG[x].name)}</span>`).join('\u3001'):'';
     return `<tr><td class="c1">${chip(i)} <b>${esc(c[1])}</b> <span class="hint">${esc(c[2])}</span></td>
       <td data-l="\u53c3\u52a0\u8cc7\u683c">${esc(c[4])}${who?`<details class="who"><summary>\u53ef\u53c3\u52a0\u7684\u7cbe\u9748\uff08${c[5].filter(x=>DG[x]).length}\uff09</summary>${who}</details>`:''}</td>
-      <td data-l="${esc(d.name)}">${i===5?'<span class="pill">\u4e0d\u8209\u884c</span>':ok?`<span class="pill ok">${i===4?'\u53ef\u4ee5\u53c3\u52a0\uff08\u9700\u5148\u5728 A \u596a\u51a0\uff09':'\u53ef\u4ee5\u53c3\u52a0'}</span>`:'<span class="pill no">\u4e0d\u80fd\u53c3\u52a0</span>'}${nx&&i!==5?`<br><span class="hint">${nx===day?'\u4eca\u5929\u8209\u884c':nx===day%30+1?'\u660e\u5929\u8209\u884c':'\u4e0b\u6b21\uff1a'+nx+' \u65e5'}</span>`:''}</td>
+      <td data-l="${esc(d.name)}">${i===5?'<span class="pill">\u4e0d\u8209\u884c</span>':ok?`<span class="pill ok">${i===4?'\u53ef\u4ee5\u53c3\u52a0\uff08\u9700\u5148\u5728 A \u596a\u51a0\uff09':'\u53ef\u4ee5\u53c3\u52a0'}</span>`:'<span class="pill no">\u4e0d\u80fd\u53c3\u52a0</span>'}${nx&&i!==5?`<br><span class="hint">${!dayKnown? '\u6bcf\u5e74 '+ARENA_SCHED.map((x,k)=>x.includes(i)?k+1:0).filter(Boolean).join('\u3001')+' \u65e5' : nx===day?'\u4eca\u5929\u8209\u884c':nx===day%30+1?'\u660e\u5929\u8209\u884c':'\u4e0b\u6b21\uff1a'+nx+' \u65e5'}</span>`:''}</td>
       <td data-l="\u51a0\u8ecd">${arenaItem(c[6])}</td><td data-l="\u4e9e\u8ecd">${arenaItem(c[7])}</td><td data-l="\u5099\u8a3b" class="hint">${esc(c[8])}</td></tr>`; }).join('');
   $('#view').innerHTML=`<div class="grid">
   <section class="panel" style="grid-column:1/-1"><h2>\u9b25\u6280\u5834\u8cfd\u7a0b <small>\u8d77\u59cb\u93ae\u9b25\u6280\u5834\uff0c\u6bcf\u5e74 30 \u65e5\u5faa\u74b0</small></h2>
-    <div class="row"><label class="f" style="max-width:160px">\u904a\u6232\u65e5\u671f\uff08\u65e5\uff09<input type="number" data-k="arenaDay" min="1" max="30" value="${day}"></label>${(LIVE.on&&LIVE.stat==='ok')||S.svFile?`<span class="pill ok">${LIVE.on&&LIVE.stat==='ok'?'\u5be6\u6642':'\u53d6\u81ea\u5b58\u6a94'}\uff1a${S.gameYear!=null&&S.gameDay!=null&&S.gameDay%30+1===day?(S.gameYear+1)+'\u5e74':''}${day}\u65e5${S.clock!=null?'\u30fb'+S.clock+' \u6642':''}</span>`:''}
+    <div class="row"><label class="f" style="max-width:160px">\u904a\u6232\u65e5\u671f\uff08\u65e5\uff09<input type="number" data-k="arenaDay" min="1" max="30" value="${dayKnown?day:''}" placeholder="\u4f8b\u5982 12"></label>${dayKnown?'':'<span class="pill w">\u8acb\u8f38\u5165\u904a\u6232\u9078\u55ae\u4e0a\u300cX\u5e74X\u65e5\u300d\u7684\u65e5\uff0c\u624d\u6703\u6a19\u793a\u4eca\u5929\u3001\u660e\u5929\u7684\u6bd4\u8cfd</span>'}${(LIVE.on&&LIVE.stat==='ok')||S.svFile?`<span class="pill ok">${LIVE.on&&LIVE.stat==='ok'?'\u5be6\u6642':'\u53d6\u81ea\u5b58\u6a94'}\uff1a${S.gameYear!=null&&S.gameDay!=null&&S.gameDay%30+1===day?(S.gameYear+1)+'\u5e74':''}${day}\u65e5${S.clock!=null?'\u30fb'+S.clock+' \u6642':''}</span>`:''}
       <p class="hint" style="flex:1 1 260px;margin:0">\u53ef\u4ee5\u5831\u540d\u7576\u5929\uff08\u65e9\u4e0a 10 \u6642\u524d\uff09\u548c\u660e\u5929\u7684\u6bd4\u8cfd\u3002\u7070\u8272\u4ee3\u78bc\uff1d${esc(d.name)}\u4e0d\u80fd\u53c3\u52a0\u3002</p></div>
     <div class="acal">${cal}</div>
     <p class="hint">${Object.values(ARENA_CAT).map(([n,c])=>`<span class="ac" style="--c:${c}">&nbsp;</span> ${n}`).join('\u3000')}</p>
@@ -1650,19 +1651,27 @@ function renderLCD(){
   const d=DG[S.cur];
   $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>${BUILD==='live'&&LIVE.on&&LIVE.stat==='ok'&&LIVE.clk?`<div class="gclk" id="lcdClock">${liveClockHTML()}</div>`:''}
     <div class="st">${STATKEYS.map(k=>`<div><span>${SN[k]}</span><b>${S.stats[k]}</b></div>`).join('')}
-    <div><span>\u958b\u5fc3\u5ea6</span><b>${S.hap??0}</b></div><div><span>\u6559\u990a</span><b>${S.dis??0}</b></div><div><span>\u75b2\u52de</span><b>${S.fat}</b></div><div title="\u6f20\u8996\u6578\u78bc\u7cbe\u9748\u547c\u53eb\u7684\u6b21\u6578"><span>\u5931\u8aa4</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>\u5e74\u9f61</span><b>${S.days}\u6b72</b></div>`:''}${S.life!=null&&S.life!==''?`<div><span>\u58fd\u547d</span><b>${S.life}h</b></div>`:''}<div><span>\u751f\u547d</span><b>${'\u2665'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
+    <div><span>\u958b\u5fc3\u5ea6</span><b>${S.hap??0}</b></div><div><span>\u6559\u990a</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c"'}><span>\u75b2\u52de</span><b>${known('fat')?S.fat:'***'}</b></div><div title="\u6f20\u8996\u6578\u78bc\u7cbe\u9748\u547c\u53eb\u7684\u6b21\u6578"><span>\u5931\u8aa4</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>\u5e74\u9f61</span><b>${S.days}\u6b72</b></div>`:''}${NOSAVE()?'<div title="*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c"><span>\u58fd\u547d</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>\u58fd\u547d</span><b>${S.life}h</b></div>`:''}<div><span>\u751f\u547d</span><b>${'\u2665'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' \u30fb \u7db2\u9801\u7248'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` \u30fb \u5be6\u6642\u7248 \u30fb <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">\u7db2\u9801\u7248\uff08\u624b\u6a5f\u3001\u4e0a\u8f09\u5b58\u6a94\uff09\u2197</a>`; }
-function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); save(); liveDecorate(); }
+function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
 
+/* \u7db2\u9801\u7248\u6c92\u6709\u4e0a\u8f09\u5b58\u6a94\u6642\uff1a\u904a\u6232\u756b\u9762\u4e0d\u986f\u793a\u7684\u6578\u503c\u4ee5 *** \u4ee3\u66ff\uff08\u5be6\u6642\u7248\u4e0d\u53d7\u5f71\u97ff\uff09 */
+const NOSAVE=()=>BUILD!=='live' && !S.svFile;
+function known(k){ if(!NOSAVE()) return true; if(k==='life') return false; if(k==='fat') return !!S.fatKnown; if(k==='age'||k==='evoDays'||k==='evoClock') return !!S.ageKnown; return true; }
+function estTag(k){ return NOSAVE()&&(k==='fat'||k==='age')&&known(k)? '<span class="hint">\uff08\u63a8\u7b97\uff09</span>' : ''; }
+const STAR_NOTE='<p class="hint">*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c\u3002</p>';
+const SAMPLE_NOTE='<div class="note info">\u76ee\u524d\u986f\u793a\u7684\u662f\u7bc4\u4f8b\u6578\u503c\uff08\u4e00\u96bb\u525b\u6210\u70ba\u6210\u9577\u671f\u7684\u4e9e\u53e4\u7378\uff0c\u6c92\u6709\u5b78\u6703\u62db\u5f0f\uff09\u3002\u5230\u300c\u6211\u7684\u7cbe\u9748\u300d\u6539\u6210\u4f60\u7684\u6578\u78bc\u7cbe\u9748\u548c\u6578\u503c\uff0c\u6216\u4e0a\u8f09\u5b58\u6a94\u5f8c\uff0c\u9019\u500b\u63d0\u793a\u5c31\u6703\u6d88\u5931\u3002</div>';
 function numField(key,label,obj='S',step=1,min=-9999,max=99999){
-  const v = (obj==='stats'? S.stats[key] : S[key]) ?? '';
-  return `<label class="f">${label}<input type="number" id="f-${key}" data-k="${key}" data-o="${obj}" value="${v}" step="${step}" min="${min}" max="${max}"></label>`;
+  const k=obj==='stats'?'':key, show=known(k);
+  const v = show? ((obj==='stats'? S.stats[key] : S[key]) ?? '') : '';
+  return `<label class="f">${label}${show?estTag(k):''}<input type="number" id="f-${key}" data-k="${key}" data-o="${obj}" value="${v}" step="${step}" min="${min}" max="${max}"${show?'':` placeholder="***"${k==='life'?' disabled':''}`}></label>`;
 }
 
 // \u62db\u5f0f\u5728\u6240\u5c6c\u7cfb\u7d71\u88e1\u7684\u7de8\u865f\uff081\uff5e8\uff09\uff0c\u8207\u904a\u6232\u5167\u62db\u5f0f\u8868\u3001\u653b\u7565\u672c\u7684\u7de8\u865f\u76f8\u540c
 function techNo(id){ const t=TK[id]; return D.techs.filter(x=>x.school===t.school&&x.id!==48&&x.id!==57&&x.id<=id).length; }
 function lifeHTML(){
+  if(NOSAVE()) return '<p class="hint">\u5269\u9918\u58fd\u547d <b>***</b>\uff08\u904a\u6232\u756b\u9762\u4e0d\u986f\u793a\uff1b\u65b0\u5b75\u5316\u7684\u7cbe\u9748\u662f 360 \u5c0f\u6642\uff0c\u81ea\u7136\u9032\u5316\u6210\u5b8c\u5168\u9ad4 +96 \u5c0f\u6642\uff09\u3002</p>';
   if(S.life==null||S.life==='') return '<p class="hint">\u5269\u9918\u58fd\u547d\uff1a\u4e0a\u8f09\u5b58\u6a94\u6703\u81ea\u52d5\u8b80\u51fa\u3002\u65b0\u5b75\u5316\u7684\u7cbe\u9748\u662f 360 \u5c0f\u6642\u3002</p>';
   const d=DG[S.cur], ex=lifeExtra(S.hap), h=lifeLeftHours(S.life,S.hap,S.clock); const need=STAGE_AGE[d.level];
   const pct=Math.max(0,Math.min(100,S.life/360*100));
@@ -1676,13 +1685,15 @@ function lifeHTML(){
 function ageBlock(){
   const d=DG[S.cur], need=STAGE_AGE[d.level]; const est=ageFromClock();
   let st='';
-  if(need){ const left=need-S.age; st = left>0? `${LV[d.level]}\u8981\u904e ${need} \u5c0f\u6642\u624d\u958b\u59cb\u5224\u5b9a\u9032\u5316\uff0c\u9084\u5dee <b>${left} \u5c0f\u6642</b>\uff08\u7d04 ${whenHours(left)}\uff09\u3002`
+  if(need && !known('age')){ st=`${LV[d.level]}\u8981\u904e ${need} \u5c0f\u6642\u624d\u958b\u59cb\u5224\u5b9a\u9032\u5316\uff1b\u9019\u500b\u5f62\u614b\u5df2\u904e <b>***</b> \u5c0f\u6642\u3002${d.level===3?'\u5230 96 \u5c0f\u6642\u4ecd\u672a\u9032\u5316\u5c31\u6703\u8b8a\u6210\u9f3b\u6d95\u7378\u3002':''}\u5728\u4e0a\u9762\u628a\u6578\u78bc\u7cbe\u9748\u6539\u6210\u9032\u5316\u5f8c\u7684\u5f62\u614b\uff0c\u6216\u586b\u4e0a\u300c\u9032\u5316\u6642\u300d\u7684\u6b72\u6578\u548c\u6642\u9593\uff0c\u7db2\u9801\u5c31\u6703\u958b\u59cb\u63a8\u7b97\u3002`; }
+  else if(need){ const left=need-S.age; st = left>0? `${LV[d.level]}\u8981\u904e ${need} \u5c0f\u6642\u624d\u958b\u59cb\u5224\u5b9a\u9032\u5316\uff0c\u9084\u5dee <b>${left} \u5c0f\u6642</b>\uff08\u7d04 ${whenHours(left)}\uff09\u3002`
       : `${LV[d.level]}\u5df2\u904e ${need} \u5c0f\u6642\uff0c\u4e4b\u5f8c\u6bcf\u904e\u4e00\u5c0f\u6642\u5224\u5b9a\u4e00\u6b21\u9032\u5316\u3002`;
     if(d.level===3){ const l2=96-S.age; st+= l2>0? `\u5230 96 \u5c0f\u6642\uff08\u7d04 ${whenHours(l2)}\uff09\u4ecd\u672a\u9032\u5316\u5c31\u6703\u8b8a\u6210\u9f3b\u6d95\u7378\u3002` : '\u5df2\u904e 96 \u5c0f\u6642\u3002'; } }
   return `<h3>\u5e74\u9f61\u8207\u9032\u5316\u8a08\u6642</h3>
     <div class="stats">${numField('days','\u5e74\u9f61\uff08\u6b72\uff09',undefined,1,0,99)}${numField('clock','\u73fe\u5728\uff08\u6642\uff09',undefined,1,0,23)}${numField('age','\u5f62\u614b\u5df2\u904e\uff08\u5c0f\u6642\uff09',undefined,1,0)}${numField('evoDays','\u9032\u5316\u6642\uff08\u6b72\uff09',undefined,1,0,99)}${numField('evoClock','\u9032\u5316\u6642\uff08\u6642\uff09',undefined,1,0,23)}${numField('life','\u5269\u9918\u58fd\u547d\uff08\u5c0f\u6642\uff09',undefined,1,0,999)}</div>
     ${lifeHTML()}
-    ${est!=null&&est!==S.age?`<p class="hint">\u6309\u6b72\u6578\u548c\u6642\u9593\u63a8\u7b97\u662f ${est} \u5c0f\u6642\u3002<button class="b" id="useAgeEst">\u7528 ${est} \u5c0f\u6642</button></p>`:''}
+    ${NOSAVE()?STAR_NOTE:''}
+    ${known('age')&&est!=null&&est!==S.age?`<p class="hint">\u6309\u6b72\u6578\u548c\u6642\u9593\u63a8\u7b97\u662f ${est} \u5c0f\u6642\u3002<button class="b" id="useAgeEst">\u7528 ${est} \u5c0f\u6642</button></p>`:''}
     ${st?`<p class="hint">${st}</p>`:''}
     <p class="hint">\u300c\u5e74\u9f61\uff08\u6b72\uff09\u300d\u548c\u300c\u73fe\u5728\uff08\u6642\uff09\u300d\u7167\u904a\u6232\u756b\u9762\u8f38\u5165\uff0c\u300c\u9032\u5316\u6642\u300d\u586b\u4e0a\u6b21\u9032\u5316\u90a3\u4e00\u523b\u7684\u6b72\u6578\u548c\u6642\u9593\u3002\u904a\u6232\u6c7a\u5b9a\u9032\u5316\u770b\u7684\u662f\u300c\u9019\u500b\u5f62\u614b\u5df2\u904e\u591a\u5c11\u5c0f\u6642\u300d\uff0c\u6bcf\u6b21\u9032\u5316\u90fd\u6703\u6b78\u96f6\uff0c\u756b\u9762\u4e0a\u770b\u4e0d\u5230\u3002\u6240\u4ee5\u8acb\u8a18\u4e0b\u9032\u5316\u90a3\u4e00\u523b\u7684\u6b72\u6578\u548c\u6642\u9593\uff0c\u7db2\u9801\u6703\u81ea\u52d5\u63a8\u7b97\uff1b\u5728\u4e0a\u9762\u628a\u6578\u78bc\u7cbe\u9748\u6539\u6210\u9032\u5316\u5f8c\u7684\u5f62\u614b\u6642\uff0c\u7db2\u9801\u6703\u81ea\u52d5\u8a18\u4e0b\u9019\u4e00\u523b\u3002\u6230\u9b25\u525b\u597d\u8de8\u904e\u6574\u9ede\u6642\u904a\u6232\u6703\u5c11\u7b97 1 \u5c0f\u6642\uff0c\u6240\u4ee5\u63a8\u7b97\u53ef\u80fd\u5dee 1\uff5e2 \u5c0f\u6642\u3002</p>`;
 }
@@ -1718,15 +1729,16 @@ function vRaise(){
   else if(d.level===5){ evoHTML='<p class="hint">\u5b8c\u5168\u9ad4\u6c92\u6709\u4e0b\u4e00\u968e\u6bb5\u3002</p>'; }
   else {
     const P=predictEvo(); const need=STAGE_AGE[d.level];
-    evoHTML += `<p class="hint">\u9032\u5316\u6642\u9593\uff1a\u9019\u500b\u5f62\u614b\u904e\u4e86 ${need} \u5c0f\u6642\uff08\u6bcf\u6b21\u9032\u5316\u6b78\u96f6\uff09\u3002\u76ee\u524d ${S.age} \u5c0f\u6642${S.age>=need?'\uff0c\u5df2\u5230\u6642\u9593\u3002':'\uff0c\u9084\u5dee '+(need-S.age)+' \u5c0f\u6642\uff08\u7d04 '+whenHours(need-S.age)+'\uff09\u3002'}</p>`;
+    evoHTML += !known('age')? `<p class="hint">\u9032\u5316\u6642\u9593\uff1a\u9019\u500b\u5f62\u614b\u904e\u4e86 ${need} \u5c0f\u6642\uff08\u6bcf\u6b21\u9032\u5316\u6b78\u96f6\uff09\u3002\u76ee\u524d\u5df2\u904e *** \u5c0f\u6642\uff08*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c\uff1b\u53ef\u5728\u300c\u6211\u7684\u7cbe\u9748\u300d\u8a18\u4e0b\u9032\u5316\u6642\u9593\u4f86\u63a8\u7b97\uff09\u3002</p>` : `<p class="hint">\u9032\u5316\u6642\u9593\uff1a\u9019\u500b\u5f62\u614b\u904e\u4e86 ${need} \u5c0f\u6642\uff08\u6bcf\u6b21\u9032\u5316\u6b78\u96f6\uff09\u3002\u76ee\u524d ${S.age} \u5c0f\u6642${estTag('age')}${S.age>=need?'\uff0c\u5df2\u5230\u6642\u9593\u3002':'\uff0c\u9084\u5dee '+(need-S.age)+' \u5c0f\u6642\uff08\u7d04 '+whenHours(need-S.age)+'\uff09\u3002'}</p>`;
     if(!P.rows.length) evoHTML+='<p class="hint">\u9019\u96bb\u6578\u78bc\u7cbe\u9748\u6c92\u6709\u4e00\u822c\u9032\u5316\uff0c\u53ea\u80fd\u7d93\u7279\u6b8a\u65b9\u5f0f\u9032\u5316\u3002</p>';
     else evoHTML+= P.best===-1? '<div class="note">\u6309\u76ee\u524d\u6578\u503c\uff0c\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\uff083 \u7d44\uff09\uff0c\u4e0d\u6703\u9032\u5316'+(d.level===3?'\uff1b\u6210\u9577\u671f\u6eff 96 \u5c0f\u6642\u4ecd\u662f\u9019\u6a23\u5c31\u6703\u8b8a\u6210\u9f3b\u6d95\u7378':'')+'\u3002</div>'
       : `<div class="note ok-note">\u6309\u76ee\u524d\u6578\u503c\u6703\u9032\u5316\u6210 <b>${DG[P.best].name}</b>\u3002</div>`;
+    if(NOSAVE() && !(S.raised||[]).length && P.rows.filter(r=>r.met>=3).length>=2) evoHTML+='<div class="note info">\u6709\u5e7e\u500b\u5019\u9078\u540c\u6642\u5408\u8cc7\u683c\uff0c\u7d50\u679c\u6703\u53d7\u300c\u4ee5\u524d\u990a\u904e\u7684\u6578\u78bc\u7cbe\u9748\u300d\u5f71\u97ff\u3002\u8a18\u5f97\u5728\u4e0b\u9762\u52fe\u9078\u4ee5\u524d\u990a\u904e\u7684\u7cbe\u9748\uff08\u8001\u723a\u723a\u5bb6\u7684\u9032\u5316\u5716\u9451\u53ef\u4ee5\u67e5\u770b\uff09\uff0c\u9810\u6e2c\u624d\u6e96\u78ba\u3002</div>';
     const goals=P.rows.map(r=>r.id); if(d.level===3) goals.push(NUMEMON);
     if(!goals.includes(S.evoGoal)) S.evoGoal=goals[0];
     if(d.level===3){ const R=numemonRisk();
       evoHTML+=`<div class="numrisk${R.p?' hi':''}"><div class="nr-top"><span class="nr-p">${R.p}%</span><span><b>\u8b8a\u6210\u9f3b\u6d95\u7378\u7684\u6a5f\u6703</b><br><span class="hint">\u6578\u503c\u7dad\u6301\u4e0d\u8b8a\u6642\u7684\u7d50\u679c</span></span></div>
-        <div class="nrbar"><i style="width:${R.p}%"></i></div><p>${R.text}</p>
+        <div class="nrbar"><i style="width:${R.p}%"></i></div><p>${known('age')?R.text:R.text.replace(/\uff08\u9084\u6709 \d+ \u5c0f\u6642\uff09/g,'').replace(/\u9084\u6709 \d+ \u5c0f\u6642/g,'\u9084\u6709 *** \u5c0f\u6642')}</p>
         <p class="hint">\u904a\u6232\u9019\u4e00\u6b65\u6c92\u6709\u96a8\u6a5f\u6210\u5206\uff1a\u5e74\u9f61 72\uff5e95 \u5c0f\u6642\u6bcf\u904e\u4e00\u5c0f\u6642\u5224\u5b9a\u4e00\u6b21\uff0c\u53ea\u8981\u6709\u5019\u9078\u5408\u8cc7\u683c\u5c31\u6703\u7acb\u5373\u9032\u5316\uff1b\u5230 96 \u5c0f\u6642\u4ecd\u6c92\u6709\uff0c\u5c31\u4e00\u5b9a\u8b8a\u6210\u9f3b\u6d95\u7378\u3002\u6240\u4ee5\u300c\u6a5f\u6703\u300d\u53ea\u6703\u662f 0% \u6216 100%\uff0c\u95dc\u9375\u662f\u5728 96 \u5c0f\u6642\u524d\u6578\u503c\u6703\u4e0d\u6703\u6539\u8b8a\u3002</p></div>`; }
     if(goals.length){ const A=evoAdvice(S.evoGoal);
       evoHTML+=`<div class="goalbox"><label class="f">\u6211\u60f3\u9032\u5316\u6210<select id="sel-evogoal">${goals.map(id=>`<option value="${id}"${id===S.evoGoal?' selected':''}>${DG[id].name}${id===NUMEMON?'\uff08\u6210\u9577\u671f\u671f\u6eff\u672a\u9032\u5316\uff09':''}</option>`).join('')}</select></label>
@@ -1777,9 +1789,9 @@ function vRaise(){
   </section>
 
   <section class="panel" aria-labelledby="h-fat"><h2 id="h-fat">\u75b2\u52de\u8207\u8a13\u7df4 <small>${LIVE.on&&LIVE.stat==='ok'?'\u4e0b\u4e00\u6b21\u7684\u9810\u8a08\u589e\u9577':'\u6309\u4e00\u4e0b\u5373\u8a18\u9304'}</small></h2>
-    <div><div class="row" style="justify-content:space-between"><span>\u75b2\u52de\u503c <b class="big">${S.fat}</b>\uff0f100</span><span class="pill ${S.fat>=80?'no':S.fat>=60?'w':'ok'}">${S.fat>=80?'\u75b2\u5026\u4e2d':S.fat>=60?'\u63a5\u8fd1\u75b2\u5026':'\u6b63\u5e38'}</span></div>
-    <div class="meter ${fatCls}"><i style="width:${Math.min(100,S.fat)}%"></i></div></div>
-    ${S.fat>=80?'<div class="note">\u75b2\u52de \u2265 80\uff1a\u6bcf\u6b21\u8a13\u7df4\u5fc3\u60c5 \u22124\u3001\u6559\u990a \u22123\uff0c\u75b2\u52de 100 \u6642\u8a13\u7df4\u53ea\u52a0 1 \u9ede\u3002\u5148\u53bb\u4f11\u606f\u3002</div>':''}
+    <div><div class="row" style="justify-content:space-between"><span>\u75b2\u52de\u503c${estTag('fat')} <b class="big">${known('fat')?S.fat:'***'}</b>\uff0f100</span>${known('fat')?`<span class="pill ${S.fat>=80?'no':S.fat>=60?'w':'ok'}">${S.fat>=80?'\u75b2\u5026\u4e2d':S.fat>=60?'\u63a5\u8fd1\u75b2\u5026':'\u6b63\u5e38'}</span>`:''}</div>
+    <div class="meter ${known('fat')?fatCls:''}"><i style="width:${known('fat')?Math.min(100,S.fat):0}%"></i></div>${known('fat')?'':'<p class="hint">*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c\u3002\u7761\u9192\u5f8c\u75b2\u52de\u5927\u7d04\u662f 0\uff0c\u6309\u4e0b\u9762\u7684\u8a13\u7df4\u3001\u4f11\u606f\u6309\u9215\u5c31\u6703\u958b\u59cb\u63a8\u7b97\u3002</p>'}</div>
+    ${known('fat')&&S.fat>=80?'<div class="note">\u75b2\u52de \u2265 80\uff1a\u6bcf\u6b21\u8a13\u7df4\u5fc3\u60c5 \u22124\u3001\u6559\u990a \u22123\uff0c\u75b2\u52de 100 \u6642\u8a13\u7df4\u53ea\u52a0 1 \u9ede\u3002\u5148\u53bb\u4f11\u606f\u3002</div>':''}
     <div class="row">
       <button class="b" data-rest="-20">\u4eba\u99ac\u91ab\u9662\u4f11\u606f 1 \u5c0f\u6642\uff08\u221220\uff09</button>
       <button class="b" data-rest="-10">\u5e03\u5c3c\u7378\u6905\u5b50 1 \u5c0f\u6642\uff08\u221210\uff09</button>
@@ -1996,12 +2008,13 @@ document.addEventListener('click',e=>{
   if(t.dataset.recf){ S.recFilter=t.dataset.recf; render(); return; }
   if(t.id==='liveBtn'){ LIVE.on?liveStop():liveStart(); return; }
   if(t.id==='clearSaveData'){ S.bag=null; S.storage=null; S.bagCap=null; S.boost=null; S.drillCnt=null; render(); return; }
-  if(t.id==='useAgeEst'){ const e=ageFromClock(); if(e!=null) S.age=e; render(); return; }
+  if(t.id==='useAgeEst'){ const e=ageFromClock(); if(e!=null) S.age=e; S.ageKnown=true; render(); return; }
   if(t.dataset.svapply){ svApply(); t.textContent='\u5df2\u5957\u7528 \u2713'; save(); renderLCD(); return; }
   if(t.dataset.mtime){ S.mapTime=t.dataset.mtime; render(); return; }
   if(t.dataset.tab){ S.tab=t.dataset.tab; render(); return; }
   if(t.dataset.icat){ S.itemCat=t.dataset.icat; render(); return; }
   if(t.dataset.inc||t.dataset.train!==undefined||t.dataset.rest) S.sample=false;
+  if(t.dataset.train!==undefined||t.dataset.rest){ if(!known('fat')) S.fat=0; S.fatKnown=true; }
   if(LIVE.on && LIVE.stat==='ok' && (t.dataset.rest||t.dataset.train!==undefined||t.dataset.inc||t.id==='syncTech')) return;
   if(t.dataset.inc){ const k=t.dataset.inc; S[k]=Math.max(0,(+S[k]||0)+(+t.dataset.d)); render(); return; }
   if(t.id==='syncTech'){ S.tech=techCount(); render(); return; }
@@ -2045,9 +2058,9 @@ document.addEventListener('change',e=>{
   if(t.dataset.raised){ const id=+t.dataset.raised; S.raised=(S.raised||[]).filter(x=>x!==id); if(t.checked) S.raised.push(id); render(); return; }
   if(t.id==='sel-mreg'){ S.mapRegion=t.value; if(!t.value) S._mapWasZoom=true; render(); return; }
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
-    if(DG[nw].level===1 && DG[old].level!==1){ S.life=360; S.days=0; S.age=0; S.evoDays=0; S.evoClock=S.clock??0; }
+    if(DG[nw].level===1 && DG[old].level!==1){ S.ageKnown=true; S.life=360; S.days=0; S.age=0; S.evoDays=0; S.evoClock=S.clock??0; }
     const evo=(D.evo[old]?.to||[]).includes(nw) || (DG[old].level===3&&(nw===11||nw===39)) || SPECIAL.some(x=>x.to===DG[nw].name&&((x.from&&x.from.includes(DG[old].name))||(x.stage&&x.stage===DG[old].level)||(x.stageMin&&DG[old].level>=x.stageMin)));
-    if(evo && DG[nw].level!==DG[old].level){ S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.log.push(`${DG[old].name} \u2192 ${DG[nw].name}\uff1a\u5df2\u8a18\u4e0b\u9032\u5316\u6642\u9593\uff08${S.days??'?'} \u6b72 ${S.clock??'?'} \u6642\uff09\uff0c\u8a08\u6642\u3001\u5931\u8aa4\u3001\u6230\u9b25\u6b21\u6578\u6b78\u96f6\u3002`); }
+    if(evo && DG[nw].level!==DG[old].level){ S.ageKnown=true; S.evoDays=S.days??S.evoDays; S.evoClock=S.clock??S.evoClock; if(DG[nw].level===5 && S.life!=null && S.life!=='') S.life+=96; S.age=0; S.mis=0; S.win=0; S.log.push(`${DG[old].name} \u2192 ${DG[nw].name}\uff1a\u5df2\u8a18\u4e0b\u9032\u5316\u6642\u9593\uff08${S.days??'?'} \u6b72 ${S.clock??'?'} \u6642\uff09\uff0c\u8a08\u6642\u3001\u5931\u8aa4\u3001\u6230\u9b25\u6b21\u6578\u6b78\u96f6\u3002`); }
     render(); return; }
   if(t.id==='sel-target'){ S.target=+t.value; render(); return; }
   if(t.id==='sel-gym'){ S.gym=t.value; render(); return; }
@@ -2065,7 +2078,7 @@ document.addEventListener('change',e=>{
   if(t.id==='c-it'){ S.itTen=t.checked; render(); return; }
   if(t.dataset.learn){ const id=+t.dataset.learn; S.learned=S.learned.filter(x=>x!==id); if(t.checked) S.learned.push(id); render(); return; }
   if(t.dataset.used){ const foe=enemyList().find(x=>x[0]===S.foe)[1]; let u=S.foeUsed[S.foe]||[...foe.techs]; const id=+t.dataset.used; u=u.filter(x=>x!==id); if(t.checked) u.push(id); S.foeUsed[S.foe]=u; render(); return; }
-  if(t.dataset.k){ const v=+t.value; if(Number.isNaN(v)) return; if(t.dataset.o==='stats') S.stats[t.dataset.k]=v; else S[t.dataset.k]=v; if(['days','clock','evoDays','evoClock'].includes(t.dataset.k)){ const e=ageFromClock(); if(e!=null&&e>=0) S.age=e; } render(); }
+  if(t.dataset.k){ const v=+t.value; if(Number.isNaN(v)) return; if(t.dataset.o==='stats') S.stats[t.dataset.k]=v; else S[t.dataset.k]=v; if(t.dataset.k==='fat') S.fatKnown=true; if(t.dataset.k==='arenaDay') S.arenaDaySet=true; if(['age','evoDays','evoClock'].includes(t.dataset.k)) S.ageKnown=true; if(['days','clock','evoDays','evoClock'].includes(t.dataset.k)){ const e=ageFromClock(); if(e!=null&&e>=0) S.age=e; } render(); }
 });
 document.addEventListener('input',e=>{ if(e.target.id==='item-q'){ S.itemQ=e.target.value; save(); fillItems(); } });
 document.addEventListener('toggle',e=>{ if(e.target.id==='d-others'){ S.othersOpen=e.target.open; save(); } if(e.target.id==='d-evorule'){ S.evoRuleOpen=e.target.open; save(); } if(e.target.id==='d-raised'){ S.raisedOpen=e.target.open; save(); } if(e.target.id==='d-mapfoes'){ S.mapFoesOpen=e.target.open; save(); } if(e.target.id&&e.target.id.startsWith('d-rules-')){ S.rulesOpen=Object.assign({},S.rulesOpen,{[e.target.id.slice(8)]:e.target.open}); save(); } },true);
