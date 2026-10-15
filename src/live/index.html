@@ -1537,7 +1537,7 @@ function liveUrl(){ if(S.liveUrl) return S.liveUrl; return (location.protocol.st
 function liveToV(j){
   const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d && j.recruitedIds.includes(d.id); });
   return {n:1,title:'RetroArch \u5be6\u6642',cur:j.cur,stats:j.stats,dis:j.dis,hap:j.hap,days:j.days,weight:j.weight,life:j.life,mis:j.mis,win:j.win,age:j.age,poop:j.poop,fat:j.fat,lives:j.lives,
-    tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,hh:j.hh,mm:j.mm,live:true,
+    tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,year:j.year,hh:j.hh,mm:j.mm,live:true,
     bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined};
 }
 function liveBusyInput(){ const a=document.activeElement; return a && a.closest && a.closest('#view') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.id!=='liveBtn'; }
@@ -1561,9 +1561,10 @@ async function liveTick(){
 }
 /* \u904a\u6232\u6642\u9418\uff1a\u6bcf\u79d2\u8b80\u4e00\u6b21\uff0c\u4e2d\u9593\u6309\u5be6\u969b\u8d70\u901f\u63a8\u7b97\uff08\u904a\u6232 1 \u5c0f\u6642\uff1d1200 frame\uff0c\u7d04 20 \u79d2\uff1b\u9078\u55ae\u3001\u5c0d\u8a71\u6642\u505c\u6b62\uff09 */
 function liveClockFeed(j){
-  const g=j.day*1440+j.hh*60+j.mm, now=Date.now(), p=LIVE.clk; let rate=0;
+  const yr=Number.isInteger(j.year)&&j.year>=0&&j.year<100? j.year : null;
+  const g=((yr??0)*30+j.day)*1440+j.hh*60+j.mm, now=Date.now(), p=LIVE.clk; let rate=0;
   if(p){ const dg=g-p.g, dt=now-p.at; if(dg>0&&dg<=30&&dt>0){ const r=dg/dt; rate=p.rate? p.rate*0.5+r*0.5 : r; } }
-  LIVE.clk={g,at:now,rate};
+  LIVE.clk={g,at:now,rate,yr};
 }
 function liveClockNow(){
   const c=LIVE.clk; if(!c) return null;
@@ -1574,8 +1575,8 @@ function liveClockNow(){
 function liveClockHTML(){
   const t=liveClockNow(); if(t==null) return '';
   const day=Math.floor(t/1440), hh=Math.floor(t%1440/60), mm=t%60, p2=n=>String(n).padStart(2,'0');
-  const Y=Math.floor(day/360)+1, M=Math.floor(day%360/30)+1, D=day%30+1;
-  return `<span title="\u904a\u6232\u958b\u59cb\u5f8c\u7b2c ${day+1} \u65e5">${Y}\u5e74${M}\u6708${D}\u65e5</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
+  const Y=Math.floor(day/30)+1, D=day%30+1;  // \u904a\u6232\u53ea\u6709\u5e74\u3001\u65e5\uff1a\u6bcf\u5e74 30 \u65e5
+  return `<span${LIVE.clk.yr!=null?` title="\u904a\u6232\u958b\u59cb\u5f8c\u7b2c ${day+1} \u65e5"`:''}>${LIVE.clk.yr!=null?Y+'\u5e74':''}${D}\u65e5</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
 }
 function liveClockPaint(){ const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }

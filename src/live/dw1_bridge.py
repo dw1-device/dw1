@@ -21,7 +21,8 @@ A_LEARNED = 0x8016C910   # 16 bytes 已學招式位元
 A_LIVES   = 0x8016C934   # u8 生命
 A_PARA    = 0x8014274C   # 132 bytes 育成狀態
 A_CLOCK   = 0x8013ECB8   # s16 時、s16 分
-A_DAY     = 0x8013ED00   # s16 日
+A_DAY     = 0x8013ED00   # s16 日（0～29，每 30 日一年）
+A_YEAR    = 0x8013ECFE   # s16 年（0 起計；存檔 +464，緊接日之前，待實機核對）
 A_FLAGPTR = 0x8013EB44   # u32 劇情旗標表指標（旗標 n 在 指標+245+n/8）
 A_BAG     = 0x80147760   # 背包：+0 道具編號×30、+30 數量×30、+90 背包格數
 A_STORE   = 0x8014787C   # 倉庫（預り屋）：+0 數量×30、+0x20 道具編號×30
@@ -81,6 +82,7 @@ def snapshot(ra):
     sp = struct.unpack("<I", ra.read(A_SPECIES, 4))[0]
     st = ra.read(A_STATS, 24); P = ra.read(A_PARA, 132); L = ra.read(A_LEARNED, 16)
     lives = ra.read(A_LIVES, 1)[0]; clk = ra.read(A_CLOCK, 4); day = i16(ra.read(A_DAY, 2), 0)
+    year = i16(ra.read(A_YEAR, 2), 0)
     clk_raw = ra.read(0x8013EC00, 0x200)  # 時鐘一帶的原始記憶體，用來核對年月日
     ptr = struct.unpack("<I", ra.read(A_FLAGPTR, 4))[0]
     recruited, raised = [], []
@@ -102,7 +104,7 @@ def snapshot(ra):
         "fat": i16(P, 34), "dis": i16(P, 40), "hap": i16(P, 42), "weight": i16(P, 66),
         "life": i16(P, 72), "days": i16(P, 74), "mis": i16(P, 82), "win": i16(P, 84),
         "age": i16(P, 86), "poop": i16(P, 30), "lives": lives,
-        "hh": i16(clk, 0), "mm": i16(clk, 2), "day": day,
+        "hh": i16(clk, 0), "mm": i16(clk, 2), "day": day, "year": year,
         "learned": learned, "recruitedIds": recruited, "raisedIds": raised, "bag": bag, "bagCap": B[90], "storage": storage,
         "clkRaw": clk_raw.hex(),
         "para": list(struct.unpack("<66h", P)),   # 原始數值，用來找其他欄位
