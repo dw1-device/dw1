@@ -174,7 +174,7 @@ details.who summary{font-size:12px}details.who{font-size:12px;margin-top:4px}det
 .pbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent)}
 .pbar b{position:absolute;top:-3px;width:2px;height:18px;background:var(--ink);opacity:.5}
 ul.miles li.ok{color:var(--muted)}
-.numtop{margin-bottom:12px}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
+.numtop{margin-bottom:12px}.nstat{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}.nstat.g{background:color-mix(in srgb,#2f9e44 16%,transparent)}.nstat.r{background:color-mix(in srgb,#c92a2a 16%,transparent)}.nstat.y{background:color-mix(in srgb,#e8a317 20%,transparent)}.nstat.o{background:color-mix(in srgb,#f08c00 16%,transparent)}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
 .numrisk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.numrisk.hi{border-color:#c2410c}.numrisk .nr-top{display:flex;gap:10px;align-items:center}.numrisk .nr-p{font-size:1.8rem;font-weight:700;min-width:3.2em}.numrisk.hi .nr-p{color:#c2410c}.numrisk .nrbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.numrisk .nrbar i{display:block;height:100%;background:#c2410c}
 .verdict{border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}.verdict.ok{background:color-mix(in srgb,var(--good) 14%,transparent);border:1px solid var(--good)}.verdict.no{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}.verdict b:first-child{margin-right:4px}
 .life{display:flex;flex-direction:column;gap:4px;margin-top:4px}
@@ -451,6 +451,7 @@ function numemonRisk(ctx){
 // 幫玩家達成目標
 /* 鼻涕獸助手：找出令所有候選都少於 3 組的「體重 × 失誤」組合（失誤只會增加）；
    選擇繼續訓練時，先找就算能力全部練滿也成立的組合，找不到才改為列出能力上限。 */
+let NH_PREV=null;  // 上一次的建議（偵測訓練令方案改變）
 function numemonHelper(){
   const base={cur:S.cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised};
   const train=!!S.numTrain, m0=Math.max(0,base.mis|0), w0=base.weight;
@@ -488,7 +489,28 @@ function numemonHelper(){
       items.push({t:(g.id==='green'?'':g.name+'・')+n, ok:okAt(best.w,best.m,st), gain}); }));
     drl=`<p>${proof?'所有訓練都安全：':'按建議組合，下一次訓練是否安全（已計附帶的能力）：'}</p><div class="drl">${items.map(x=>`<span class="${x.ok?'y':'n'}" title="${Object.entries(x.gain).map(([k,v])=>SN[k]+'+'+v).join('、')}">${x.ok?'✓':'✗'} ${x.t}</span>`).join('')}</div>${items.some(x=>!x.ok)?'<p class="hint">✗ 的訓練再做一次就會令某個候選合資格；能力每次訓練後都會重新計算。</p>':''}`;
   }
-  return `<div class="nhelp">${head}${rec}${tbl}${caps}${drl}<p class="hint">判定由成長期 72 小時開始每小時一次，到 96 小時沒有候選合資格就變成鼻涕獸；這段時間都要保持在建議範圍內。</p></div>`;
+  // 狀態欄：按目前數值（失誤、體重、能力都不改）的結果
+  const now=predictEvo(base); let stat;
+  if(now.best===-1) stat=`<div class="nstat g">✓ 按目前數值（失誤 ${m0} 次、體重 ${w0}g），96 小時會變成 <b>鼻涕獸</b>。</div>`;
+  else { const r=now.rows.find(x=>x.id===now.best); const fix=[]; if(add) fix.push(`再漠視呼叫 ${add} 次`); if(dw) fix.push(`體重${dw<0?'減':'增'}到 ${best.w}g`);
+    stat=`<div class="nstat r">✗ 按目前數值會進化成 <b>${DG[now.best].name}</b>（${r.groups.filter(g=>g.ok).map(g=>g.name).join('、')}符合）。${fix.length?'最快的補救：'+fix.join('、')+'。':''}</div>`; }
+  // 方案改變提醒
+  const key=`${best.m}|${rtxt(G.find(r=>r.m===best.m).ws)}|${proof}`; let chg='';
+  if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key!==key){
+    const flipped=now.rows.filter(r=>{ const was=critOf(r.id,{...base,stats:NH_PREV.stats}); const a=was&&was.groups.find(g=>g.k==='stat'), b=r.groups.find(g=>g.k==='stat'); return a&&b&&!a.ok&&b.ok; }).map(r=>DG[r.id].name);
+    const why= flipped.length? `剛才的能力變化令 ${flipped.join('、')} 的能力組達標` : (NH_PREV.mis!==m0? `失誤由 ${NH_PREV.mis} 次變成 ${m0} 次` : NH_PREV.w!==w0? `體重由 ${NH_PREV.w}g 變成 ${w0}g` : '數值改變');
+    chg=`<div class="nstat y">⚠ ${why}：建議由「${NH_PREV.txt}」改為「失誤 ${best.m} 次、體重 ${rtxt(G.find(r=>r.m===best.m).ws)}」。</div>`;
+    NH_PREV.alert=chg; }
+  else if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key===key && NH_PREV.alert) chg=NH_PREV.alert;  // 保留提醒直到方案再變
+  NH_PREV={cur:S.cur,key,stats:{...base.stats},mis:m0,w:w0,txt:`失誤 ${best.m} 次、體重 ${rtxt(G.find(r=>r.m===best.m).ws)}`,alert:chg};
+  // 差一次訓練就出事的預警（不論是否勾選繼續訓練）
+  let warn='';
+  if(!proof){ const lv=DG[S.cur].level; const bad=[];
+    GYMS.forEach(g=>g.items.forEach(([n,b,main])=>{ const gain=trainGain(g,b,lv,false,main); const st={...base.stats}; for(const k in gain) st[k]=Math.min(k==='hp'||k==='mp'?9999:999,st[k]+gain[k]);
+      const q=predictEvo({...base,weight:best.w,mis:best.m,stats:st}); if(q.best!==-1) bad.push({t:(g.id==='green'?'':g.name+'・')+n, to:DG[q.best].name, gain}); }));
+    if(bad.length){ const by={}; bad.forEach(x=>(by[x.to]=by[x.to]||[]).push(`${x.t}（${Object.entries(x.gain).map(([k,v])=>SN[k]+'+'+v).join('、')}）`));
+      warn=`<div class="nstat o">⚠ 差一次訓練：${Object.entries(by).map(([to,l])=>`再做一次 ${l.join('、')} 就會令 <b>${to}</b> 合資格`).join('；')}。</div>`; } }
+  return `<div class="nhelp">${head}${stat}${chg}${warn}${rec}${tbl}${caps}${drl}<p class="hint">判定由成長期 72 小時開始每小時一次，到 96 小時沒有候選合資格就變成鼻涕獸；這段時間都要保持在建議範圍內。</p></div>`;
 }
 function evoAdvice(goal, ctx){
   const p=predictEvo(ctx); const tips=[];

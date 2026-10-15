@@ -180,7 +180,7 @@ details.who summary{font-size:12px}details.who{font-size:12px;margin-top:4px}det
 .pbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent)}
 .pbar b{position:absolute;top:-3px;width:2px;height:18px;background:var(--ink);opacity:.5}
 ul.miles li.ok{color:var(--muted)}
-.numtop{margin-bottom:12px}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
+.numtop{margin-bottom:12px}.nstat{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}.nstat.g{background:color-mix(in srgb,#2f9e44 16%,transparent)}.nstat.r{background:color-mix(in srgb,#c92a2a 16%,transparent)}.nstat.y{background:color-mix(in srgb,#e8a317 20%,transparent)}.nstat.o{background:color-mix(in srgb,#f08c00 16%,transparent)}.numtop .nhelp{margin-bottom:0}.nhelp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.nhelp h3{margin:0 0 6px;font-size:15px}.nhelp table{width:100%}.nhelp tr.hl td{font-weight:700;background:color-mix(in srgb,#2f9e44 10%,transparent)}.nhelp .drl{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0}.nhelp .drl span{font-size:12px;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}.nhelp .drl .y{background:color-mix(in srgb,#2f9e44 14%,transparent)}.nhelp .drl .n{background:color-mix(in srgb,#c92a2a 14%,transparent)}
 .numrisk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--panel)}.numrisk.hi{border-color:#c2410c}.numrisk .nr-top{display:flex;gap:10px;align-items:center}.numrisk .nr-p{font-size:1.8rem;font-weight:700;min-width:3.2em}.numrisk.hi .nr-p{color:#c2410c}.numrisk .nrbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0}.numrisk .nrbar i{display:block;height:100%;background:#c2410c}
 .verdict{border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}.verdict.ok{background:color-mix(in srgb,var(--good) 14%,transparent);border:1px solid var(--good)}.verdict.no{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}.verdict b:first-child{margin-right:4px}
 .life{display:flex;flex-direction:column;gap:4px;margin-top:4px}
@@ -460,6 +460,7 @@ function numemonRisk(ctx){
 // \u5e6b\u73a9\u5bb6\u9054\u6210\u76ee\u6a19
 /* \u9f3b\u6d95\u7378\u52a9\u624b\uff1a\u627e\u51fa\u4ee4\u6240\u6709\u5019\u9078\u90fd\u5c11\u65bc 3 \u7d44\u7684\u300c\u9ad4\u91cd \u00d7 \u5931\u8aa4\u300d\u7d44\u5408\uff08\u5931\u8aa4\u53ea\u6703\u589e\u52a0\uff09\uff1b
    \u9078\u64c7\u7e7c\u7e8c\u8a13\u7df4\u6642\uff0c\u5148\u627e\u5c31\u7b97\u80fd\u529b\u5168\u90e8\u7df4\u6eff\u4e5f\u6210\u7acb\u7684\u7d44\u5408\uff0c\u627e\u4e0d\u5230\u624d\u6539\u70ba\u5217\u51fa\u80fd\u529b\u4e0a\u9650\u3002 */
+let NH_PREV=null;  // \u4e0a\u4e00\u6b21\u7684\u5efa\u8b70\uff08\u5075\u6e2c\u8a13\u7df4\u4ee4\u65b9\u6848\u6539\u8b8a\uff09
 function numemonHelper(){
   const base={cur:S.cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised};
   const train=!!S.numTrain, m0=Math.max(0,base.mis|0), w0=base.weight;
@@ -497,7 +498,28 @@ function numemonHelper(){
       items.push({t:(g.id==='green'?'':g.name+'\u30fb')+n, ok:okAt(best.w,best.m,st), gain}); }));
     drl=`<p>${proof?'\u6240\u6709\u8a13\u7df4\u90fd\u5b89\u5168\uff1a':'\u6309\u5efa\u8b70\u7d44\u5408\uff0c\u4e0b\u4e00\u6b21\u8a13\u7df4\u662f\u5426\u5b89\u5168\uff08\u5df2\u8a08\u9644\u5e36\u7684\u80fd\u529b\uff09\uff1a'}</p><div class="drl">${items.map(x=>`<span class="${x.ok?'y':'n'}" title="${Object.entries(x.gain).map(([k,v])=>SN[k]+'+'+v).join('\u3001')}">${x.ok?'\u2713':'\u2717'} ${x.t}</span>`).join('')}</div>${items.some(x=>!x.ok)?'<p class="hint">\u2717 \u7684\u8a13\u7df4\u518d\u505a\u4e00\u6b21\u5c31\u6703\u4ee4\u67d0\u500b\u5019\u9078\u5408\u8cc7\u683c\uff1b\u80fd\u529b\u6bcf\u6b21\u8a13\u7df4\u5f8c\u90fd\u6703\u91cd\u65b0\u8a08\u7b97\u3002</p>':''}`;
   }
-  return `<div class="nhelp">${head}${rec}${tbl}${caps}${drl}<p class="hint">\u5224\u5b9a\u7531\u6210\u9577\u671f 72 \u5c0f\u6642\u958b\u59cb\u6bcf\u5c0f\u6642\u4e00\u6b21\uff0c\u5230 96 \u5c0f\u6642\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\u5c31\u8b8a\u6210\u9f3b\u6d95\u7378\uff1b\u9019\u6bb5\u6642\u9593\u90fd\u8981\u4fdd\u6301\u5728\u5efa\u8b70\u7bc4\u570d\u5167\u3002</p></div>`;
+  // \u72c0\u614b\u6b04\uff1a\u6309\u76ee\u524d\u6578\u503c\uff08\u5931\u8aa4\u3001\u9ad4\u91cd\u3001\u80fd\u529b\u90fd\u4e0d\u6539\uff09\u7684\u7d50\u679c
+  const now=predictEvo(base); let stat;
+  if(now.best===-1) stat=`<div class="nstat g">\u2713 \u6309\u76ee\u524d\u6578\u503c\uff08\u5931\u8aa4 ${m0} \u6b21\u3001\u9ad4\u91cd ${w0}g\uff09\uff0c96 \u5c0f\u6642\u6703\u8b8a\u6210 <b>\u9f3b\u6d95\u7378</b>\u3002</div>`;
+  else { const r=now.rows.find(x=>x.id===now.best); const fix=[]; if(add) fix.push(`\u518d\u6f20\u8996\u547c\u53eb ${add} \u6b21`); if(dw) fix.push(`\u9ad4\u91cd${dw<0?'\u6e1b':'\u589e'}\u5230 ${best.w}g`);
+    stat=`<div class="nstat r">\u2717 \u6309\u76ee\u524d\u6578\u503c\u6703\u9032\u5316\u6210 <b>${DG[now.best].name}</b>\uff08${r.groups.filter(g=>g.ok).map(g=>g.name).join('\u3001')}\u7b26\u5408\uff09\u3002${fix.length?'\u6700\u5feb\u7684\u88dc\u6551\uff1a'+fix.join('\u3001')+'\u3002':''}</div>`; }
+  // \u65b9\u6848\u6539\u8b8a\u63d0\u9192
+  const key=`${best.m}|${rtxt(G.find(r=>r.m===best.m).ws)}|${proof}`; let chg='';
+  if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key!==key){
+    const flipped=now.rows.filter(r=>{ const was=critOf(r.id,{...base,stats:NH_PREV.stats}); const a=was&&was.groups.find(g=>g.k==='stat'), b=r.groups.find(g=>g.k==='stat'); return a&&b&&!a.ok&&b.ok; }).map(r=>DG[r.id].name);
+    const why= flipped.length? `\u525b\u624d\u7684\u80fd\u529b\u8b8a\u5316\u4ee4 ${flipped.join('\u3001')} \u7684\u80fd\u529b\u7d44\u9054\u6a19` : (NH_PREV.mis!==m0? `\u5931\u8aa4\u7531 ${NH_PREV.mis} \u6b21\u8b8a\u6210 ${m0} \u6b21` : NH_PREV.w!==w0? `\u9ad4\u91cd\u7531 ${NH_PREV.w}g \u8b8a\u6210 ${w0}g` : '\u6578\u503c\u6539\u8b8a');
+    chg=`<div class="nstat y">\u26a0 ${why}\uff1a\u5efa\u8b70\u7531\u300c${NH_PREV.txt}\u300d\u6539\u70ba\u300c\u5931\u8aa4 ${best.m} \u6b21\u3001\u9ad4\u91cd ${rtxt(G.find(r=>r.m===best.m).ws)}\u300d\u3002</div>`;
+    NH_PREV.alert=chg; }
+  else if(NH_PREV && NH_PREV.cur===S.cur && NH_PREV.key===key && NH_PREV.alert) chg=NH_PREV.alert;  // \u4fdd\u7559\u63d0\u9192\u76f4\u5230\u65b9\u6848\u518d\u8b8a
+  NH_PREV={cur:S.cur,key,stats:{...base.stats},mis:m0,w:w0,txt:`\u5931\u8aa4 ${best.m} \u6b21\u3001\u9ad4\u91cd ${rtxt(G.find(r=>r.m===best.m).ws)}`,alert:chg};
+  // \u5dee\u4e00\u6b21\u8a13\u7df4\u5c31\u51fa\u4e8b\u7684\u9810\u8b66\uff08\u4e0d\u8ad6\u662f\u5426\u52fe\u9078\u7e7c\u7e8c\u8a13\u7df4\uff09
+  let warn='';
+  if(!proof){ const lv=DG[S.cur].level; const bad=[];
+    GYMS.forEach(g=>g.items.forEach(([n,b,main])=>{ const gain=trainGain(g,b,lv,false,main); const st={...base.stats}; for(const k in gain) st[k]=Math.min(k==='hp'||k==='mp'?9999:999,st[k]+gain[k]);
+      const q=predictEvo({...base,weight:best.w,mis:best.m,stats:st}); if(q.best!==-1) bad.push({t:(g.id==='green'?'':g.name+'\u30fb')+n, to:DG[q.best].name, gain}); }));
+    if(bad.length){ const by={}; bad.forEach(x=>(by[x.to]=by[x.to]||[]).push(`${x.t}\uff08${Object.entries(x.gain).map(([k,v])=>SN[k]+'+'+v).join('\u3001')}\uff09`));
+      warn=`<div class="nstat o">\u26a0 \u5dee\u4e00\u6b21\u8a13\u7df4\uff1a${Object.entries(by).map(([to,l])=>`\u518d\u505a\u4e00\u6b21 ${l.join('\u3001')} \u5c31\u6703\u4ee4 <b>${to}</b> \u5408\u8cc7\u683c`).join('\uff1b')}\u3002</div>`; } }
+  return `<div class="nhelp">${head}${stat}${chg}${warn}${rec}${tbl}${caps}${drl}<p class="hint">\u5224\u5b9a\u7531\u6210\u9577\u671f 72 \u5c0f\u6642\u958b\u59cb\u6bcf\u5c0f\u6642\u4e00\u6b21\uff0c\u5230 96 \u5c0f\u6642\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\u5c31\u8b8a\u6210\u9f3b\u6d95\u7378\uff1b\u9019\u6bb5\u6642\u9593\u90fd\u8981\u4fdd\u6301\u5728\u5efa\u8b70\u7bc4\u570d\u5167\u3002</p></div>`;
 }
 function evoAdvice(goal, ctx){
   const p=predictEvo(ctx); const tips=[];
