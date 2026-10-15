@@ -1,0 +1,53 @@
+name: 資料修正建議
+description: 資料需要修正或補充，或網頁顯示和遊戲不一樣
+title: "[資料修正] "
+labels: ["資料修正建議"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        多謝你幫忙！請盡量寫清楚，方便核對。不需要提供存檔；如果需要，我們會再詢問。
+  - type: dropdown
+    id: page
+    attributes:
+      label: 在哪一頁？
+      options:
+        - 上載存檔／進化預測
+        - 我的精靈
+        - 育成紀錄
+        - 訓練計劃
+        - 選蛋路線
+        - 招式查詢
+        - 戰鬥學招
+        - 智力學招
+        - 道具
+        - 地圖
+        - 繁榮度
+        - 食堂
+        - 鬥技場
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: 網頁現在顯示甚麼？
+      placeholder: 例如：「天使獸進化成安杜路獸需要智力 100」
+    validations:
+      required: true
+  - type: textarea
+    id: correct
+    attributes:
+      label: 正確的資料／你在遊戲中看到的情況
+      placeholder: 例如：「我的天使獸智力 90 就進化了」；如果有來源（攻略網址、遊戲截圖），請一併附上
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 遊戲版本
+      placeholder: 例如：日版 Rev 1／日版初版／美版
+  - type: textarea
+    id: more
+    attributes:
+      label: 其他補充（可附截圖）
