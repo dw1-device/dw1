@@ -25,7 +25,7 @@ A_DAY     = 0x8013ED00   # s16 日（0～29，每 30 日一年）
 A_YEAR    = 0x8013ECFE   # s16 年（0 起計；存檔 +464，緊接日之前，待實機核對）
 A_FLAGPTR = 0x8013EB44   # u32 劇情旗標表指標（旗標 n 在 指標+245+n/8）
 A_BAG     = 0x80147760   # 背包：+0 道具編號×30、+30 數量×30、+90 背包格數
-A_STORE   = 0x8014787C   # 倉庫（預り屋）：+0 數量×30、+0x20 道具編號×30
+A_STORE   = 0x8014787C   # 倉庫（預り屋）：+0 道具編號×30、+0x20 數量×30（2026-10-16 更正）
 
 class RA:
     """RetroArch 網絡指令（UDP）"""
@@ -97,7 +97,7 @@ def snapshot(ra):
     B = ra.read(A_BAG, 91)
     bag = [[B[i], B[30 + i]] for i in range(30) if B[30 + i] > 0]
     W = ra.read(A_STORE, 0x40)
-    storage = [[W[0x20 + i], W[i]] for i in range(30) if W[i] > 0]
+    storage = [[W[i], W[0x20 + i]] for i in range(30) if W[0x20 + i] > 0]   # +0 道具編號、+0x20 數量
     return {
         "ok": True, "mode": ra.mode, "t": time.time(), "cur": sp,
         "stats": {"atk": i16(st, 0), "def": i16(st, 2), "spd": i16(st, 4), "int": i16(st, 6),

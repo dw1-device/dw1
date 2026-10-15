@@ -1403,7 +1403,7 @@ function svParse(buf){
     out.push({n:out.length+1, title, cur:sp, recruited, cards,
       stats:{hp:i16(c+640), mp:i16(c+642), atk:i16(c+624), def:i16(c+626), spd:i16(c+628), int:i16(c+630)},
       dis:i16(P+40), hap:i16(P+42), days:i16(P+74), fat:i16(P+34), lives:u[c+1167],
-      bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(30).keys()].map(i=>[u[c+1182+i],u[c+1212+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
+      bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(30).keys()].map(i=>[u[c+1212+i],u[c+1182+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
       tech:learned.length, learned:learned.filter(x=>x!==48&&x!==57), raised, year:yr>=0&&yr<100?yr:null, day:i16(c+466), hh:i16(c+468), mm:i16(c+470)});
   }
   return out;
