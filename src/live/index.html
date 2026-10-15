@@ -185,7 +185,9 @@ ul.miles li.ok{color:var(--muted)}
 .life{display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .dsched{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-top:4px}.dh{display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--muted)}.dh i{display:block;width:100%;height:14px;border-radius:2px}.dh.on span{color:var(--ink);font-weight:700}.dh.on i{outline:2px solid var(--ink)}
 .dc0{background:#d9480f}.dc1{background:#2f7d3a}.dc2{background:#1f6f8b}.dc3{background:#8fb8de}.dcx{background:var(--line)}
-.dleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}.dleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.dleg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-top:6px}.dleg .rnd i{background:repeating-linear-gradient(45deg,#7b5ea7 0 3px,#e0b43a 3px 6px)}
+.dtop .dsched{gap:3px;margin-top:10px}.dtop .dh{font-size:11px}.dtop .dh i{height:26px;border-radius:3px}.dtop .row{align-items:flex-end;gap:8px 16px}.dtop .row .note{flex:1 1 320px;margin:0}
+.dtips summary{cursor:pointer;color:var(--muted);font-size:13px;margin-top:10px}.dleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .fx{display:inline-block;font-size:12px;padding:0 6px;border-radius:8px;margin:1px 0;white-space:nowrap}.fx.g{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}.fx.b{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
 tr.dim{opacity:.35}.panel.faded{opacity:.8}
 .livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#999;vertical-align:1px}.livedot.ok{background:#2f9e44;box-shadow:0 0 0 2px color-mix(in srgb,#2f9e44 30%,transparent)}.livedot.err{background:#c92a2a}.livedot.wait{background:#e8a317}
@@ -1518,7 +1520,7 @@ function vDiner(){
       : `<div class="note ok-note">\u73fe\u5728 ${hr} \u6642\u9032\u5e97\uff1a${now.base?`<b>${now.base}</b>\u7576\u503c`:'\u6c92\u6709\u7576\u503c\u5eda\u5e2b'}${parts.length?`\uff1b${parts.join('\u3001')}\uff08\u6bcf\u6b21\u9032\u5e97\u91cd\u65b0\u6c7a\u5b9a\uff09`:''}\u3002</div>`;
   }
   const sched=`<div class="dsched">${[...Array(24).keys()].map(h=>{ const c=dinerChef(h,got).base; const on=h===hr; return `<div class="dh${on?' on':''}" title="${h} \u6642\uff1a${c||'\u2014'}"><span>${h}</span><i class="dc${c?DINER_MAIN.indexOf(c):'x'}"></i></div>`; }).join('')}</div>
-    <div class="dleg">${DINER_MAIN.map((n,i)=>`<span><i class="dc${i}"></i>${n}${got.has(n)?'':'\uff08\u672a\u52a0\u5165\uff09'}</span>`).join('')}</div>`;
+    <div class="dleg">${DINER_MAIN.map((n,i)=>`<span><i class="dc${i}"></i>${n}${got.has(n)?'':'\uff08\u672a\u52a0\u5165\uff09'}</span>`).join('')}<span class="rnd"><i></i>\u5b87\u5b99\u8166\u9b54\uff08\u7d04 20%\uff09\u3001\u86cb\u86cb\u7378\uff08\u7d04 10%\uff09\uff1a\u4e0d\u8ddf\u6642\u9593\u8868\uff0c\u6bcf\u6b21\u9032\u5e97\u96a8\u6a5f\u51fa\u73fe${got.has('\u5b87\u5b99\u8166\u9b54')||got.has('\u86cb\u86cb\u7378')?'':'\uff08\u672a\u52a0\u5165\uff09'}</span></div>`;
   const wantOpts=[['','\u5168\u90e8'],['atk','\u653b\u64ca'],['def','\u9632\u79a6'],['spd','\u901f\u5ea6'],['int','\u667a\u529b'],['hp','HP'],['mp','MP'],['dis','\u6559\u990a'],['hap','\u5fc3\u60c5']];
   const cards=DINER.map(c=>{
     const joined=got.has(c.chef); const when=c.hours? `${c.hours[0]}\uff5e${c.hours[1]-1} \u6642` : `\u9032\u5e97\u6642${c.rand}`;
@@ -1531,9 +1533,11 @@ function vDiner(){
       <div class="tw"><table class="stk"><thead><tr><th>\u6599\u7406</th><th class="num">\u50f9\u9322 \uff5b\uff5d</th><th>\u6548\u679c</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
   }).join('');
   $('#view').innerHTML=`<div class="grid">
-    <section class="panel"><h2>\u958b\u59cb\u4e4b\u8857\u98df\u5802 <small>\u8ab0\u5728\u7576\u503c</small></h2>
-      <label class="f">\u73fe\u5728\u6642\u9593\uff08\u6642\uff0c0\uff5e23\uff09<input type="number" id="f-clock" data-k="clock" value="${hr}" min="0" max="23"></label>
-      ${nowHTML}${sched}
+    <section class="panel dtop" style="grid-column:1/-1"><h2>\u958b\u59cb\u4e4b\u8857\u98df\u5802 <small>\u8ab0\u5728\u7576\u503c</small></h2>
+      <div class="row"><label class="f" style="max-width:170px">\u73fe\u5728\u6642\u9593\uff08\u6642\uff0c0\uff5e23\uff09<input type="number" id="f-clock" data-k="clock" value="${hr}" min="0" max="23"></label>${nowHTML}
+      <label class="f" style="max-width:170px">\u60f3\u52a0\u54ea\u4e00\u9805\u80fd\u529b<select id="sel-dwant">${wantOpts.map(([k,n])=>`<option value="${k}"${k===want?' selected':''}>${n}</option>`).join('')}</select></label></div>
+      ${sched}
+      <details class="dtips" id="diner-tips"${S.dinerTips?' open':''}><summary>\u98df\u5802\u898f\u5247\u8207\u5c0f\u77e5\u8b58</summary>
       <ul class="ml2 tips">
         <li>\u5169\u96bb\u6216\u4ee5\u4e0a\u5eda\u5e2b\u52a0\u5165\u5f8c\uff0c\u56db\u4f4d\u4e3b\u5eda\u8f2a\u73ed\uff1a0\uff5e5 \u6642\u52a0\u9b6f\u9b6f\u7378\u30016\uff5e11 \u6642\u5de8\u9f8d\u7378\u300112\uff5e17 \u6642\u706b\u7130\u7378\u300118\uff5e23 \u6642\u96ea\u4eba\u7378\u3002\u53ea\u6709\u4e00\u4f4d\u52a0\u5165\u6642\uff0c\u5168\u65e5\u90fd\u662f\u4ed6\u3002</li>
         <li>\u7576\u503c\u7684\u4e3b\u5eda\u9084\u6c92\u52a0\u5165\u6642\uff0c\u7531\u706b\u7130\u7378 \u2192 \u5de8\u9f8d\u7378 \u2192 \u52a0\u9b6f\u9b6f\u7378 \u2192 \u96ea\u4eba\u7378\u4e2d\u7b2c\u4e00\u4f4d\u5df2\u52a0\u5165\u7684\u4ee3\u73ed\u3002</li>
@@ -1542,8 +1546,7 @@ function vDiner(){
         <li>\u809a\u5b50\u4e0d\u9913\u4e0d\u80fd\u9ede\u83dc\u3002\u6bcf\u9053\u83dc\u90fd\u6703\u56de\u5fa9\u75b2\u52de\uff08\u96ea\u4eba\u7378 \u22122\uff0c\u5176\u4ed6 \u22125\uff09\uff0c\u4e26\u589e\u52a0\u5fc3\u60c5\u3001\u98fd\u8db3\u548c\u9ad4\u91cd\uff1b\u80fd\u529b\u52a0\u6210\u662f\u6c38\u4e45\u7684\u3002</li>
         <li>\u86cb\u86cb\u7378\u7684\u83dc\u6709\u7a0b\u5f0f\u932f\u8aa4\uff1a\u5224\u65b7\u300c\u809a\u5b50\u4e0d\u9913\u300d\u5931\u6557\u6642\u6703\u7e7c\u7e8c\u5f80\u4e0b\u57f7\u884c\uff0c\u6709\u6a5f\u6703\u4e0d\u9913\u4e5f\u80fd\u5403\u3002</li>
       </ul>
-      <label class="f">\u60f3\u52a0\u54ea\u4e00\u9805\u80fd\u529b<select id="sel-dwant">${wantOpts.map(([k,n])=>`<option value="${k}"${k===want?' selected':''}>${n}</option>`).join('')}</select></label>
-      <p class="hint">\u8cc7\u6599\u5f9e\u904a\u6232\u5287\u672c\u6a94\u89e3\u6790\uff08\u65e5\u7248 Rev 1\uff09\u3002\u50f9\u9322\u55ae\u4f4d\u662f\uff5b\uff5d\uff08Bit\uff09\u3002</p>
+      <p class="hint">\u8cc7\u6599\u5f9e\u904a\u6232\u5287\u672c\u6a94\u89e3\u6790\uff08\u65e5\u7248 Rev 1\uff09\u3002\u50f9\u9322\u55ae\u4f4d\u662f\uff5b\uff5d\uff08Bit\uff09\u3002</p></details>
     </section>${cards}</div>`;
 }
 
@@ -1618,6 +1621,7 @@ function liveDecorate(){
 }
 function liveStart(){ if(LIVE.on) return; LIVE.on=true; LIVE.last=''; LIVE.stat=''; liveTick(); LIVE.timer=setInterval(liveTick,1000); LIVE.clkTimer=setInterval(liveClockPaint,200); render(); }
 function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); clearInterval(LIVE.clkTimer); LIVE.timer=null; LIVE.clk=null; LIVE.stat=''; render(); }
+document.addEventListener('toggle',e=>{ if(e.target&&e.target.id==='diner-tips') S.dinerTips=e.target.open; },true);
 document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if(!liveBusyInput()&&LIVE.pending){ LIVE.pending=false; render(); } },50); } });
 function livePanel(){
   const para=LIVE.para? `<details><summary>\u539f\u59cb\u80b2\u6210\u6578\u503c\uff08\u7528\u4f86\u627e\u51fa\u5176\u4ed6\u6b04\u4f4d\uff09</summary><div class="paragrid">${LIVE.para.map((x,i)=>`<span><b>+${i*2}</b> ${x}</span>`).join('')}</div></details>`:'';
