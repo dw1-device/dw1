@@ -1583,7 +1583,7 @@ function liveClockHTML(){
   const t=liveClockNow(); if(t==null) return '';
   const day=Math.floor(t/1440), hh=Math.floor(t%1440/60), mm=t%60, p2=n=>String(n).padStart(2,'0');
   const Y=Math.floor(day/30)+1, D=day%30+1;  // 遊戲只有年、日：每年 30 日
-  return `<span${LIVE.clk.yr!=null?` title="遊戲開始後第 ${day+1} 日"`:''}>${LIVE.clk.yr!=null?Y+'年':''}${D}日</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
+  return `<span${LIVE.clk.yr!=null?` title="遊戲開始後第 ${day+1} 日"`:''}>${LIVE.clk.yr!=null?Y+'年':''}${D}日${LIVE.clk.yr==null?'（小程式是舊版，請更新 dw1_bridge.py）':''}</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
 }
 function liveClockPaint(){ const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }

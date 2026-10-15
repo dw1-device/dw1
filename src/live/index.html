@@ -1592,7 +1592,7 @@ function liveClockHTML(){
   const t=liveClockNow(); if(t==null) return '';
   const day=Math.floor(t/1440), hh=Math.floor(t%1440/60), mm=t%60, p2=n=>String(n).padStart(2,'0');
   const Y=Math.floor(day/30)+1, D=day%30+1;  // \u904a\u6232\u53ea\u6709\u5e74\u3001\u65e5\uff1a\u6bcf\u5e74 30 \u65e5
-  return `<span${LIVE.clk.yr!=null?` title="\u904a\u6232\u958b\u59cb\u5f8c\u7b2c ${day+1} \u65e5"`:''}>${LIVE.clk.yr!=null?Y+'\u5e74':''}${D}\u65e5</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
+  return `<span${LIVE.clk.yr!=null?` title="\u904a\u6232\u958b\u59cb\u5f8c\u7b2c ${day+1} \u65e5"`:''}>${LIVE.clk.yr!=null?Y+'\u5e74':''}${D}\u65e5${LIVE.clk.yr==null?'\uff08\u5c0f\u7a0b\u5f0f\u662f\u820a\u7248\uff0c\u8acb\u66f4\u65b0 dw1_bridge.py\uff09':''}</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
 }
 function liveClockPaint(){ const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }
