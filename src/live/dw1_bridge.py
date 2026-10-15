@@ -81,6 +81,7 @@ def snapshot(ra):
     sp = struct.unpack("<I", ra.read(A_SPECIES, 4))[0]
     st = ra.read(A_STATS, 24); P = ra.read(A_PARA, 132); L = ra.read(A_LEARNED, 16)
     lives = ra.read(A_LIVES, 1)[0]; clk = ra.read(A_CLOCK, 4); day = i16(ra.read(A_DAY, 2), 0)
+    clk_raw = ra.read(0x8013ECB0, 0x60)   # 時鐘一帶的原始記憶體，用來核對年月日
     ptr = struct.unpack("<I", ra.read(A_FLAGPTR, 4))[0]
     recruited, raised = [], []
     if 0x80000000 <= ptr < 0x80200000:
@@ -103,6 +104,7 @@ def snapshot(ra):
         "age": i16(P, 86), "poop": i16(P, 30), "lives": lives,
         "hh": i16(clk, 0), "mm": i16(clk, 2), "day": day,
         "learned": learned, "recruitedIds": recruited, "raisedIds": raised, "bag": bag, "bagCap": B[90], "storage": storage,
+        "clkRaw": clk_raw.hex(),
         "para": list(struct.unpack("<66h", P)),   # 原始數值，用來找其他欄位
     }
 

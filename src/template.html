@@ -47,6 +47,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
 .lcd{background:var(--lcd);color:var(--lcd-ink);border-radius:var(--r);padding:8px 12px;font-family:var(--f-display);display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-variant-numeric:tabular-nums}
 .lcd b{font-weight:400;font-size:18px}
 .lcd span{font-size:12px;opacity:.8}
+.lcd .gclk{display:flex;flex-direction:column;line-height:1.15}.lcd .gclk b{font-size:22px;letter-spacing:.03em}.gclk i{font-style:normal}.gclk.run i{animation:gclkBlink 1s steps(1) infinite}@keyframes gclkBlink{50%{opacity:.15}}
 nav.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--line)}
 nav.tabs button{font:inherit;font-size:14px;background:none;border:0;color:var(--muted);padding:8px 14px;border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer}
 nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
@@ -1538,7 +1539,7 @@ async function liveTick(){
     if(!j.ok){ LIVE.stat='wait'; LIVE.err=j.error||'讀不到遊戲'; }
     else if(!DG[j.cur]){ LIVE.stat='wait'; LIVE.err='讀到的種類編號 '+j.cur+' 不正確（遊戲可能在標題畫面）'; }
     else {
-      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para;
+      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para; LIVE.clkRaw=j.clkRaw||null; liveClockFeed(j);
       const v=liveToV(j); const key=JSON.stringify(v);
       if(key!==LIVE.last){
         const first=!LIVE.last; LIVE.last=key; S.svList=[v]; S.svSel=0; S.svFile='RetroArch 實時'; S.svErr=''; svApply();
@@ -1549,6 +1550,25 @@ async function liveTick(){
   }catch(e){ LIVE.stat='err'; LIVE.err='連不上小程式（'+e.message+'）'; }
   LIVE.busy=false; liveBadge();
 }
+/* 遊戲時鐘：每秒讀一次，中間按實際走速推算（遊戲 1 小時＝1200 frame，約 20 秒；選單、對話時停止） */
+function liveClockFeed(j){
+  const g=j.day*1440+j.hh*60+j.mm, now=Date.now(), p=LIVE.clk; let rate=0;
+  if(p){ const dg=g-p.g, dt=now-p.at; if(dg>0&&dg<=30&&dt>0){ const r=dg/dt; rate=p.rate? p.rate*0.5+r*0.5 : r; } }
+  LIVE.clk={g,at:now,rate};
+}
+function liveClockNow(){
+  const c=LIVE.clk; if(!c) return null;
+  let t=c.g+Math.floor(c.rate*Math.min(Date.now()-c.at,1500));
+  if(c.rate>0 && LIVE.clkShown!=null && t<LIVE.clkShown && LIVE.clkShown-t<=5) t=LIVE.clkShown;  // 不倒退
+  LIVE.clkShown=t; return t;
+}
+function liveClockHTML(){
+  const t=liveClockNow(); if(t==null) return '';
+  const day=Math.floor(t/1440), hh=Math.floor(t%1440/60), mm=t%60, p2=n=>String(n).padStart(2,'0');
+  const Y=Math.floor(day/360)+1, M=Math.floor(day%360/30)+1, D=day%30+1;
+  return `<span title="遊戲開始後第 ${day+1} 日">${Y}年${M}月${D}日</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
+}
+function liveClockPaint(){ const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }
 function liveStatText(){
   if(!LIVE.on) return '<span class="hint">未連線</span>';
@@ -1570,18 +1590,19 @@ function liveDecorate(){
     v.prepend(d);
   }
 }
-function liveStart(){ if(LIVE.on) return; LIVE.on=true; LIVE.last=''; LIVE.stat=''; liveTick(); LIVE.timer=setInterval(liveTick,1000); render(); }
-function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); LIVE.timer=null; LIVE.stat=''; render(); }
+function liveStart(){ if(LIVE.on) return; LIVE.on=true; LIVE.last=''; LIVE.stat=''; liveTick(); LIVE.timer=setInterval(liveTick,1000); LIVE.clkTimer=setInterval(liveClockPaint,200); render(); }
+function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); clearInterval(LIVE.clkTimer); LIVE.timer=null; LIVE.clk=null; LIVE.stat=''; render(); }
 document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if(!liveBusyInput()&&LIVE.pending){ LIVE.pending=false; render(); } },50); } });
 function livePanel(){
   const para=LIVE.para? `<details><summary>原始育成數值（用來找出其他欄位）</summary><div class="paragrid">${LIVE.para.map((x,i)=>`<span><b>+${i*2}</b> ${x}</span>`).join('')}</div></details>`:'';
+  const raw=LIVE.clkRaw? `<details><summary>原始時鐘區記憶體（0x8013ECB0 起，用來核對年月日）</summary><pre class="hint" style="white-space:pre-wrap">${LIVE.clkRaw.match(/.{1,32}/g).map((r,i)=>(0x8013ECB0+i*16).toString(16)+'  '+r.match(/../g).join(' ')).join('\n')}</pre></details>`:'';
   return `<section class="panel"><h2>RetroArch 實時連線 <small>電腦版</small></h2>
     <div class="row"><button class="b p" id="liveBtn">${LIVE.on?'中斷連線':'實時連線'}</button><span id="liveStat">${liveStatText()}</span></div>
     <label class="f">小程式位址<input id="f-liveurl" value="${esc(liveUrl())}"></label>
     <ol class="ml2 tips"><li>RetroArch：設定 → 網絡 → 開啟「網絡指令」（連接埠 55355），用 Beetle PSX 或 SwanStation 核心開始遊戲（日版 Rev 1）。</li>
       <li>在終端機運行 <code>python3 dw1_bridge.py</code>（和 index.html 放在同一個資料夾）。</li>
       <li>瀏覽器開 <code>http://127.0.0.1:55356/</code>，網頁會自動連線；之後每秒更新，訓練、戰鬥、吃東西都不用存檔。</li></ol>
-    <p class="hint">小程式只讀取遊戲記憶體，不會改動遊戲，也不會連接互聯網。</p>${para}</section>`;
+    <p class="hint">小程式只讀取遊戲記憶體，不會改動遊戲，也不會連接互聯網。</p>${para}${raw}</section>`;
 }
 if(BUILD==='live') setTimeout(liveStart,300);
 
@@ -1592,7 +1613,7 @@ function renderTabs(){
 }
 function renderLCD(){
   const d=DG[S.cur];
-  $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>
+  $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>${BUILD==='live'&&LIVE.on&&LIVE.stat==='ok'&&LIVE.clk?`<div class="gclk" id="lcdClock">${liveClockHTML()}</div>`:''}
     <div class="st">${STATKEYS.map(k=>`<div><span>${SN[k]}</span><b>${S.stats[k]}</b></div>`).join('')}
     ${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>疲勞</span><b>${S.fat}</b></div><div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div><div><span>招式</span><b>${S.learned.length}</b></div></div>`;
 }
