@@ -25,7 +25,6 @@ A_DAY     = 0x8013ED00   # s16 日（0～29，每 30 日一年）
 A_YEAR    = 0x8013ECFE   # s16 年（0 起計；存檔 +464，緊接日之前，待實機核對）
 A_FLAGPTR = 0x8013EB44   # u32 劇情旗標表指標（旗標 n 在 指標+245+n/8）
 A_BAG     = 0x80147760   # 背包：+0 道具編號×30、+30 數量×30、+90 背包格數
-A_STORE   = 0x8014787C   # 倉庫（預り屋）：+0 道具編號×30、+0x20 數量×30（2026-10-16 更正）
 
 class RA:
     """RetroArch 網絡指令（UDP）"""
@@ -85,19 +84,19 @@ def snapshot(ra):
     year = i16(ra.read(A_YEAR, 2), 0)
     clk_raw = ra.read(0x8013EC00, 0x200)  # 時鐘一帶的原始記憶體，用來核對年月日
     ptr = struct.unpack("<I", ra.read(A_FLAGPTR, 4))[0]
-    recruited, raised, cards = [], [], []
+    recruited, raised, cards, storage = [], [], [], []
     if 0x80000000 <= ptr < 0x80200000:
         F = ra.read(ptr + 245, 80)          # 旗標 0～639
         bit = lambda n: bool(F[n >> 3] & (1 << (n & 7)))
         recruited = [i for i in range(1, 66) if bit(200 + i)]
         raised = [i for i in range(1, 66) if bit(512 + i)]
+        W = ra.read(ptr + 84, 128)          # 倉庫（預り屋）：每種道具一格數量，第 n 格＝道具 n
+        storage = [[n, W[n]] for n in range(128) if W[n]]
         C = ra.read(ptr + 212, 34)          # 卡片：每張半個 byte（卡片 n 在第 n 個半位元組，低位在前）
         cards = [[n, (C[n >> 1] >> (4 * (n & 1))) & 15] for n in range(1, 67) if (C[n >> 1] >> (4 * (n & 1))) & 15]
     learned = [i for i in range(58) if L[i >> 3] & (1 << (i & 7))]
     B = ra.read(A_BAG, 91)
     bag = [[B[i], B[30 + i]] for i in range(30) if B[30 + i] > 0]
-    W = ra.read(A_STORE, 0x40)
-    storage = [[W[i], W[0x20 + i]] for i in range(30) if W[0x20 + i] > 0]   # +0 道具編號、+0x20 數量
     return {
         "ok": True, "mode": ra.mode, "t": time.time(), "cur": sp,
         "stats": {"atk": i16(st, 0), "def": i16(st, 2), "spd": i16(st, 4), "int": i16(st, 6),
