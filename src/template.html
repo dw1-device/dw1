@@ -962,7 +962,7 @@ const MAP_NODES=[
  ['lv4','熔岩洞（4）',680,1518,'drill','',['熔岩洞']],['lv3','熔岩洞（3）',597,1562,'drill','',['熔岩洞']],
  ['dt2','鑽頭隧道（2）',512,1612,'drill','ev',['鑽頭隧道']],
  ['bkg','甲蟲島・比多獸健身房',50,1172,'beetle','ev gym',['甲蟲島']],['bar','甲蟲島・競技場櫃台',145,1172,'beetle','',['甲蟲島']],
- ['bqg','甲蟲島・古加獸健身房',240,1172,'beetle','ev gym',['甲蟲島']],['bis','甲蟲島',145,1245,'beetle','',['甲蟲島']],
+ ['bqg','甲蟲島・古加獸健身房',240,1172,'beetle','ev gym',['甲蟲島']],['bis','甲蟲島',145,1245,'beetle','bird',['甲蟲島']],
  ['fc7','階乘鎮（7）',722,492,'fact','ev',['階乘鎮']],['fc8','階乘鎮（8）',806,505,'fact','ham',['階乘鎮']],
  ['fsw','階乘鎮下水道',597,552,'fact','ev',['下水道','階乘鎮']],['fc4','階乘鎮（4）',680,572,'fact','ev',['階乘鎮']],
  ['fc6','階乘鎮（6）',764,588,'fact','',['階乘鎮']],['fc3','階乘鎮（3）',597,642,'fact','',['階乘鎮']],
@@ -984,9 +984,9 @@ const MAP_NODES=[
  ['gbr','偉大渡橋',953,587,'canyon','ev',[]],
  ['fz1','冰結凍土（1）',995,492,'ice','',['冰結凍土']],['fz2','冰結凍土（2）',995,397,'ice','',['冰結凍土']],
  ['fz3','冰結凍土（3）',995,302,'ice','wc',['冰結凍土']],['fz5','冰結凍土（5）',911,252,'ice','',['冰結凍土']],
- ['fz6','冰結凍土（6）',911,165,'ice','',['冰結凍土']],['ice','寒霜聖殿',858,72,'ice','ev gym',['寒霜聖殿']],
+ ['fz6','冰結凍土（6）',911,165,'ice','bird',['冰結凍土']],['ice','寒霜聖殿',858,72,'ice','ev gym',['寒霜聖殿']],
  ['fz8','冰結凍土（8）',995,217,'ice','ev',['冰結凍土']],['fz7','冰結凍土（7）',1037,147,'ice','',['冰結凍土']],
- ['igl','冰結凍土・雪屋',1016,82,'ice','',['冰結凍土']],['fz4','冰結凍土（4）',1080,257,'ice','bird',['冰結凍土']],
+ ['igl','冰結凍土・雪屋',1016,82,'ice','',['冰結凍土']],['fz4','冰結凍土（4）',1080,257,'ice','',['冰結凍土']],
  ['fz9','冰結凍土（9）',1120,332,'ice','',['冰結凍土']],['fz10','冰結凍土（10）',1165,407,'ice','',['冰結凍土']],
  ['fz11','冰結凍土（11）',1248,407,'ice','ev curl shop',['冰結凍土']],['fz12','冰結凍土（12）',1173,492,'ice','shop',['冰結凍土']],
  ['fz13','冰結凍土（13）秘密海洞',1080,422,'ice','ev whale',['秘密海岸洞','冰結凍土']],
@@ -1027,12 +1027,21 @@ const MAP_AREA_RECRUIT={gear:[['艾力克獸','齒輪莽原的其中一格'],['�
  fact:[['安杜路獸','階乘鎮的其中一格'],['砲彈獸','階乘鎮的其中一格']],
  frog:[['怪蛙獸','怪蛙溼地，暴龍獸加入後']]};
 const OFF_RECRUIT={'無限山':[['惡魔獸',''],['機械飛龍獸',''],['機械暴龍獸',''],['蛋蛋獸','通關後']],'玩具洋房':[['熊仔獸','']]};
+// 巴多拉運輸：SLPS 0x8013831c 起 6 筆（地圖、解鎖旗標、運費），由起始鎮出發
+const BIRD_INFO={
+ tn:'起始鎮北：巴多拉獸的運輸站，從這裏出發。',
+ gct:'偉大峽谷上層（遊戲地圖 GCAN03）：運費 1000｛｝；招募巴多拉獸後就可以去。',
+ g3:'齒輪莽原（遊戲地圖 GIAS01）：運費 1000｛｝；要先去過齒輪莽原的卡片市場。',
+ rue:'恐龍古代秘境入口：運費 1500｛｝；要先去過古代秘境時急域。',
+ fz6:'冰結凍土（6）：運費 2000｛｝；要先去過冰結凍土西面（路牌「西・朦朧群樹／東・流冰海岸」）那一格。',
+ m5:'朦朧群樹（5）：運費 2500｛｝；要先在朦朧群樹和樹妖（ジュレイモン）談過、霧散了之後。',
+ bis:'甲蟲島：運費 2500｛｝；海龍獸加入城鎮後才可以去。'};
 // 自動販賣機（DG.SCN 第 94 段：齒輪莽原；第 103 段：時靜域）
 const VEND_NOTE={
  g2:'自動販賣機（附抽獎）：回復磁片 200｛｝、攜帶式廁所 500｛｝；每次購買約 10% 中獎，額外得到雙重磁片。',
  st2:'自動販賣機：每次 200｛｝，隨機出一件：肉（約 30%）、回復磁片（約 30%）、腐爛掉的肉（約 20%）、MP 磁片（約 20%）。背包滿了不會出貨。'};
 const MAP_NOTE={
- bird:'巴多拉運輸：招募巴多拉獸後，可以在這幾格之間飛行。每個地點要先解鎖，而且要付運費。',
+ bird:'巴多拉運輸：招募巴多拉獸後，在起始鎮北付運費飛往各地點。',
  whale:'巨鯨船：招募巨鯨獸後，可以在起始鎮北、階乘鎮（1）和秘密海洞之間乘船。',
  save:'記錄點：可以存檔。', meat:'肉田：可以拿肉。', wc:'廁所：在這裏大便不會被扣分。', curl:'冰壺：企鵝獸的冰壺比賽。',
  poo:'大便獸大王所在。', vend:'自動販賣機。', frog:'怪蛙皇所在。', ham:'會改造道具的守衛獸。'};
@@ -1129,7 +1138,7 @@ function mapDetail(){
   h+=`<h4>可招募的同伴</h4>`+(rec.length?recruitHTML(rec):`<p class="hint">這一格沒有招募事件。</p>`);
   if(n&&!rec.length&&n[5].includes('ev')) h+=`<p class="hint">地圖上這一格有事件標記（例如一次性戰鬥或劇情）。</p>`;
   const ar=n?MAP_AREA_RECRUIT[nodeReg(sel)]||[]:[]; if(ar.length) h+=`<p class="hint">同一區域另外可招募：${ar.map(a=>a[0]).join('、')}（未確定是哪一格）。</p>`;
-  if(ic.length) h+=`<h4>設施</h4><ul class="ml2">${ic.map(k=>`<li>${esc(k==='vend'&&VEND_NOTE[sel]?VEND_NOTE[sel]:(MAP_NOTE[k]||MAP_ICONS[k]))}${k==='bird'?`<br><span class="hint">可到達：${MAP_NODES.filter(x=>x[5].includes('bird')&&x[0]!==sel).map(x=>x[1]).join('、')}</span>`:''}${k==='whale'?`<br><span class="hint">停靠：${MAP_NODES.filter(x=>x[5].includes('whale')&&x[0]!==sel).map(x=>x[1]).join('、')}</span>`:''}</li>`).join('')}</ul>`;
+  if(ic.length) h+=`<h4>設施</h4><ul class="ml2">${ic.map(k=>`<li>${esc(k==='vend'&&VEND_NOTE[sel]?VEND_NOTE[sel]:(MAP_NOTE[k]||MAP_ICONS[k]))}${k==='bird'&&BIRD_INFO[sel]?`<br>${esc(BIRD_INFO[sel])}`:''}${k==='bird'&&sel==='tn'?`<br><span class="hint">可到達：${MAP_NODES.filter(x=>x[5].includes('bird')&&x[0]!==sel).map(x=>x[1]).join('、')}</span>`:''}${k==='whale'?`<br><span class="hint">停靠：${MAP_NODES.filter(x=>x[5].includes('whale')&&x[0]!==sel).map(x=>x[1]).join('、')}</span>`:''}</li>`).join('')}</ul>`;
   if(n&&MAP_GYM[n[0]]){ const g=GYMS.find(x=>x.id===MAP_GYM[n[0]]);
     h+=`<h4>訓練（以目前設定計算）</h4><ul class="ml2">${g.items.map(([nm,base,main])=>{ const r=trainGain(g,base,undefined,false,main); return `<li><b>${nm}</b>：${Object.entries(r).map(([k,v])=>SN[k]+' +'+v).join('、')}，疲勞 +${FATIGUE[main]}</li>`; }).join('')}</ul>`; }
   if(n&&MAP_TRADE[n[0]]) h+=`<h4>交換</h4><p>${esc(MAP_TRADE[n[0]])}</p>`;
@@ -1158,8 +1167,8 @@ function vMap(){
       <span class="lg"><b class="mi-l mh-l">2</b>可學招式數</span> <span class="lg"><b class="mi-l mr-l">1</b>可招募同伴數（放大後顯示）</span></p>
     <p class="hint">版面參考玩家社群的地圖重新繪製，位置和連接只作示意。招募位置來自遊戲劇本檔（DG.SCN、MAPHEAD.SCN）。</p></section>
   <div class="mapside"><section class="panel" id="map-detail">${mapDetail()}</section>
-    <section class="panel"><h2>巴多拉運輸可到達 <small>${birds.length} 格</small></h2><div class="row">${birds.map(btn).join('')}</div>
-      <p class="hint">招募巴多拉獸後可以使用。每個地點要先解鎖，而且要付運費。</p></section>
+    <section class="panel"><h2>巴多拉運輸 <small>起始鎮北＋${birds.length-1} 個目的地</small></h2><div class="row">${birds.map(btn).join('')}</div>
+      <p class="hint">招募巴多拉獸後，在起始鎮北的運輸站付運費飛往其餘 6 個地點；每個地點要先解鎖（點一下地點查看運費和解鎖條件）。資料取自遊戲主程式。</p></section>
     <section class="panel"><h2>巨鯨船停靠 <small>${whales.length} 格</small></h2><div class="row">${whales.map(btn).join('')}</div></section>
     <section class="panel"><h2>不在主地圖上的地點</h2><div class="row">${OFFMAP.map(o=>`<button class="b${S.mapSel==='off:'+o?' p':''}" data-mapsel="off:${o}">${esc(o)}</button>`).join('')}</div></section>
   </div></div>`;
