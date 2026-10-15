@@ -53,6 +53,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
 .lcd{background:var(--lcd);color:var(--lcd-ink);border-radius:var(--r);padding:8px 12px;font-family:var(--f-display);display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-variant-numeric:tabular-nums}
 .lcd b{font-weight:400;font-size:18px}
 .lcd span{font-size:12px;opacity:.8}
+.lcd .gclk{display:flex;flex-direction:column;line-height:1.15}.lcd .gclk b{font-size:22px;letter-spacing:.03em}.gclk i{font-style:normal}.gclk.run i{animation:gclkBlink 1s steps(1) infinite}@keyframes gclkBlink{50%{opacity:.15}}
 nav.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--line)}
 nav.tabs button{font:inherit;font-size:14px;background:none;border:0;color:var(--muted);padding:8px 14px;border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer}
 nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
@@ -746,48 +747,48 @@ const ITEMS=[
 ['\u98df\u7269','\u8a66\u624b\u6c23\u9999\u83c7','\u904b\u3060\u3081\u3057\u30ad\u30ce\u30b3','\u79fb\u52d5\u4e2d',1000,'','\u98fd\u8db3 +15\u3001\u9ad4\u91cd +1\u3001\u5fc3\u60c5 +15\u3001\u75b2\u52de \u221230\uff1b30% \u751f\u75c5','\u5404\u8655'],
 ['\u98df\u7269','\u9396\u93c8\u871c\u74dc','\u30af\u30b5\u30ea\u30ab\u30b1\u30e1\u30ed\u30f3','\u79fb\u52d5\u4e2d',5000,'','\u98fd\u8db3 +50\u3001\u9ad4\u91cd +3\u3001\u5fc3\u60c5 +25\u3001\u75b2\u52de \u221250\u3001\u58fd\u547d +20 \u5c0f\u6642\uff1b5% \u751f\u75c5','\u9f52\u8f2a\u83bd\u539f\uff1b\u653b\u7565\u5b8c\u88cf\u6b21\u5143\u5f8c\u8207\u516c\u516c\u7378\u5c0d\u8a71'],
 ['\u98df\u7269','\u6ef4\u8840\u7684\u8089\u584a','\u8840\u306e\u3057\u305f\u305f\u308b\u8089','\u79fb\u52d5\u4e2d',1000,'','\u98fd\u8db3 +32\u3001\u9ad4\u91cd +0\u3001\u56de\u5fa9 HP 1000\uff1b20% \u751f\u75c5','\u8d85\u8f09\u5e7d\u8c37\u30fb\u5893\u5730'],
-['\u9032\u5316','\u7070\u8272\u5229\u722a','\u7070\u8272\u306e\u722a','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u66b4\u9f8d\u7378','\u6050\u9f8d\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u706b\u708e\u7684\u788e\u7247','\u708e\u306e\u304b\u3051\u3089','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u706b\u7130\u7378','\u706b\u708e\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u71c3\u71d2\u7684\u7fc5\u8180','\u71c3\u3048\u308b\u7fbd','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u5df4\u591a\u62c9\u7378','\u5c0b\u5bf6\u5e97\uff08\u7121\u52a0\u5e03\u7378 2%\uff0c\u6709\u52a0\u5e03\u7378 4%\uff09'],
-['\u9032\u5316','\u9435\u8e44','\u9244\u306e\u30d2\u30c5\u30e1','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u4eba\u99ac\u7378','Version 3 \u76c3\u512a\u52dd'],
-['\u9032\u5316','\u7d14\u8272\u7684\u77f3\u982d','\u30e2\u30ce\u30af\u30ed\u30b9\u30c8\u30fc\u30f3','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u89d2\u9f8d\u7378','Version 4 \u76c3\u512a\u52dd'],
-['\u9032\u5316','\u92fc\u9435\u7684\u947d\u982d','\u92fc\u306e\u30c9\u30ea\u30eb','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u947d\u5730\u7378','\u731b\u7378\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u5c16\u7259\u7684\u5316\u77f3','\u7259\u306e\u5316\u77f3','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u5de8\u9f8d\u7378','Version 1 \u76c3\u512a\u52dd'],
-['\u9032\u5316','\u6f06\u9ed1\u7684\u7fc5\u8180','\u9ed2\u3044\u7fbd','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u60e1\u9b54\u7378','\u4eba\u578b\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u5e36\u523a\u7684\u68cd\u68d2','\u30c8\u30b2\u3053\u3093\u68d2','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u5967\u52a0\u7378','\u683c\u9b25\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u9583\u8000\u7684\u9b03\u6bdb','\u8f1d\u304f\u305f\u3066\u304c\u307f','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u7345\u5b50\u7378','A \u7d1a\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u6f54\u767d\u7684\u7fc5\u8180','\u767d\u3044\u7fbd','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u5929\u4f7f\u7378','\u98db\u7ffc\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u7834\u721b\u7684\u5e03\u5dfe','\u30dc\u30ed\u5e03','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u731b\u9b3c\u7378','\u5c0b\u5bf6\u5e97\uff08\u7121\u52a0\u5e03\u7378 2%\uff0c\u6709\u52a0\u5e03\u7378 4%\uff09'],
-['\u9032\u5316','\u8679\u8272\u7684\u7b1b\u5b50','\u8679\u8272\u306e\u7b1b','\u79fb\u52d5\u4e2d',5000,500,'\u9032\u5316\u70ba\u98db\u9f8d\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
-['\u9032\u5316','\u98a8\u5411\u96de','\u98a8\u898b\u9d8f','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u5de8\u96de\u7378','\u548c\u4f01\u9d5d\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
-['\u9032\u5316','\u795e\u8056\u7684\u9577\u89d2','\u8056\u306a\u308b\u89d2','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u7368\u89d2\u99ac\u7378','\u98a8\u96f7\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u6c89\u91cd\u7684\u982d\u76d4','\u91cd\u3044\u515c','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u6bd4\u591a\u7378','\u6bd4\u591a\u68ee\u6797\u6606\u87f2\u76c3\u6e96\u512a\u52dd'],
-['\u9032\u5316','\u5c16\u92b3\u7684\u526a\u5200','\u30ae\u30b6\u30ae\u30b6\u306f\u3055\u307f','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u53e4\u52a0\u7378','\u6bd4\u591a\u68ee\u6797\u6606\u87f2\u76c3\u6e96\u512a\u52dd'],
-['\u9032\u5316','\u6709\u6a5f\u80a5\u6599','\u6709\u6a5f\u80a5\u6599','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u9f3b\u5c4e\u7378','\u81ea\u7136\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u4f0a\u8cc0\u6d41\u79d8\u7b08','\u30a4\u30ac\u6d41\u306e\u79d8\u4f1d\u66f8','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u4f0a\u8cc0\u7378','\u5c0b\u5bf6\u5e97\uff08\u7121\u52a0\u5e03\u7378 2%\uff0c\u6709\u52a0\u5e03\u7378 4%\uff09'],
-['\u9032\u5316','\u4f9b\u4ff8\u7684\u9187\u9152','\u304a\u4f9b\u3048\u9152','\u79fb\u52d5\u4e2d',5000,500,'\u9032\u5316\u70ba\u6d77\u9f8d\u7378','\u628a\u9f8d\u773c\u6e56\u7684\u4e3b\u4eba\u91e3\u8d77'],
-['\u9032\u5316','\u5317\u6975\u661f\u6a19\u8a8c','\u5317\u6975\u661f\u306e\u5370','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u5de8\u9be8\u7378','\u51b0\u6c34\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u9bae\u7d05\u7684\u8c9d\u6bbc','\u8d64\u3044\u8c9d\u304c\u3089','\u79fb\u52d5\u4e2d',5000,500,'\u9032\u5316\u70ba\u8c9d\u6bbc\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
-['\u9032\u5316','\u5805\u786c\u7684\u9c57\u7247','\u786c\u3044\u30a6\u30ed\u30b3','\u79fb\u52d5\u4e2d',5000,500,'\u9032\u5316\u70ba\u897f\u62c9\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
-['\u9032\u5316','\u7955\u9280','\u30df\u30b9\u30ea\u30eb','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u52a0\u9b6f\u9b6f\u7378','Version 2 \u76c3\u512a\u52dd'],
-['\u9032\u5316','\u5bd2\u51b0\u6c34\u6676','\u6c37\u6c34\u6676','\u79fb\u52d5\u4e2d',5000,500,'\u9032\u5316\u70ba\u96ea\u4eba\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
-['\u9032\u5316','\u751f\u6bdb\u5291','\u3051\u306f\u3048\u85ac','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u6bdb\u4eba\u7378','\u8207\u6bdb\u4eba\u7378\u4ea4\u63db'],
-['\u9032\u5316','\u592a\u967d\u773c\u93e1','\u30b5\u30f3\u30b0\u30e9\u30b9','\u79fb\u52d5\u4e2d',5000,'','\u9032\u5316\u70ba\u4e9e\u4f2f\u7378','\u6c61\u7269\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u91d1\u5c6c\u96f6\u4ef6','\u30e1\u30bf\u30eb\u30d1\u30fc\u30c4','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u6a5f\u68b0\u66b4\u9f8d\u7378','S \u7d1a\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u547c\u559a\u6b7b\u4ea1\u7684\u9ab8\u9aa8','\u6b7b\u3092\u547c\u3076\u9aa8','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u55aa\u5c4d\u66b4\u9f8d\u7378','S \u7d1a\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u96fb\u5b50\u96f6\u4ef6','\u30b5\u30a4\u30d0\u30fc\u30d1\u30fc\u30c4','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u5b89\u675c\u8def\u7378','\u6a5f\u68b0\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u6a5f\u68b0\u624b\u81c2','\u30e1\u30ac\u30cf\u30f3\u30c9','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u6a5f\u68b0\u98db\u9f8d\u7378','S \u7d1a\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u9280\u8272\u7684\u7403','\u9280\u7389','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u8c46\u8c46\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
-['\u9032\u5316','\u91d1\u5c6c\u76d4\u7532','\u30e1\u30bf\u30eb\u30a2\u30fc\u30de\u30fc','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u92fc\u9435\u8c46\u8c46\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
-['\u9032\u5316','\u96fb\u92f8','\u30c1\u30a7\u30f3\u30bd\u30fc','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u7832\u5f48\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
-['\u9032\u5316','\u5c0f\u5c0f\u7684\u9577\u69cd','\u5c0f\u3055\u306a\u69cd','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u5996\u7cbe\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
-['\u9032\u5316','\u611b\u60c5\u85e5\u8cbc\u5e03','\u611b\u306e\u3070\u3093\u305d\u3046\u3053\u3046','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u718a\u4ed4\u7378','\u73a9\u5177\u7684\u90fd\u5e02'],
-['\u9032\u5316','\u5149\u7dda\u69cd','\u30d3\u30fc\u30e0\u30ac\u30f3','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u5b87\u5b99\u8166\u9b54','\u88cf\u6b21\u5143'],
-['\u9032\u5316','\u9ec3\u91d1\u9999\u8549','\u91d1\u306e\u30d0\u30ca\u30ca','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u609f\u7a7a\u7378','\u6578\u78bc\u5927\u6a4b'],
-['\u9032\u5316','\u8b0e\u6a23\u7684\u86cb','\u8b0e\u306e\u30bf\u30de\u30b4','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u86cb\u86cb\u7378','\u79d8\u5bc6\u6d77\u5cb8\u6d1e\u7a9f'],
-['\u9032\u5316','\u5947\u8e5f\u7684\u7d05\u5bf6\u77f3','\u5947\u8de1\u306e\u30eb\u30d3\u30fc','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u9cf3\u51f0\u7378','Version 0 \u76c3\u512a\u52dd'],
-['\u9032\u5316','\u947d\u77f3\u7532\u87f2','\u30d3\u30fc\u30c8\u30eb\u30c0\u30a4\u30e4','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u529b\u795e\u6bd4\u591a\u7378','\u6bd4\u591a\u68ee\u6797\u6606\u87f2\u76c3\u512a\u52dd'],
-['\u9032\u5316','\u73ca\u745a\u5b88\u8b77\u7b26','\u30b5\u30f3\u30b4\u306e\u304a\u5b88\u308a','\u79fb\u52d5\u4e2d',9999,'','\u9032\u5316\u70ba\u8d85\u6d77\u9f8d\u7378','\u91e3\u9b5a'],
+['\u9032\u5316','\u7070\u8272\u5229\u722a','\u7070\u8272\u306e\u722a','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u66b4\u9f8d\u7378','\u6050\u9f8d\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u706b\u708e\u7684\u788e\u7247','\u708e\u306e\u304b\u3051\u3089','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u706b\u7130\u7378','\u706b\u708e\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u71c3\u71d2\u7684\u7fc5\u8180','\u71c3\u3048\u308b\u7fbd','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5df4\u591a\u62c9\u7378','\u5c0b\u5bf6\u5e97\uff08\u7121\u52a0\u5e03\u7378 2%\uff0c\u6709\u52a0\u5e03\u7378 4%\uff09'],
+['\u9032\u5316','\u9435\u8e44','\u9244\u306e\u30d2\u30c5\u30e1','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u4eba\u99ac\u7378','Version 3 \u76c3\u512a\u52dd'],
+['\u9032\u5316','\u7d14\u8272\u7684\u77f3\u982d','\u30e2\u30ce\u30af\u30ed\u30b9\u30c8\u30fc\u30f3','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u89d2\u9f8d\u7378','Version 4 \u76c3\u512a\u52dd'],
+['\u9032\u5316','\u92fc\u9435\u7684\u947d\u982d','\u92fc\u306e\u30c9\u30ea\u30eb','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u947d\u5730\u7378','\u731b\u7378\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u5c16\u7259\u7684\u5316\u77f3','\u7259\u306e\u5316\u77f3','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5de8\u9f8d\u7378','Version 1 \u76c3\u512a\u52dd'],
+['\u9032\u5316','\u6f06\u9ed1\u7684\u7fc5\u8180','\u9ed2\u3044\u7fbd','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u60e1\u9b54\u7378','\u4eba\u578b\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u5e36\u523a\u7684\u68cd\u68d2','\u30c8\u30b2\u3053\u3093\u68d2','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5967\u52a0\u7378','\u683c\u9b25\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u9583\u8000\u7684\u9b03\u6bdb','\u8f1d\u304f\u305f\u3066\u304c\u307f','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u7345\u5b50\u7378','A \u7d1a\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u6f54\u767d\u7684\u7fc5\u8180','\u767d\u3044\u7fbd','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5929\u4f7f\u7378','\u98db\u7ffc\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u7834\u721b\u7684\u5e03\u5dfe','\u30dc\u30ed\u5e03','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u731b\u9b3c\u7378','\u5c0b\u5bf6\u5e97\uff08\u7121\u52a0\u5e03\u7378 2%\uff0c\u6709\u52a0\u5e03\u7378 4%\uff09'],
+['\u9032\u5316','\u8679\u8272\u7684\u7b1b\u5b50','\u8679\u8272\u306e\u7b1b','\u79fb\u52d5\u4e2d','',500,'\u9032\u5316\u70ba\u98db\u9f8d\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
+['\u9032\u5316','\u98a8\u5411\u96de','\u98a8\u898b\u9d8f','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5de8\u96de\u7378','\u548c\u4f01\u9d5d\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
+['\u9032\u5316','\u795e\u8056\u7684\u9577\u89d2','\u8056\u306a\u308b\u89d2','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u7368\u89d2\u99ac\u7378','\u98a8\u96f7\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u6c89\u91cd\u7684\u982d\u76d4','\u91cd\u3044\u515c','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u6bd4\u591a\u7378','\u6bd4\u591a\u68ee\u6797\u6606\u87f2\u76c3\u6e96\u512a\u52dd'],
+['\u9032\u5316','\u5c16\u92b3\u7684\u526a\u5200','\u30ae\u30b6\u30ae\u30b6\u306f\u3055\u307f','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u53e4\u52a0\u7378','\u6bd4\u591a\u68ee\u6797\u6606\u87f2\u76c3\u6e96\u512a\u52dd'],
+['\u9032\u5316','\u6709\u6a5f\u80a5\u6599','\u6709\u6a5f\u80a5\u6599','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u9f3b\u5c4e\u7378','\u81ea\u7136\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u4f0a\u8cc0\u6d41\u79d8\u7b08','\u30a4\u30ac\u6d41\u306e\u79d8\u4f1d\u66f8','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u4f0a\u8cc0\u7378','\u5c0b\u5bf6\u5e97\uff08\u7121\u52a0\u5e03\u7378 2%\uff0c\u6709\u52a0\u5e03\u7378 4%\uff09'],
+['\u9032\u5316','\u4f9b\u4ff8\u7684\u9187\u9152','\u304a\u4f9b\u3048\u9152','\u79fb\u52d5\u4e2d','',500,'\u9032\u5316\u70ba\u6d77\u9f8d\u7378','\u628a\u9f8d\u773c\u6e56\u7684\u4e3b\u4eba\u91e3\u8d77'],
+['\u9032\u5316','\u5317\u6975\u661f\u6a19\u8a8c','\u5317\u6975\u661f\u306e\u5370','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5de8\u9be8\u7378','\u51b0\u6c34\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u9bae\u7d05\u7684\u8c9d\u6bbc','\u8d64\u3044\u8c9d\u304c\u3089','\u79fb\u52d5\u4e2d','',500,'\u9032\u5316\u70ba\u8c9d\u6bbc\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
+['\u9032\u5316','\u5805\u786c\u7684\u9c57\u7247','\u786c\u3044\u30a6\u30ed\u30b3','\u79fb\u52d5\u4e2d','',500,'\u9032\u5316\u70ba\u897f\u62c9\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
+['\u9032\u5316','\u7955\u9280','\u30df\u30b9\u30ea\u30eb','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u52a0\u9b6f\u9b6f\u7378','Version 2 \u76c3\u512a\u52dd'],
+['\u9032\u5316','\u5bd2\u51b0\u6c34\u6676','\u6c37\u6c34\u6676','\u79fb\u52d5\u4e2d','',500,'\u9032\u5316\u70ba\u96ea\u4eba\u7378','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
+['\u9032\u5316','\u751f\u6bdb\u5291','\u3051\u306f\u3048\u85ac','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u6bdb\u4eba\u7378','\u8207\u6bdb\u4eba\u7378\u4ea4\u63db'],
+['\u9032\u5316','\u592a\u967d\u773c\u93e1','\u30b5\u30f3\u30b0\u30e9\u30b9','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u4e9e\u4f2f\u7378','\u6c61\u7269\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u91d1\u5c6c\u96f6\u4ef6','\u30e1\u30bf\u30eb\u30d1\u30fc\u30c4','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u6a5f\u68b0\u66b4\u9f8d\u7378','S \u7d1a\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u547c\u559a\u6b7b\u4ea1\u7684\u9ab8\u9aa8','\u6b7b\u3092\u547c\u3076\u9aa8','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u55aa\u5c4d\u66b4\u9f8d\u7378','S \u7d1a\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u96fb\u5b50\u96f6\u4ef6','\u30b5\u30a4\u30d0\u30fc\u30d1\u30fc\u30c4','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5b89\u675c\u8def\u7378','\u6a5f\u68b0\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u6a5f\u68b0\u624b\u81c2','\u30e1\u30ac\u30cf\u30f3\u30c9','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u6a5f\u68b0\u98db\u9f8d\u7378','S \u7d1a\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u9280\u8272\u7684\u7403','\u9280\u7389','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u8c46\u8c46\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
+['\u9032\u5316','\u91d1\u5c6c\u76d4\u7532','\u30e1\u30bf\u30eb\u30a2\u30fc\u30de\u30fc','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u92fc\u9435\u8c46\u8c46\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
+['\u9032\u5316','\u96fb\u92f8','\u30c1\u30a7\u30f3\u30bd\u30fc','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u7832\u5f48\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
+['\u9032\u5316','\u5c0f\u5c0f\u7684\u9577\u69cd','\u5c0f\u3055\u306a\u69cd','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5996\u7cbe\u7378','\u548c\u92fc\u9435\u8c46\u8c46\u7378\u7684\u51b0\u58fa\u6bd4\u8cfd\u7372\u52dd\uff082%\uff09'],
+['\u9032\u5316','\u611b\u60c5\u85e5\u8cbc\u5e03','\u611b\u306e\u3070\u3093\u305d\u3046\u3053\u3046','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u718a\u4ed4\u7378','\u73a9\u5177\u7684\u90fd\u5e02'],
+['\u9032\u5316','\u5149\u7dda\u69cd','\u30d3\u30fc\u30e0\u30ac\u30f3','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u5b87\u5b99\u8166\u9b54','\u88cf\u6b21\u5143'],
+['\u9032\u5316','\u9ec3\u91d1\u9999\u8549','\u91d1\u306e\u30d0\u30ca\u30ca','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u609f\u7a7a\u7378','\u6578\u78bc\u5927\u6a4b'],
+['\u9032\u5316','\u8b0e\u6a23\u7684\u86cb','\u8b0e\u306e\u30bf\u30de\u30b4','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u86cb\u86cb\u7378','\u79d8\u5bc6\u6d77\u5cb8\u6d1e\u7a9f'],
+['\u9032\u5316','\u5947\u8e5f\u7684\u7d05\u5bf6\u77f3','\u5947\u8de1\u306e\u30eb\u30d3\u30fc','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u9cf3\u51f0\u7378','Version 0 \u76c3\u512a\u52dd'],
+['\u9032\u5316','\u947d\u77f3\u7532\u87f2','\u30d3\u30fc\u30c8\u30eb\u30c0\u30a4\u30e4','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u529b\u795e\u6bd4\u591a\u7378','\u6bd4\u591a\u68ee\u6797\u6606\u87f2\u76c3\u512a\u52dd'],
+['\u9032\u5316','\u73ca\u745a\u5b88\u8b77\u7b26','\u30b5\u30f3\u30b4\u306e\u304a\u5b88\u308a','\u79fb\u52d5\u4e2d','','','\u9032\u5316\u70ba\u8d85\u6d77\u9f8d\u7378','\u91e3\u9b5a'],
 ['\u91cd\u8981','\u6e56\u6cca\u4e3b\u4eba\u7684\u7b1b\u5b50','\u6e56\u306e\u306c\u3057\u306e\u7b1b','\u2014',9999,'','\u5728\u9f8d\u773c\u6e56\u628a\u6d77\u9f8d\u7378\u547c\u559a\u51fa\u4f86','\u628a\u9f8d\u773c\u6e56\u7684\u4e3b\u4eba\u91e3\u8d77'],
 ['\u91cd\u8981','\u7834\u721b\u91e3\u7aff','\u307c\u308d\u3044\u91e3\u3056\u304a','\u2014',100,'','\u53ef\u4ee5\u91e3\u9b5a','\u5783\u573e\u5c71'],
 ['\u91cd\u8981','\u53b2\u5bb3\u91e3\u7aff','\u3059\u3054\u3044\u91e3\u3056\u304a','\u2014',3000,300,'\u53ef\u4ee5\u91e3\u9b5a','\u8207\u602a\u86d9\u7687\u7528\u529f\u7e3e\u4ea4\u63db'],
@@ -806,7 +807,7 @@ function itemRows(){
 function fillItems(){
   const rows=itemRows();
   const tb=$('#item-body'); if(!tb) return;
-  tb.innerHTML=rows.map(r=>`<tr><td><span class="pill">${r[0]}</span></td><td><b>${esc(r[1])}</b><br><span class="hint">${esc(r[2])}</span></td><td>${esc(r[3])}</td><td class="num">${r[4]}</td><td class="num">${r[5]||''}</td><td>${esc(r[6])}</td><td class="src">${esc(r[7])}</td></tr>`).join('')||'<tr><td colspan="7">\u6c92\u6709\u7b26\u5408\u7684\u9053\u5177\u3002</td></tr>';
+  tb.innerHTML=rows.map(r=>`<tr><td><span class="pill">${r[0]}</span></td><td><b>${esc(r[1])}</b><br><span class="hint">${esc(r[2])}</span></td><td>${esc(r[3])}</td><td class="num">${r[4]===''?'<span class="hint">\u2014</span>':r[4]}</td><td class="num">${r[5]||''}</td><td>${esc(r[6])}</td><td class="src">${esc(r[7])}</td></tr>`).join('')||'<tr><td colspan="7">\u6c92\u6709\u7b26\u5408\u7684\u9053\u5177\u3002</td></tr>';
   $('#item-count').textContent=`${rows.length} \u4ef6`;
 }
 function vItems(){
@@ -821,7 +822,7 @@ function vItems(){
     <div class="row"><label class="f" style="flex:1 1 220px">\u641c\u5c0b\uff08\u540d\u7a31\u3001\u6548\u679c\u3001\u53d6\u5f97\u5730\u9ede\uff09<input type="search" id="item-q" value="${esc(S.itemQ||'')}" placeholder="\u4f8b\u5982\uff1a\u75b2\u52de\u3001\u6559\u990a\u3001\u5929\u4f7f\u7378\u3001\u8089\u7530"></label></div>
     <div class="row">${ITEM_CATS.map(c=>`<button class="b${c===cat?' p':''}" data-icat="${c}">${c}</button>`).join('')}</div>
     <div class="tw"><table><thead><tr><th>\u5206\u985e</th><th>\u9053\u5177</th><th>\u4f7f\u7528\u6642\u6a5f</th><th class="num">\u50f9\u683c</th><th class="num">\u529f\u7e3e</th><th>\u6548\u679c</th><th>\u4e3b\u8981\u53d6\u5f97\u65b9\u5f0f</th></tr></thead><tbody id="item-body"></tbody></table></div>
-    <p class="hint">\u8cc7\u6599\u53d6\u81ea\u73a9\u5bb6\u6574\u7406\u7684\u9053\u5177\u8868\u3002\u5403\u4efb\u4f55\u98df\u7269\u90fd\u6703\u4e2d\u65b7\u80e1\u863f\u8514\u3001\u6578\u78bc\u677e\u679c\u7684\u8a13\u7df4\u52a0\u6210\uff0c\u6240\u4ee5\u8981\u5148\u5403\u98fd\uff0c\u6700\u5f8c\u4e00\u53e3\u624d\u5403\u52a0\u6210\u98df\u7269\u3002\u7528\u9032\u5316\u9053\u5177\u9032\u5316\u4e0d\u6703\u589e\u52a0\u58fd\u547d\u3002\u79d8\u5bc6\u9053\u5177\u5546\u5e97\u5728\u8d77\u59cb\u93ae\u9053\u5177\u5546\u5e97\u7684\u5730\u4e0b\uff0c\u62db\u52df\u9f3b\u6d95\u7378\u5f8c\u958b\u653e\uff1b\u9f3b\u6d95\u7378\uff08\u907f\u6575\u8b77\u7b26\u3001\u805a\u6575\u8a0a\u865f\uff09\u548c\u60e1\u9b54\u7378\uff08\u60e1\u9b54\u6676\u7247 A\u3001D\u3001E\uff09\u5728\u540c\u4e00\u4f4d\u7f6e\u8f2a\u6d41\u7576\u503c\uff0c\u4e0d\u6703\u540c\u6642\u51fa\u73fe\uff1b\u5176\u4ed6\u5546\u54c1\u7531\u54ea\u4e00\u96bb\u6578\u78bc\u7cbe\u9748\u8ca9\u552e\u9084\u6c92\u6709\u53ef\u9760\u8cc7\u6599\u3002</p>
+    <p class="hint">\u8cc7\u6599\u53d6\u81ea\u73a9\u5bb6\u6574\u7406\u7684\u9053\u5177\u8868\u3002\u9032\u5316\u9053\u5177\u7684\u50f9\u683c\u6709\u8aa4\uff0c\u66ab\u4e0d\u5217\u51fa\u3002\u5403\u4efb\u4f55\u98df\u7269\u90fd\u6703\u4e2d\u65b7\u80e1\u863f\u8514\u3001\u6578\u78bc\u677e\u679c\u7684\u8a13\u7df4\u52a0\u6210\uff0c\u6240\u4ee5\u8981\u5148\u5403\u98fd\uff0c\u6700\u5f8c\u4e00\u53e3\u624d\u5403\u52a0\u6210\u98df\u7269\u3002\u7528\u9032\u5316\u9053\u5177\u9032\u5316\u4e0d\u6703\u589e\u52a0\u58fd\u547d\u3002\u79d8\u5bc6\u9053\u5177\u5546\u5e97\u5728\u8d77\u59cb\u93ae\u9053\u5177\u5546\u5e97\u7684\u5730\u4e0b\uff0c\u62db\u52df\u9f3b\u6d95\u7378\u5f8c\u958b\u653e\uff1b\u9f3b\u6d95\u7378\uff08\u907f\u6575\u8b77\u7b26\u3001\u805a\u6575\u8a0a\u865f\uff09\u548c\u60e1\u9b54\u7378\uff08\u60e1\u9b54\u6676\u7247 A\u3001D\u3001E\uff09\u5728\u540c\u4e00\u4f4d\u7f6e\u8f2a\u6d41\u7576\u503c\uff0c\u4e0d\u6703\u540c\u6642\u51fa\u73fe\uff1b\u5176\u4ed6\u5546\u54c1\u7531\u54ea\u4e00\u96bb\u6578\u78bc\u7cbe\u9748\u8ca9\u552e\u9084\u6c92\u6709\u53ef\u9760\u8cc7\u6599\u3002</p>
   </section>`;
   fillItems();
 }
@@ -1118,8 +1119,8 @@ function vArena(){
       <td data-l="${esc(d.name)}">${i===5?'<span class="pill">\u4e0d\u8209\u884c</span>':ok?`<span class="pill ok">${i===4?'\u53ef\u4ee5\u53c3\u52a0\uff08\u9700\u5148\u5728 A \u596a\u51a0\uff09':'\u53ef\u4ee5\u53c3\u52a0'}</span>`:'<span class="pill no">\u4e0d\u80fd\u53c3\u52a0</span>'}${nx&&i!==5?`<br><span class="hint">${nx===day?'\u4eca\u5929\u8209\u884c':nx===day%30+1?'\u660e\u5929\u8209\u884c':'\u4e0b\u6b21\uff1a'+nx+' \u65e5'}</span>`:''}</td>
       <td data-l="\u51a0\u8ecd">${arenaItem(c[6])}</td><td data-l="\u4e9e\u8ecd">${arenaItem(c[7])}</td><td data-l="\u5099\u8a3b" class="hint">${esc(c[8])}</td></tr>`; }).join('');
   $('#view').innerHTML=`<div class="grid">
-  <section class="panel" style="grid-column:1/-1"><h2>\u9b25\u6280\u5834\u8cfd\u7a0b <small>\u8d77\u59cb\u93ae\u9b25\u6280\u5834\uff0c\u6bcf\u6708 30 \u65e5\u5faa\u74b0</small></h2>
-    <div class="row"><label class="f" style="max-width:160px">\u904a\u6232\u65e5\u671f\uff08\u65e5\uff09<input type="number" data-k="arenaDay" min="1" max="30" value="${day}"></label>${(LIVE.on&&LIVE.stat==='ok')||S.svFile?`<span class="pill ok">${LIVE.on&&LIVE.stat==='ok'?'\u5be6\u6642':'\u53d6\u81ea\u5b58\u6a94'}\uff1a\u7b2c ${day} \u65e5${S.clock!=null?'\u30fb'+S.clock+' \u6642':''}</span>`:''}
+  <section class="panel" style="grid-column:1/-1"><h2>\u9b25\u6280\u5834\u8cfd\u7a0b <small>\u8d77\u59cb\u93ae\u9b25\u6280\u5834\uff0c\u6bcf\u5e74 30 \u65e5\u5faa\u74b0</small></h2>
+    <div class="row"><label class="f" style="max-width:160px">\u904a\u6232\u65e5\u671f\uff08\u65e5\uff09<input type="number" data-k="arenaDay" min="1" max="30" value="${day}"></label>${(LIVE.on&&LIVE.stat==='ok')||S.svFile?`<span class="pill ok">${LIVE.on&&LIVE.stat==='ok'?'\u5be6\u6642':'\u53d6\u81ea\u5b58\u6a94'}\uff1a${S.gameYear!=null&&S.gameDay!=null&&S.gameDay%30+1===day?(S.gameYear+1)+'\u5e74':''}${day}\u65e5${S.clock!=null?'\u30fb'+S.clock+' \u6642':''}</span>`:''}
       <p class="hint" style="flex:1 1 260px;margin:0">\u53ef\u4ee5\u5831\u540d\u7576\u5929\uff08\u65e9\u4e0a 10 \u6642\u524d\uff09\u548c\u660e\u5929\u7684\u6bd4\u8cfd\u3002\u7070\u8272\u4ee3\u78bc\uff1d${esc(d.name)}\u4e0d\u80fd\u53c3\u52a0\u3002</p></div>
     <div class="acal">${cal}</div>
     <p class="hint">${Object.values(ARENA_CAT).map(([n,c])=>`<span class="ac" style="--c:${c}">&nbsp;</span> ${n}`).join('\u3000')}</p>
@@ -1247,7 +1248,7 @@ function vRecruit(){
    \u5b58\u6a94\u683c\u5f0f\u898b\u8cc7\u6599\u7d71\u6574 \u00a716.13\uff0f\u00a716.15\u3002\u6bcf\u4efd\u8cc7\u6599\u4ee5 copy \u8d77\u9ede\u70ba 0\uff1a
    +440 \u7a2e\u985e\uff1b+444 \u5df2\u5b78\u62db\u5f0f\u4f4d\u5143\uff1b+480 \u8d77 132 bytes\uff1dRAM 0x8014274C\uff08\u6559\u990a +40\u3001\u5fc3\u60c5 +42\u3001\u9ad4\u91cd +66\u3001\u58fd\u547d +72\u3001\u5931\u8aa4 +82\u3001\u6230\u9b25 +84\u3001\u5e74\u9f61 +86\uff09\uff1b
    +624 \u8d77\uff1dRAM 0x8016C8F0\uff08\u653b +0\u3001\u9632 +2\u3001\u901f +4\u3001\u667a +6\u3001HP \u4e0a\u9650 +16\u3001MP \u4e0a\u9650 +18\uff09\uff1b+656 \u8d77\uff1d\u5287\u60c5\u65d7\u6a19\uff08\u65d7\u6a19 n \u5728 +245+n/8\uff09\u3002
-   +466 \u65e5\u3001+468 \u6642\u3001+470 \u5206\u3002\u6821\u9a57\u78bc +0x4FC\u3002\u8a13\u7df4\u4e00\u6b21\uff1d\u904a\u6232\u6642\u9593 1 \u5c0f\u6642\uff08TRN_REL 0x8008a718\uff09\u3002 */
+   +464 \u5e74\u3001+466 \u65e5\uff08\u90fd\u662f 0 \u8d77\u8a08\uff1b\u6bcf\u5e74 30 \u65e5\uff0c\u756b\u9762\u986f\u793a X\u5e74X\u65e5\uff09\u3001+468 \u6642\u3001+470 \u5206\u3002\u6821\u9a57\u78bc +0x4FC\u3002\u8a13\u7df4\u4e00\u6b21\uff1d\u904a\u6232\u6642\u9593 1 \u5c0f\u6642\uff08TRN_REL 0x8008a718\uff09\u3002 */
 const EVO_AT={1:6,2:24,3:72,4:144};
 function svParse(buf){
   const u=new Uint8Array(buf), dv=new DataView(buf); const out=[]; const seen=new Set();
@@ -1262,12 +1263,15 @@ function svParse(buf){
     const P=c+480, learned=[], raised=[];
     for(let i=0;i<58;i++) if(u[c+444+(i>>3)]&(1<<(i&7))) learned.push(i);
     D.digis.forEach(x=>{ const n=512+x.id; if(u[c+656+245+(n>>3)]&(1<<(n&7))) raised.push(x.id); });
-    const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); if(!d) return false; const n=200+d.id; return !!(u[c+656+245+(n>>3)]&(1<<(n&7))); });
-    out.push({n:out.length+1, title, cur:sp, recruited,
+    const flag=n=>!!(u[c+656+245+(n>>3)]&(1<<(n&7)));
+    const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d? flag(200+d.id) : false; });
+    const chefIntro=DINER_MAIN.filter(nm=>flag(DINER_INTRO[nm]));
+    const yr=i16(c+464);
+    out.push({n:out.length+1, title, cur:sp, recruited, chefIntro,
       stats:{hp:i16(c+640), mp:i16(c+642), atk:i16(c+624), def:i16(c+626), spd:i16(c+628), int:i16(c+630)},
       dis:i16(P+40), hap:i16(P+42), days:i16(P+74), fat:i16(P+34), lives:u[c+1167],
       bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(30).keys()].map(i=>[u[c+1182+i],u[c+1212+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
-      tech:learned.length, learned:learned.filter(x=>x!==48&&x!==57), raised, day:i16(c+466), hh:i16(c+468), mm:i16(c+470)});
+      tech:learned.length, learned:learned.filter(x=>x!==48&&x!==57), raised, year:yr>=0&&yr<100?yr:null, day:i16(c+466), hh:i16(c+468), mm:i16(c+470)});
   }
   return out;
 }
@@ -1346,6 +1350,7 @@ function goalPlan(ctx, goal){
   }
   return {F, ctx2:c, best, worst};
 }
+function gameDate(year,day){ return (year!=null?`${year+1}\u5e74`:'')+`${day+1}\u65e5`; }  // \u904a\u6232\u65e5\u66c6\u53ea\u6709\u5e74\u3001\u65e5\uff1a\u6bcf\u5e74 30 \u65e5
 function svWhen(v,h){ const t=v.days*24+v.hh+h; return `${Math.floor(t/24)} \u6b72 ${t%24} \u6642`; }
 function svStepsTable(r, ctx){
   const rows=r.steps.map((x,i)=>x.rest? `<tr><td class="num">${i+1}</td><td><b>${REST[S.planRest].name} ${x.h} \u5c0f\u6642</b></td><td class="hint">\u75b2\u52de\u6bcf\u5c0f\u6642 \u2212${REST[S.planRest].per}</td><td></td></tr>`
@@ -1374,7 +1379,7 @@ function vSave(){
     const ctx=svCtx(v), d=DG[v.cur], lv=d.level; const pr=svPredictText(v);
     const summ=`<div class="kpis"><div><span>\u6578\u78bc\u7cbe\u9748</span><b class="big">${esc(d.name)}</b><span>${LV[lv]}</span></div><div><span>\u5e74\u9f61</span><b class="big">${v.days} \u6b72</b><span>\u9019\u500b\u5f62\u614b\u5df2\u904e ${v.age} \u5c0f\u6642</span></div><div><span>\u9ad4\u91cd</span><b class="big">${v.weight}g</b></div><div><span>\u5931\u8aa4</span><b class="big">${v.mis}</b></div></div>
       <div class="lcd" style="margin-top:4px"><div class="st">${STATKEYS.map(k=>`<div><span>${SN[k]}</span><b>${v.stats[k]}</b></div>`).join('')}<div><span>\u6559\u990a</span><b>${v.dis}</b></div><div><span>\u5fc3\u60c5</span><b>${v.hap}</b></div><div><span>\u6230\u9b25</span><b>${v.win}</b></div><div><span>\u6280\u80fd\u6578</span><b>${v.tech}</b></div><div><span>\u58fd\u547d</span><b>${v.life}h</b></div></div></div>
-      <p class="hint">\u904a\u6232\u6642\u9593\u7b2c ${v.day+1} \u5929 ${String(v.hh).padStart(2,'0')}:${String(v.mm).padStart(2,'0')}\u3002\u4ee5\u524d\u990a\u904e\uff1a${v.raised.map(i=>DG[i].name).join('\u3001')||'\u6c92\u6709'}\u3002\u75b2\u52de ${v.fat}\u3001\u751f\u547d ${v.lives}\u3002</p>
+      <p class="hint">\u904a\u6232\u6642\u9593 ${gameDate(v.year,v.day)} ${String(v.hh).padStart(2,'0')}:${String(v.mm).padStart(2,'0')}\u3002\u4ee5\u524d\u990a\u904e\uff1a${v.raised.map(i=>DG[i].name).join('\u3001')||'\u6c92\u6709'}\u3002\u75b2\u52de ${v.fat}\u3001\u751f\u547d ${v.lives}\u3002</p>
       <div class="note ok-note">\u5df2\u7528\u9019\u500b\u5b58\u6a94\u66f4\u65b0\u300c\u6211\u7684\u7cbe\u9748\u300d\u3001\u300c\u80b2\u6210\u7d00\u9304\u300d\u548c\u5176\u4ed6\u9801\u9762\u7684\u7cbe\u9748\u8cc7\u6599\uff08\u80fd\u529b\u3001\u5e74\u9f61\u3001\u9ad4\u91cd\u3001\u5931\u8aa4\u3001\u6559\u990a\u3001\u5fc3\u60c5\u3001\u6230\u9b25\u6b21\u6578\u3001\u5df2\u5b78\u62db\u5f0f\u3001\u4ee5\u524d\u990a\u904e\u7684\u7cbe\u9748\uff09\u3002<button class="b" data-tab="me">\u53bb\u300c\u6211\u7684\u7cbe\u9748\u300d</button></div>`;
     let cand='';
     if(pr.P && pr.P.rows.length){
@@ -1441,17 +1446,21 @@ function svApply(){
   const tot=v.days*24+v.hh-v.age;
   if(v.recruited) S.recruited=v.recruited.slice();
   if(v.fat!=null) S.fat=v.fat; if(v.lives!=null) S.lives=v.lives;
-  if(v.day!=null) S.arenaDay=(v.day%30)+1;
+  if(v.day!=null){ S.arenaDay=(v.day%30)+1; S.gameDay=v.day; S.gameYear=v.year??null; }
+  if(Array.isArray(v.chefIntro)) S.chefIntro=v.chefIntro.slice(); else if(!v.live) S.chefIntro=null;
   if(v.bag) S.bag=v.bag.map(x=>x.slice()); if(v.bagCap!=null) S.bagCap=v.bagCap; if(v.storage) S.storage=v.storage.map(x=>x.slice()); if(v.boost) S.boost={...v.boost}; if(v.drillCnt) S.drillCnt=v.drillCnt.slice();
   Object.assign(S,{life:v.life, days:v.days, clock:v.hh, evoDays:Math.floor(tot/24), evoClock:((tot%24)+24)%24, cur:v.cur, stats:{...v.stats}, weight:v.weight, mis:v.mis, win:v.win, hap:v.hap, dis:v.dis, age:v.age, tech:v.tech, learned:v.learned.slice(), raised:v.raised.slice(), sample:false});
   if(DG[v.cur].level>=2 && S.svGoal!==undefined) S.evoGoal=S.svGoal;
 }
 
 /* ---------- \u958b\u59cb\u4e4b\u8857\u98df\u5802\uff08DG.SCN \u7b2c 274\uff5e280 \u5340\u584a\uff0c\u65e5\u7248 Rev 1\uff09 ----------
-   \u9032\u5e97\u6642\u6c7a\u5b9a\u5eda\u5e2b\uff08\u5287\u672c 0x3420 \u9644\u8fd1\uff09\uff1a
+   \u9032\u5e97\u6642\u6c7a\u5b9a\u5eda\u5e2b\uff08\u5287\u672c 0x3420 \u9644\u8fd1\uff1b\u8cc7\u6599\u7d71\u6574 \u00a716.16\uff09\uff1a
+   0. \u6700\u512a\u5148\uff1a\u5df2\u52a0\u5165\uff08\u65d7\u6a19 200\uff0b\u7de8\u865f\uff09\u4f46\u9084\u6c92\u5728\u98df\u5802\u4f5c\u958b\u696d\u4ecb\u7d39\uff08\u4ecb\u7d39\u65d7\u6a19\u672a\u8a2d\uff09\u7684\u4e3b\u5eda\u7576\u503c\uff0c
+      \u9806\u5e8f\u706b\u7130\u7378(\u65d7\u6a19 0x3a) \u2192 \u5de8\u9f8d\u7378(0x3d) \u2192 \u52a0\u9b6f\u9b6f\u7378(0x3c) \u2192 \u96ea\u4eba\u7378(0x3b)\u3002\u548c\u4ed6\u8aaa\u8a71\u807d\u5b8c\u958b\u696d\u53f0\u8a5e\u5f8c\u8a2d\u5b9a\u4ecb\u7d39\u65d7\u6a19\u3002
+      2026-10-15 \u5be6\u6e2c\uff1a\u56db\u4f4d\u90fd\u5df2\u52a0\u5165\u3001\u53ea\u6709\u706b\u7130\u7378\u4ecb\u7d39\u904e\uff0c12 \u6642\u5f8c\u4ecd\u662f\u5de8\u9f8d\u7378\u7576\u503c\u3002
    1. \u5b87\u5b99\u8166\u9b54\u5df2\u52a0\u5165\uff1a\u4e82\u6578 0\uff5e99 \u2264 19 \u2192 \u5b87\u5b99\u8166\u9b54\uff08\u7d04 20%\uff09
    2. \u86cb\u86cb\u7378\u5df2\u52a0\u5165\uff1a\u518d\u64f2\u4e00\u6b21 \u2264 9 \u2192 \u86cb\u86cb\u7378\uff08\u7d04 10%\uff09
-   3. \u6309\u6642\u9418\uff1a0\uff5e5 \u6642\u52a0\u9b6f\u9b6f\u7378\u30016\uff5e11 \u6642\u5de8\u9f8d\u7378\u300112\uff5e17 \u6642\u706b\u7130\u7378\u300118\uff5e23 \u6642\u96ea\u4eba\u7378\uff08\u8a72\u5eda\u5e2b\u5df2\u52a0\u5165\uff09
+   3. \u6309\u6642\u9418\uff1a0\uff5e5 \u6642\u52a0\u9b6f\u9b6f\u7378\u30016\uff5e11 \u6642\u5de8\u9f8d\u7378\u300112\uff5e17 \u6642\u706b\u7130\u7378\u300118\uff5e23 \u6642\u96ea\u4eba\u7378\uff08\u8a72\u5eda\u5e2b\u5df2\u52a0\u5165\u4e26\u4ecb\u7d39\u904e\uff09
    4. \u5426\u5247\uff1a\u706b\u7130\u7378 \u2192 \u5de8\u9f8d\u7378 \u2192 \u52a0\u9b6f\u9b6f\u7378 \u2192 \u96ea\u4eba\u7378 \u4e2d\u7b2c\u4e00\u500b\u5df2\u52a0\u5165\u7684
    \u6bcf\u9053\u83dc\uff1a\u653b\u3001\u9632\u3001\u901f\u3001\u667a\u3001HP\u3001MP\u3001\u75b2\u52de\u3001\u5fc3\u60c5\u3001\u6559\u990a\u3001\u98fd\u8db3\u3001\u9ad4\u91cd\uff08\u5287\u672c\u6307\u4ee4 0x35 \u52a0\u30010x36 \u6e1b\uff09\u3002\u809a\u5b50\u4e0d\u9913\u4e0d\u80fd\u5403\u3002 */
 const DINER_KEYS=['atk','def','spd','int','hp','mp','fat','hap','dis','food','w'];
@@ -1483,11 +1492,16 @@ const DINER=[
    ['\u8b0e\u4e4b\u96de\u86cb\u4e3c','\u8b0e\u306e\u30bf\u30de\u30b4\u3069\u3093',6000,[[3,0,3,0,30,0,-5,3,1,36,3],[0,3,0,3,0,30,-5,3,1,36,3],[4,4,4,4,40,40,-5,4,3,36,3]]]]},
 ];
 const DINER_MAIN=['\u706b\u7130\u7378','\u5de8\u9f8d\u7378','\u52a0\u9b6f\u9b6f\u7378','\u96ea\u4eba\u7378'];
+const DINER_INTRO={'\u706b\u7130\u7378':0x3a,'\u5de8\u9f8d\u7378':0x3d,'\u52a0\u9b6f\u9b6f\u7378':0x3c,'\u96ea\u4eba\u7378':0x3b};  // \u958b\u696d\u4ecb\u7d39\u65d7\u6a19
+// \u5df2\u52a0\u5165\u4f46\u672a\u4ecb\u7d39\u7684\u4e3b\u5eda\uff08\u672a\u77e5\u6642\u7576\u5168\u90e8\u4ecb\u7d39\u904e\uff09
+function dinerNew(got){ const iv=S.chefIntro; return Array.isArray(iv)? DINER_MAIN.filter(n=>got.has(n)&&!iv.includes(n)) : []; }
 function dinerChef(hour, got){
+  const fresh=dinerNew(got)[0];
+  if(fresh) return {base:fresh, fresh:true, vade:false, digi:false};
   const main=DINER.filter(c=>c.hours&&got.has(c.chef));
   const slot=main.find(c=>hour>=c.hours[0]&&hour<c.hours[1]);
   const base= slot? slot.chef : (DINER_MAIN.find(n=>got.has(n))||null);
-  return {base, vade:got.has('\u5b87\u5b99\u8166\u9b54'), digi:got.has('\u86cb\u86cb\u7378')};
+  return {base, fresh:false, vade:got.has('\u5b87\u5b99\u8166\u9b54'), digi:got.has('\u86cb\u86cb\u7378')};
 }
 function dinerFx(v){ return DINER_KEYS.map((k,i)=>[k,v[i]]).filter(([k,x])=>x).map(([k,x])=>`<span class="fx ${k==='fat'?(x<0?'g':'b'):x>0?'g':'b'}">${DINER_LAB[k]} ${x>0?'+':''}${x}</span>`).join(' '); }
 function vDiner(){
@@ -1499,7 +1513,9 @@ function vDiner(){
   if(!anyChef) nowHTML='<div class="note">\u9084\u6c92\u6709\u5eda\u5e2b\u52a0\u5165\uff0c\u98df\u5802\u672a\u958b\u5f35\u3002\u62db\u52df\u706b\u7130\u7378\u3001\u5de8\u9f8d\u7378\u3001\u52a0\u9b6f\u9b6f\u7378\u3001\u96ea\u4eba\u7378\u5176\u4e2d\u4e00\u96bb\u5f8c\u958b\u5f35\uff08\u5728\u300c\u7e41\u69ae\u5ea6\u300d\u52fe\u9078\u5df2\u52a0\u5165\u7684\u7cbe\u9748\uff0c\u6216\u4e0a\u8f09\u5b58\u6a94\u81ea\u52d5\u8b80\u53d6\uff09\u3002</div>';
   else {
     const parts=[]; if(now.vade) parts.push('\u7d04 20% \u662f\u5b87\u5b99\u8166\u9b54'); if(now.digi) parts.push(`\u7d04 ${now.vade?'8':'10'}% \u662f\u86cb\u86cb\u7378`);
-    nowHTML=`<div class="note ok-note">\u73fe\u5728 ${hr} \u6642\u9032\u5e97\uff1a${now.base?`<b>${now.base}</b>\u7576\u503c`:'\u6c92\u6709\u7576\u503c\u5eda\u5e2b'}${parts.length?`\uff1b${parts.join('\u3001')}\uff08\u6bcf\u6b21\u9032\u5e97\u91cd\u65b0\u6c7a\u5b9a\uff09`:''}\u3002</div>`;
+    const fresh=dinerNew(got);
+    nowHTML= now.fresh? `<div class="note ok-note">\u73fe\u5728\u9032\u5e97\uff1a<b>${now.base}</b>\u7576\u503c\uff0c\u4e0d\u8ad6\u6642\u9593\u3002${now.base}\u525b\u52a0\u5165\uff0c\u9084\u672a\u5728\u98df\u5802\u548c\u4f60\u6253\u62db\u547c\uff1b\u4ed6\u6703\u4e00\u76f4\u7576\u503c\uff0c\u76f4\u5230\u4f60\u548c\u4ed6\u8aaa\u8a71\u3001\u807d\u5b8c\u958b\u696d\u4ecb\u7d39\u70ba\u6b62${fresh.length>1?`\u3002\u4e4b\u5f8c\u8f2a\u5230${fresh.slice(1).join('\u3001')}\uff0c\u540c\u6a23\u8981\u9010\u4e00\u6253\u62db\u547c`:''}\u3002\u6253\u904e\u62db\u547c\u5f8c\u624d\u6309\u6642\u9593\u8f2a\u73ed\u3002</div>`
+      : `<div class="note ok-note">\u73fe\u5728 ${hr} \u6642\u9032\u5e97\uff1a${now.base?`<b>${now.base}</b>\u7576\u503c`:'\u6c92\u6709\u7576\u503c\u5eda\u5e2b'}${parts.length?`\uff1b${parts.join('\u3001')}\uff08\u6bcf\u6b21\u9032\u5e97\u91cd\u65b0\u6c7a\u5b9a\uff09`:''}\u3002</div>`;
   }
   const sched=`<div class="dsched">${[...Array(24).keys()].map(h=>{ const c=dinerChef(h,got).base; const on=h===hr; return `<div class="dh${on?' on':''}" title="${h} \u6642\uff1a${c||'\u2014'}"><span>${h}</span><i class="dc${c?DINER_MAIN.indexOf(c):'x'}"></i></div>`; }).join('')}</div>
     <div class="dleg">${DINER_MAIN.map((n,i)=>`<span><i class="dc${i}"></i>${n}${got.has(n)?'':'\uff08\u672a\u52a0\u5165\uff09'}</span>`).join('')}</div>`;
@@ -1511,7 +1527,7 @@ function vDiner(){
       const hit=!want || list.some(v=>v[DINER_KEYS.indexOf(want)]>0);
       return `<tr class="${hit?'':'dim'}"><td class="c1"><b>${tc}</b><br><span class="hint">${jp}</span></td><td class="num" data-l="\u50f9\u9322">${price}</td><td data-l="\u6548\u679c">${multi? list.map((v,i)=>`<div><span class="hint">${['\u7532','\u4e59','\u4e19'][i]}\uff1a</span>${dinerFx(v)}</div>`).join('') : dinerFx(fx)}</td></tr>`; }).join('');
     return `<section class="panel${joined?'':' faded'}"><h2>${c.chef} <small>${when}</small></h2>
-      <p class="hint">${joined?'<span class="pill ok">\u5df2\u52a0\u5165</span> ':'<span class="pill">\u672a\u52a0\u5165</span> '}\u62db\u52df\u5730\u9ede\uff1a${esc(loc(c.chef))}${c.chef==='\u86cb\u86cb\u7378'?'\u3002\u4e09\u6b3e\u6548\u679c\uff08\u7532\u3001\u4e59\u3001\u4e19\uff09\u96a8\u6a5f\u51fa\u5176\u4e2d\u4e00\u6b3e\uff0c\u5404\u7d04 1/3\u3002':''}</p>
+      <p class="hint">${joined?'<span class="pill ok">\u5df2\u52a0\u5165</span> ':'<span class="pill">\u672a\u52a0\u5165</span> '}${joined&&c.hours?`<label style="white-space:nowrap"><input type="checkbox" data-intro="${c.chef}"${!Array.isArray(S.chefIntro)||S.chefIntro.includes(c.chef)?' checked':''}> \u5df2\u5728\u98df\u5802\u6253\u904e\u62db\u547c</label> `:''}\u62db\u52df\u5730\u9ede\uff1a${esc(loc(c.chef))}${c.chef==='\u86cb\u86cb\u7378'?'\u3002\u4e09\u6b3e\u6548\u679c\uff08\u7532\u3001\u4e59\u3001\u4e19\uff09\u96a8\u6a5f\u51fa\u5176\u4e2d\u4e00\u6b3e\uff0c\u5404\u7d04 1/3\u3002':''}</p>
       <div class="tw"><table class="stk"><thead><tr><th>\u6599\u7406</th><th class="num">\u50f9\u9322 \uff5b\uff5d</th><th>\u6548\u679c</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
   }).join('');
   $('#view').innerHTML=`<div class="grid">
@@ -1521,6 +1537,7 @@ function vDiner(){
       <ul class="ml2 tips">
         <li>\u5169\u96bb\u6216\u4ee5\u4e0a\u5eda\u5e2b\u52a0\u5165\u5f8c\uff0c\u56db\u4f4d\u4e3b\u5eda\u8f2a\u73ed\uff1a0\uff5e5 \u6642\u52a0\u9b6f\u9b6f\u7378\u30016\uff5e11 \u6642\u5de8\u9f8d\u7378\u300112\uff5e17 \u6642\u706b\u7130\u7378\u300118\uff5e23 \u6642\u96ea\u4eba\u7378\u3002\u53ea\u6709\u4e00\u4f4d\u52a0\u5165\u6642\uff0c\u5168\u65e5\u90fd\u662f\u4ed6\u3002</li>
         <li>\u7576\u503c\u7684\u4e3b\u5eda\u9084\u6c92\u52a0\u5165\u6642\uff0c\u7531\u706b\u7130\u7378 \u2192 \u5de8\u9f8d\u7378 \u2192 \u52a0\u9b6f\u9b6f\u7378 \u2192 \u96ea\u4eba\u7378\u4e2d\u7b2c\u4e00\u4f4d\u5df2\u52a0\u5165\u7684\u4ee3\u73ed\u3002</li>
+        <li><b>\u525b\u52a0\u5165\u7684\u4e3b\u5eda\u512a\u5148</b>\uff1a\u4e3b\u5eda\u52a0\u5165\u5f8c\u8981\u5148\u5230\u98df\u5802\u548c\u4ed6\u8aaa\u8a71\uff0c\u807d\u5b8c\u958b\u696d\u4ecb\u7d39\u3002\u672a\u6253\u62db\u547c\u524d\uff0c\u4e0d\u8ad6\u6642\u9593\u90fd\u662f\u4ed6\u7576\u503c\uff08\u5b87\u5b99\u8166\u9b54\u3001\u86cb\u86cb\u7378\u4e5f\u4e0d\u6703\u51fa\u73fe\uff09\uff1b\u5e7e\u4f4d\u90fd\u672a\u6253\u62db\u547c\u6642\uff0c\u6309\u706b\u7130\u7378 \u2192 \u5de8\u9f8d\u7378 \u2192 \u52a0\u9b6f\u9b6f\u7378 \u2192 \u96ea\u4eba\u7378\u7684\u6b21\u5e8f\u3002\u4e0a\u8f09\u5b58\u6a94\u6703\u81ea\u52d5\u8b80\u53d6\uff1b\u624b\u52d5\u4f7f\u7528\u6642\u5728\u4e0b\u9762\u5404\u4e3b\u5eda\u52fe\u9078\u300c\u5df2\u5728\u98df\u5802\u6253\u904e\u62db\u547c\u300d\u3002</li>
         <li>\u5b87\u5b99\u8166\u9b54\u3001\u86cb\u86cb\u7378\u52a0\u5165\u5f8c\uff0c\u6bcf\u6b21\u9032\u5e97\u5148\u64f2\u9ab0\uff1a\u7d04 20% \u662f\u5b87\u5b99\u8166\u9b54\uff0c\u5176\u6b21\u7d04 10% \u662f\u86cb\u86cb\u7378\u3002\u4e0d\u662f\u60f3\u8981\u7684\u5eda\u5e2b\uff0c\u53ef\u4ee5\u51fa\u5e97\u518d\u9032\u3002</li>
         <li>\u809a\u5b50\u4e0d\u9913\u4e0d\u80fd\u9ede\u83dc\u3002\u6bcf\u9053\u83dc\u90fd\u6703\u56de\u5fa9\u75b2\u52de\uff08\u96ea\u4eba\u7378 \u22122\uff0c\u5176\u4ed6 \u22125\uff09\uff0c\u4e26\u589e\u52a0\u5fc3\u60c5\u3001\u98fd\u8db3\u548c\u9ad4\u91cd\uff1b\u80fd\u529b\u52a0\u6210\u662f\u6c38\u4e45\u7684\u3002</li>
         <li>\u86cb\u86cb\u7378\u7684\u83dc\u6709\u7a0b\u5f0f\u932f\u8aa4\uff1a\u5224\u65b7\u300c\u809a\u5b50\u4e0d\u9913\u300d\u5931\u6557\u6642\u6703\u7e7c\u7e8c\u5f80\u4e0b\u57f7\u884c\uff0c\u6709\u6a5f\u6703\u4e0d\u9913\u4e5f\u80fd\u5403\u3002</li>
@@ -1536,7 +1553,7 @@ function liveUrl(){ if(S.liveUrl) return S.liveUrl; return (location.protocol.st
 function liveToV(j){
   const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d && j.recruitedIds.includes(d.id); });
   return {n:1,title:'RetroArch \u5be6\u6642',cur:j.cur,stats:j.stats,dis:j.dis,hap:j.hap,days:j.days,weight:j.weight,life:j.life,mis:j.mis,win:j.win,age:j.age,poop:j.poop,fat:j.fat,lives:j.lives,
-    tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,hh:j.hh,mm:j.mm,live:true,
+    tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,year:Number.isInteger(j.year)&&j.year>=0&&j.year<100?j.year:null,hh:j.hh,mm:j.mm,live:true,chefIntro:Array.isArray(j.chefIntro)?DINER_MAIN.filter(nm=>j.chefIntro.includes(DINER_INTRO[nm])):null,
     bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined};
 }
 function liveBusyInput(){ const a=document.activeElement; return a && a.closest && a.closest('#view') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.id!=='liveBtn'; }
@@ -1547,7 +1564,7 @@ async function liveTick(){
     if(!j.ok){ LIVE.stat='wait'; LIVE.err=j.error||'\u8b80\u4e0d\u5230\u904a\u6232'; }
     else if(!DG[j.cur]){ LIVE.stat='wait'; LIVE.err='\u8b80\u5230\u7684\u7a2e\u985e\u7de8\u865f '+j.cur+' \u4e0d\u6b63\u78ba\uff08\u904a\u6232\u53ef\u80fd\u5728\u6a19\u984c\u756b\u9762\uff09'; }
     else {
-      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para;
+      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para; LIVE.clkRaw=j.clkRaw||null; liveClockFeed(j);
       const v=liveToV(j); const key=JSON.stringify(v);
       if(key!==LIVE.last){
         const first=!LIVE.last; LIVE.last=key; S.svList=[v]; S.svSel=0; S.svFile='RetroArch \u5be6\u6642'; S.svErr=''; svApply();
@@ -1558,6 +1575,26 @@ async function liveTick(){
   }catch(e){ LIVE.stat='err'; LIVE.err='\u9023\u4e0d\u4e0a\u5c0f\u7a0b\u5f0f\uff08'+e.message+'\uff09'; }
   LIVE.busy=false; liveBadge();
 }
+/* \u904a\u6232\u6642\u9418\uff1a\u6bcf\u79d2\u8b80\u4e00\u6b21\uff0c\u4e2d\u9593\u6309\u5be6\u969b\u8d70\u901f\u63a8\u7b97\uff08\u904a\u6232 1 \u5c0f\u6642\uff1d1200 frame\uff0c\u7d04 20 \u79d2\uff1b\u9078\u55ae\u3001\u5c0d\u8a71\u6642\u505c\u6b62\uff09 */
+function liveClockFeed(j){
+  const yr=Number.isInteger(j.year)&&j.year>=0&&j.year<100? j.year : null;
+  const g=((yr??0)*30+j.day)*1440+j.hh*60+j.mm, now=Date.now(), p=LIVE.clk; let rate=0;
+  if(p){ const dg=g-p.g, dt=now-p.at; if(dg>0&&dg<=30&&dt>0){ const r=dg/dt; rate=p.rate? p.rate*0.5+r*0.5 : r; } }
+  LIVE.clk={g,at:now,rate,yr};
+}
+function liveClockNow(){
+  const c=LIVE.clk; if(!c) return null;
+  let t=c.g+Math.floor(c.rate*Math.min(Date.now()-c.at,1500));
+  if(c.rate>0 && LIVE.clkShown!=null && t<LIVE.clkShown && LIVE.clkShown-t<=5) t=LIVE.clkShown;  // \u4e0d\u5012\u9000
+  LIVE.clkShown=t; return t;
+}
+function liveClockHTML(){
+  const t=liveClockNow(); if(t==null) return '';
+  const day=Math.floor(t/1440), hh=Math.floor(t%1440/60), mm=t%60, p2=n=>String(n).padStart(2,'0');
+  const Y=Math.floor(day/30)+1, D=day%30+1;  // \u904a\u6232\u53ea\u6709\u5e74\u3001\u65e5\uff1a\u6bcf\u5e74 30 \u65e5
+  return `<span${LIVE.clk.yr!=null?` title="\u904a\u6232\u958b\u59cb\u5f8c\u7b2c ${day+1} \u65e5"`:''}>${LIVE.clk.yr!=null?Y+'\u5e74':''}${D}\u65e5</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
+}
+function liveClockPaint(){ const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }
 function liveStatText(){
   if(!LIVE.on) return '<span class="hint">\u672a\u9023\u7dda</span>';
@@ -1579,18 +1616,19 @@ function liveDecorate(){
     v.prepend(d);
   }
 }
-function liveStart(){ if(LIVE.on) return; LIVE.on=true; LIVE.last=''; LIVE.stat=''; liveTick(); LIVE.timer=setInterval(liveTick,1000); render(); }
-function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); LIVE.timer=null; LIVE.stat=''; render(); }
+function liveStart(){ if(LIVE.on) return; LIVE.on=true; LIVE.last=''; LIVE.stat=''; liveTick(); LIVE.timer=setInterval(liveTick,1000); LIVE.clkTimer=setInterval(liveClockPaint,200); render(); }
+function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); clearInterval(LIVE.clkTimer); LIVE.timer=null; LIVE.clk=null; LIVE.stat=''; render(); }
 document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if(!liveBusyInput()&&LIVE.pending){ LIVE.pending=false; render(); } },50); } });
 function livePanel(){
   const para=LIVE.para? `<details><summary>\u539f\u59cb\u80b2\u6210\u6578\u503c\uff08\u7528\u4f86\u627e\u51fa\u5176\u4ed6\u6b04\u4f4d\uff09</summary><div class="paragrid">${LIVE.para.map((x,i)=>`<span><b>+${i*2}</b> ${x}</span>`).join('')}</div></details>`:'';
+  const raw=LIVE.clkRaw? `<details><summary>\u539f\u59cb\u6642\u9418\u5340\u8a18\u61b6\u9ad4\uff080x8013EC00 \u8d77\uff0c\u7528\u4f86\u6838\u5c0d\u5e74\u6708\u65e5\uff09</summary><pre class="hint" style="white-space:pre-wrap">${LIVE.clkRaw.match(/.{1,32}/g).map((r,i)=>(0x8013EC00+i*16).toString(16)+'  '+r.match(/../g).join(' ')).join('\n')}</pre></details>`:'';
   return `<section class="panel"><h2>RetroArch \u5be6\u6642\u9023\u7dda <small>\u96fb\u8166\u7248</small></h2>
     <div class="row"><button class="b p" id="liveBtn">${LIVE.on?'\u4e2d\u65b7\u9023\u7dda':'\u5be6\u6642\u9023\u7dda'}</button><span id="liveStat">${liveStatText()}</span></div>
     <label class="f">\u5c0f\u7a0b\u5f0f\u4f4d\u5740<input id="f-liveurl" value="${esc(liveUrl())}"></label>
     <ol class="ml2 tips"><li>RetroArch\uff1a\u8a2d\u5b9a \u2192 \u7db2\u7d61 \u2192 \u958b\u555f\u300c\u7db2\u7d61\u6307\u4ee4\u300d\uff08\u9023\u63a5\u57e0 55355\uff09\uff0c\u7528 Beetle PSX \u6216 SwanStation \u6838\u5fc3\u958b\u59cb\u904a\u6232\uff08\u65e5\u7248 Rev 1\uff09\u3002</li>
       <li>\u5728\u7d42\u7aef\u6a5f\u904b\u884c <code>python3 dw1_bridge.py</code>\uff08\u548c index.html \u653e\u5728\u540c\u4e00\u500b\u8cc7\u6599\u593e\uff09\u3002</li>
       <li>\u700f\u89bd\u5668\u958b <code>http://127.0.0.1:55356/</code>\uff0c\u7db2\u9801\u6703\u81ea\u52d5\u9023\u7dda\uff1b\u4e4b\u5f8c\u6bcf\u79d2\u66f4\u65b0\uff0c\u8a13\u7df4\u3001\u6230\u9b25\u3001\u5403\u6771\u897f\u90fd\u4e0d\u7528\u5b58\u6a94\u3002</li></ol>
-    <p class="hint">\u5c0f\u7a0b\u5f0f\u53ea\u8b80\u53d6\u904a\u6232\u8a18\u61b6\u9ad4\uff0c\u4e0d\u6703\u6539\u52d5\u904a\u6232\uff0c\u4e5f\u4e0d\u6703\u9023\u63a5\u4e92\u806f\u7db2\u3002</p>${para}</section>`;
+    <p class="hint">\u5c0f\u7a0b\u5f0f\u53ea\u8b80\u53d6\u904a\u6232\u8a18\u61b6\u9ad4\uff0c\u4e0d\u6703\u6539\u52d5\u904a\u6232\uff0c\u4e5f\u4e0d\u6703\u9023\u63a5\u4e92\u806f\u7db2\u3002</p>${para}${raw}</section>`;
 }
 if(BUILD==='live') setTimeout(liveStart,300);
 
@@ -1601,9 +1639,9 @@ function renderTabs(){
 }
 function renderLCD(){
   const d=DG[S.cur];
-  $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>
+  $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>${BUILD==='live'&&LIVE.on&&LIVE.stat==='ok'&&LIVE.clk?`<div class="gclk" id="lcdClock">${liveClockHTML()}</div>`:''}
     <div class="st">${STATKEYS.map(k=>`<div><span>${SN[k]}</span><b>${S.stats[k]}</b></div>`).join('')}
-    ${S.days!=null?`<div><span>\u5e74\u9f61</span><b>${S.days}\u6b72</b></div>`:''}${S.life!=null&&S.life!==''?`<div><span>\u58fd\u547d</span><b>${S.life}h</b></div>`:''}<div><span>\u75b2\u52de</span><b>${S.fat}</b></div><div><span>\u751f\u547d</span><b>${'\u2665'.repeat(Math.max(0,S.lives))||'0'}</b></div><div><span>\u62db\u5f0f</span><b>${S.learned.length}</b></div></div>`;
+    ${S.days!=null?`<div><span>\u5e74\u9f61</span><b>${S.days}\u6b72</b></div>`:''}${S.life!=null&&S.life!==''?`<div><span>\u58fd\u547d</span><b>${S.life}h</b></div>`:''}<div><span>\u75b2\u52de</span><b>${S.fat}</b></div><div><span>\u751f\u547d</span><b>${'\u2665'.repeat(Math.max(0,S.lives))||'0'}</b></div><div title="\u6f20\u8996\u6578\u78bc\u7cbe\u9748\u547c\u53eb\u7684\u6b21\u6578"><span>\u5931\u8aa4</span><b>${S.mis??0}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' \u30fb \u7db2\u9801\u7248'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` \u30fb \u5be6\u6642\u7248 \u30fb <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">\u7db2\u9801\u7248\uff08\u624b\u6a5f\u3001\u4e0a\u8f09\u5b58\u6a94\uff09\u2197</a>`; }
 function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); save(); liveDecorate(); }
@@ -1990,6 +2028,7 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-recsort'){ S.recSort=t.value; render(); return; }
   if(t.id==='sel-recreg'){ S.recReg=t.value; render(); return; }
   if(t.id==='sel-dwant'){ S.dinerWant=t.value; render(); return; }
+  if(t.dataset.intro){ const iv=new Set(Array.isArray(S.chefIntro)? S.chefIntro : DINER_MAIN); t.checked? iv.add(t.dataset.intro) : iv.delete(t.dataset.intro); S.chefIntro=DINER_MAIN.filter(n=>iv.has(n)); render(); return; }
   if(t.id==='sel-svgoal'){ S.svGoal=+t.value; render(); return; }
   S.sample=false;
   if(t.dataset.rec){ const n=t.dataset.rec; S.recruited=(S.recruited||[]).filter(x=>x!==n); if(t.checked) S.recruited.push(n); render(); return; }
