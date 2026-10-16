@@ -356,7 +356,7 @@ S.tab='save'; // 每次開啟網頁先顯示上載存檔／實時連線
 /* 網頁版「解除連結」：清除存檔帶入的資料，回到預設值；保留訓練場地、休息方式、疲勞上限等偏好 */
 const UNLINK={armed:false,timer:null};
 const SV_KEYS=['svList','poop','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
-  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','poop','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
+  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
 function svUnlink(){
   SV_KEYS.forEach(k=>{ if(k in DEF) S[k]=JSON.parse(JSON.stringify(DEF[k])); else delete S[k]; });
   S.sample=true; NH_PREV=null; try{ localStorage.removeItem('dw1nh'); }catch(e){}
@@ -1957,7 +1957,11 @@ function render(){ verLink(); const hl=$('#homelink'); if(hl){ hl.textContent=BU
   try{ VIEWS[S.tab](); }catch(e){ console.error(e);
     const reset={plan:['planTarget','planPath','evoPick','planGyms','planRest','planCap'],raise:['gym','food','log'],map:['mapSel','mapRegion']}[S.tab]||[];
     let ok=false; if(reset.length){ reset.forEach(k=>{ S[k]=DEF[k]!==undefined?JSON.parse(JSON.stringify(DEF[k])):undefined; }); try{ VIEWS[S.tab](); ok=true; }catch(e2){ e=e2; console.error(e2); } }
-    if(!ok) $('#view').innerHTML=`<section class="panel"><h2>這一頁暫時無法顯示</h2><p class="hint">錯誤：${esc(String(e&&e.message||e))}</p><p class="hint">${esc(String(e&&e.stack||'').split('\n').slice(0,3).join(' / '))}</p><p class="hint">請把這段文字截圖給維護者。</p></section>`; } if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
+    if(!ok) $('#view').innerHTML=`<section class="panel"><h2>這一頁暫時無法顯示</h2><p class="hint">錯誤：${esc(String(e&&e.message||e))}</p><p class="hint">${esc(String(e&&e.stack||'').split('\n').slice(0,3).join(' / '))}</p><p class="hint">請把這段文字截圖給維護者。</p></section>`; } if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); detRestore(); save(); liveDecorate(); }
+// 沒有 id 的展開欄（例如「訓練與休息路徑」）：記住玩家打開或收起，重新繪畫（實時更新）後保持原狀
+const detKey=d=>S.tab+'|'+((d.querySelector('summary')||{}).textContent||'').replace(/[\d\s]/g,'').slice(0,40);
+function detRestore(){ const st=S.detState||{}; document.querySelectorAll('#view details:not([id])').forEach(d=>{ const k=detKey(d); if(k in st) d.open=st[k]; }); }
+document.addEventListener('toggle',e=>{ const d=e.target; if(!d||d.tagName!=='DETAILS'||d.id||!d.closest('#view')) return; S.detState=Object.assign({},S.detState,{[detKey(d)]:d.open}); save(); },true);
 
 /* 網頁版沒有上載存檔時：遊戲畫面不顯示的數值以 *** 代替（實時版不受影響） */
 const NOSAVE=()=>BUILD!=='live' && !S.svFile;
