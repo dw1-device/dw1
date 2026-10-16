@@ -1118,7 +1118,7 @@ const MAP_NODES=[
  ['fz6','冰結凍土（6）',800,360,'ice','',['冰結凍土']],['ice','寒霜聖殿',840,250,'ice','ev gym',['寒霜聖殿']],
  ['fz8','冰結凍土（8）',1000,168,'ice','ev',['冰結凍土']],['fz7','冰結凍土（7）',1100,150,'ice','bird',['冰結凍土']],
  ['igl','冰結凍土・雪屋',1016,82,'ice','',['冰結凍土']],['fz4','冰結凍土（4）',1185,230,'ice','',['冰結凍土']],
- ['fz9','冰結凍土（9）',1120,332,'ice','',['冰結凍土']],['fz10','冰結凍土（10）',1165,407,'ice','',['冰結凍土']],
+ ['fz9','冰結凍土（9）',1165,385,'ice','',['冰結凍土']],
  ['fz11','冰結凍土（11）',1248,407,'ice','ev curl shop',['冰結凍土']],['fz12','冰結凍土（12）',1173,492,'ice','shop',['冰結凍土']],
  ['fz13','冰結凍土（13）秘密海洞',1080,422,'ice','ev whale',['秘密海岸洞','冰結凍土']],
 ];
@@ -1127,7 +1127,7 @@ const MAP_EDGES=('m5-m4 m4-m2 m6-m1 m1-m2 m2-m3 m3-m7 m7-m5 m1-f2 kyo-f2 f2-f1 f
  'g1-wsl wsl-wr2 wr2-wcl wcl-ws2 wcl-ws1 ws1-wr1 wr1-nf2 wsl-lk1 lk1-lk2 lk2-dt2 gym-tn tn-ts ts-nf1 ts-br nf1-gym nf1-nf2 nf2-nf3 nf2-kb nf3-nf4 nf4-nf5 nf5-kb nf5-sea sea-kb kb-br '+
  'lk1-nf3 lk2-nf4 lk2-bis dte-nf2 dte-dt1 dt1-b21 b21-b3 b21-drv b21-ulk ulk-b22 b22-lv1 lv1-lv2 lv1-lv3 lv3-lv4 lv4-lv5 lv3-dt2 bkg-bar bar-bqg bar-bis '+
  'tn-fc1 fc1-fc2 fc2-fc3 fc3-fsw fc3-fce fce-fc4 fce-fc5 fce-fc6 fc6-fc7 fc6-fc8 br-tr1 tr1-tr2 tr2-tr3 tr3-tr4 tr2-mg2 tr4-mg1 mg1-mg2 mg2-ami ami-rue rue-st1 st1-st2 st2-st3 st3-rp1 rp1-rp2 rp2-rp3 rp2-rp4 rp4-rp5 '+
- 'tr3-ovd ovd-grv grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gbr-gc4 gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fz10 fz10-fz11 fz10-fz12 fz10-fz13 fz8-m7 fz1-gc3 gc3-gcl gcl-ogg').split(' ').map(e=>e.split('-'));
+ 'tr3-ovd ovd-grv grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gbr-gc4 gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fz11 fz9-fz12 fz9-fz13 fz8-m7 fz1-gc3 gc3-gcl gcl-ogg').split(' ').map(e=>e.split('-'));
 const MAP_ICONS={save:'記錄點',wc:'廁所',meat:'肉田',gym:'訓練設施',ev:'事件・邀請',shop:'商店・交易',vend:'自動販賣機',bird:'巴多拉運輸',whale:'巨鯨船',curl:'冰壺',poo:'大便獸大王',frog:'怪蛙皇',ham:'改造的守衛獸'};
 const MAP_GYM={m5:'forest',j2:'junk',g9:'leo',ice:'ice',bkg:'kabu',bqg:'kuwa',gym:'green'};
 const MAP_TRADE={fz12:'毛人獸交換（左下）：萬能磁片→攻擊插件 S；中回復磁片→防禦插件 S；數碼雜魚→高速插件 S。（右下）：巨大肉→自動駕駛員；數碼黑鱸魚→再生磁片；高速插件 S→藥物。中回復磁片換防禦插件 S 可以賺取高額差價。',
@@ -1173,6 +1173,8 @@ const VEND_NOTE={
  st2:'自動販賣機：每次 200｛｝，隨機出一件：肉（約 30%）、回復磁片（約 30%）、腐爛掉的肉（約 20%）、MP 磁片（約 20%）。背包滿了不會出貨。'};
 // 個別方格的路線說明（用戶實機確認）
 const TILE_NOTE={
+ fz4:'修長的斜坡，有兩隻冰雪亞古獸。上方接（7），斜坡底部接（9）。',
+ fz9:'往右是招募企鵝獸的方向（11），往左下是秘密海洞（巨鯨獸劇情，13），往下是有兩隻毛人獸、可以交換道具的（12）。',
  gbr:'劇情招募貝殼獸要到這裏。一直往下走到偉大峽谷上層（4）；另一邊通往冰結凍土（1）。',
  gc4:'左邊有一部只能往下的升降機，直達奧加山寨內部。往上走是偉大渡橋。',
  gcl:'由上層（3）的升降機往下到達。晚上有兩隻野生鼻屎獸。再往下是奧加山寨入口（ドリデ入り口）。'};
