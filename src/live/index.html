@@ -274,6 +274,14 @@ function ageFromClock(){ if(S.days==null||S.evoDays==null) return null; return (
 function lifeExtra(hap){ return hap>=80?0 : Math.trunc((hap-80)/-50)+1; }
 function lifeLeftHours(life, hap, clock){ if(life==null) return null; let L=life, h=0, c=clock??0; while(L>0 && h<5000){ h++; c=(c+1)%24; L-=1+(c%4===0?lifeExtra(hap):0); } return h; }
 function whenHours(h){ if(S.days==null) return `${h} \u5c0f\u6642\u5f8c`; const t=(S.days??0)*24+(S.clock??0)+h; return `${Math.floor(t/24)} \u6b72 ${t%24} \u6642`; }
+// \u7761\u7720\u4f5c\u606f\uff08SLPS 0x8012EBDC \u6bcf\u96bb +18 \u7684\u985e\u578b \u2192 0x8012F314 \u7684\u60f3\u7761\uff0f\u8d77\u5e8a\u6642\u9593\uff1b\u6210\u9577\u671f\u4ee5\u4e0a\u56fa\u5b9a\uff0c\u5e7c\u5e74\u671f\u6309\u7576\u6642\u6642\u9593\u53e6\u8a08\uff09
+const SLEEP_TYPE=[0,6,7,1,2,1,4,1,3,4,2,2,2,1,1,6,7,2,1,5,1,1,1,3,1,0,4,1,4,6,7,1,4,1,3,2,1,4,4,1,1,3,1,6,7,1,0,1,1,3,0,4,0,3,4,0,1,1,0,1,5,2];
+const SLEEP_HM=[[16,1],[19,4],[22,7],[2,11],[7,16],[10,19]];
+const hhmm=(h,m)=>String(h).padStart(2,'0')+':'+String(m||0).padStart(2,'0');
+function sleepText(){ const d=DG[S.cur]; if(!d) return null;
+  if(Array.isArray(S.sleep) && S.sleepCur===S.cur && (d.level>=3 || S.sleep[0]!==S.sleep[2])) return hhmm(S.sleep[0],S.sleep[1])+'\u2013'+hhmm(S.sleep[2],S.sleep[3]);
+  if(d.level===1) return '\u91923\u77611'; if(d.level===2) return '\u91927\u77613';
+  const t=SLEEP_HM[SLEEP_TYPE[S.cur]]; return t? hhmm(t[0])+'\u2013'+hhmm(t[1]) : null; }
 // \u7279\u6b8a\u9032\u5316\uff08\u904a\u6232\u7a0b\u5f0f\u8207\u5287\u672c\u78ba\u8a8d\uff09
 const SPECIAL = [
   {when:'\u6230\u6557\u6216\u751f\u75c5\u5012\u4e0b\u5f8c\uff08\u9084\u6709\u751f\u547d\uff09',from:['\u5929\u4f7f\u7378'],to:'\u60e1\u9b54\u7378',p:50,cond:'\u5224\u5b9a\u6642\u6559\u990a \u2264 49\u3002\u6230\u6557\u6703\u5148\u6263\u6559\u990a 20\uff0c\u6240\u4ee5\u6230\u524d\u6559\u990a \u2264 69 \u5373\u53ef\u3002',kind:'death'},
@@ -1587,7 +1595,7 @@ function svParse(buf){
     out.push({n:out.length+1, title, cur:sp, recruited, cards,
       stats:{hp:i16(c+640), mp:i16(c+642), atk:i16(c+624), def:i16(c+626), spd:i16(c+628), int:i16(c+630)},
       dis:i16(P+40), hap:i16(P+42), days:i16(P+74), fat:i16(P+34), lives:u[c+1167],
-      bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(128).keys()].map(i=>[i,u[c+656+84+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
+      bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(128).keys()].map(i=>[i,u[c+656+84+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), sleep:[4,6,8,10].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
       tech:learned.length, learned:learned.filter(x=>x!==48&&x!==57), raised, year:yr>=0&&yr<100?yr:null, day:i16(c+466), hh:i16(c+468), mm:i16(c+470)});
   }
   return out;
@@ -1764,7 +1772,7 @@ function svApply(){
   const tot=v.days*24+v.hh-v.age;
   if(v.recruited) S.recruited=v.recruited.slice();
   if(Array.isArray(v.cards)) S.cards=v.cards.map(x=>x.slice());
-  if(v.fat!=null) S.fat=v.fat; if(v.lives!=null) S.lives=v.lives; if(v.poop!=null) S.poop=v.poop;
+  if(v.fat!=null) S.fat=v.fat; if(v.lives!=null) S.lives=v.lives; if(v.poop!=null) S.poop=v.poop; if(Array.isArray(v.sleep)){ S.sleep=v.sleep.slice(); S.sleepCur=v.cur; }
   if(v.day!=null){ S.arenaDay=(v.day%30)+1; S.gameDay=v.day; S.gameYear=v.year??null; }
   if(v.bag) S.bag=v.bag.map(x=>x.slice()); if(v.bagCap!=null) S.bagCap=v.bagCap; if(v.storage) S.storage=v.storage.map(x=>x.slice()); if(v.boost) S.boost={...v.boost}; if(v.drillCnt) S.drillCnt=v.drillCnt.slice();
   Object.assign(S,{life:v.life, days:v.days, clock:v.hh, evoDays:Math.floor(tot/24), evoClock:((tot%24)+24)%24, cur:v.cur, stats:{...v.stats}, weight:v.weight, mis:v.mis, win:v.win, hap:v.hap, dis:v.dis, age:v.age, tech:v.tech, learned:v.learned.slice(), raised:v.raised.slice(), sample:false});
@@ -1870,7 +1878,7 @@ function liveToV(j){
   const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d && j.recruitedIds.includes(d.id); });
   return {n:1,title:'RetroArch \u5be6\u6642',cur:j.cur,stats:j.stats,dis:j.dis,hap:j.hap,days:j.days,weight:j.weight,life:j.life,mis:j.mis,win:j.win,age:j.age,poop:j.poop,fat:j.fat,lives:j.lives,
     tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,year:Number.isInteger(j.year)&&j.year>=0&&j.year<100?j.year:null,hh:j.hh,mm:j.mm,live:true,
-    bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, cards: Array.isArray(j.cards)? j.cards : undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined};
+    bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, cards: Array.isArray(j.cards)? j.cards : undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined, sleep: j.para? j.para.slice(2,6):undefined};
 }
 function liveBusyInput(){ const a=document.activeElement; return a && a.closest && a.closest('#view') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.id!=='liveBtn'; }
 async function liveTick(){
@@ -1958,7 +1966,7 @@ function renderLCD(){
   const d=DG[S.cur];
   $('#lcd').innerHTML=`<div><span>${LV[d.level]}${LIVE.on?' <i id="lcdLive" class="livedot '+LIVE.stat+'"></i>':''}</span><br><b class="nm">${esc(d.name)}</b></div>${BUILD==='live'&&LIVE.on&&LIVE.stat==='ok'&&LIVE.clk?`<div class="gclk" id="lcdClock">${liveClockHTML()}</div>`:''}
     <div class="st">${STATKEYS.map(k=>`<div><span>${SN[k]}</span><b>${S.stats[k]}</b></div>`).join('')}
-    <div><span>\u958b\u5fc3\u5ea6</span><b>${S.hap??0}</b></div><div><span>\u6559\u990a</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c"'}><span>\u75b2\u52de</span><b>${known('fat')?S.fat:'***'}</b></div><div title="\u6f20\u8996\u6578\u78bc\u7cbe\u9748\u547c\u53eb\u7684\u6b21\u6578"><span>\u5931\u8aa4</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>\u5e74\u9f61</span><b>${S.days}\u6b72</b></div>`:''}${NOSAVE()?'<div title="*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c"><span>\u58fd\u547d</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>\u58fd\u547d</span><b>${S.life}h</b></div>`:''}<div><span>\u751f\u547d</span><b>${'\u2665'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
+    <div><span>\u958b\u5fc3\u5ea6</span><b>${S.hap??0}</b></div><div><span>\u6559\u990a</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c"'}><span>\u75b2\u52de</span><b>${known('fat')?S.fat:'***'}</b></div><div title="\u6f20\u8996\u6578\u78bc\u7cbe\u9748\u547c\u53eb\u7684\u6b21\u6578"><span>\u5931\u8aa4</span><b>${S.mis??0}</b></div>${sleepText()?`<div title="\u60f3\u7761\u6642\u9593\u2013\u8d77\u5e8a\u6642\u9593\uff08\u904a\u6232\u5167\u6642\u9418\uff09\uff1b\u75b2\u52de\u9ad8\u6703\u63d0\u65e9\u60f3\u7761"><span>\u7761\u7720</span><b>${sleepText()}</b></div>`:''}${S.days!=null?`<div><span>\u5e74\u9f61</span><b>${S.days}\u6b72</b></div>`:''}${NOSAVE()?'<div title="*** \u4ee3\u8868\u4e0a\u8f09\u5b58\u6a94\u624d\u53ef\u4ee5\u7372\u5f97\u8a72\u9805\u6578\u503c"><span>\u58fd\u547d</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>\u58fd\u547d</span><b>${S.life}h</b></div>`:''}<div><span>\u751f\u547d</span><b>${'\u2665'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' \u30fb \u7db2\u9801\u7248'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` \u30fb \u5be6\u6642\u7248 \u30fb <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">\u7db2\u9801\u7248\uff08\u624b\u6a5f\u3001\u4e0a\u8f09\u5b58\u6a94\uff09\u2197</a>`; }
 function render(){ verLink(); const hl=$('#homelink'); if(hl){ hl.textContent=BUILD==='live'?'\u21e6 \u56de\u5230\u5be6\u6642\u9023\u7dda':'\u21e6 \u56de\u5230\u4e0a\u8f09\u5b58\u6a94'; hl.hidden=S.tab==='save'; } renderTabs(); renderLCD(); const VIEWS={me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,bag:vBag,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena};
