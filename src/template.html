@@ -314,6 +314,15 @@ let S;
 try{ S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('dw1raise')||'{}')); }catch(e){ S = Object.assign({},DEF); }
 if(S.sample){ ['cur','stats','weight','mis','win','tech','hap','dis','fat','lives','age','battles','planTarget'].forEach(k=>S[k]=JSON.parse(JSON.stringify(DEF[k]))); S.learned=[]; } // 舊範例資料（天使獸）換成亞古獸
 S.tab='save'; // 每次開啟網頁先顯示上載存檔／實時連線
+/* 網頁版「解除連結」：清除存檔帶入的資料，回到預設值；保留訓練場地、休息方式、疲勞上限等偏好 */
+const UNLINK={armed:false,timer:null};
+const SV_KEYS=['svList','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
+  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
+function svUnlink(){
+  SV_KEYS.forEach(k=>{ if(k in DEF) S[k]=JSON.parse(JSON.stringify(DEF[k])); else delete S[k]; });
+  S.sample=true; NH_PREV=null; try{ localStorage.removeItem('dw1nh'); }catch(e){}
+  const f=document.getElementById('sv-file'); if(f) f.value='';
+}
 function save(){ try{ localStorage.setItem('dw1raise', JSON.stringify(S)); }catch(e){} }
 
 /* ---------- helpers ---------- */
@@ -1668,6 +1677,7 @@ function vSave(){
       <label class="f">選擇記憶卡檔案<input type="file" id="sv-file" accept=".mcr,.mcd,.mc,.srm,.mcs,.psv,.gme,.vmp,.mem,.vgs,.ddf,.bin,.dat,application/octet-stream"></label>
       ${L.length>1?`<label class="f">卡內的「數碼暴龍世界」存檔<select id="sel-svsel">${L.map((x,i)=>`<option value="${i}"${i===S.svSel?' selected':''}>存檔 ${x.n}：${esc(x.title||DG[x.cur].name)}</option>`).join('')}</select></label>`:''}
       ${S.svErr?`<div class="note">${esc(S.svErr)}</div>`:''}
+      ${BUILD!=='live'&&S.svFile?`<div class="row"><button class="b${UNLINK.armed?' p':''}" id="svUnlink">${UNLINK.armed?'再按一次確認解除連結':'解除連結'}</button><span class="hint">${UNLINK.armed?'會清除存檔帶入的資料，精靈和數值回到預設；訓練場地等設定保留。':'回到剛進入網頁時的預設值（不會改動你的存檔檔案）。'}</span></div>`:''}
       ${!v&&BUILD!=='live'?`<div class="note info"><b>沒有存檔也可以用。</b>不上載存檔的話，可以到「我的精靈」手動選擇精靈、輸入能力和年齡，再在「育成紀錄」勾選已學會的招式。<button class="b" data-tab="me">手動輸入</button></div>`:''}
       <p class="hint">支援 .mcr／.mcd／.srm 等整張記憶卡，以及 .mcs、.psv、.gme 單一存檔（日版 Rev 1）。選好檔案後，網頁所有關於精靈的資料會自動更新。檔案只在你的瀏覽器裡讀取，不會上載到任何伺服器，也不會被修改。</p>
     </section>`;
@@ -2229,6 +2239,9 @@ document.addEventListener('click',e=>{
   if(t.dataset.gomap){ S.tab='map'; if(t.dataset.gotime) S.mapTime=t.dataset.gotime; const id=t.dataset.gomap; if(id.startsWith('off:')){ S.mapSel=id; render(); } else mapSelect(id,false); window.scrollTo(0,0); return; }
   if(t.dataset.recf){ S.recFilter=t.dataset.recf; render(); return; }
   if(t.id==='liveBtn'){ LIVE.on?liveStop():liveStart(); return; }
+  if(t.id==='svUnlink'){ clearTimeout(UNLINK.timer);
+    if(!UNLINK.armed){ UNLINK.armed=true; UNLINK.timer=setTimeout(()=>{ UNLINK.armed=false; if(S.tab==='save') render(); },5000); render(); return; }
+    UNLINK.armed=false; svUnlink(); render(); return; }
   if(t.id==='clearSaveData'){ S.bag=null; S.storage=null; S.bagCap=null; S.boost=null; S.drillCnt=null; render(); return; }
   if(t.id==='useAgeEst'){ const e=ageFromClock(); if(e!=null) S.age=e; S.ageKnown=true; render(); return; }
   if(t.dataset.svapply){ svApply(); t.textContent='已套用 ✓'; save(); renderLCD(); return; }

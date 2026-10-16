@@ -323,6 +323,15 @@ let S;
 try{ S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('dw1raise')||'{}')); }catch(e){ S = Object.assign({},DEF); }
 if(S.sample){ ['cur','stats','weight','mis','win','tech','hap','dis','fat','lives','age','battles','planTarget'].forEach(k=>S[k]=JSON.parse(JSON.stringify(DEF[k]))); S.learned=[]; } // \u820a\u7bc4\u4f8b\u8cc7\u6599\uff08\u5929\u4f7f\u7378\uff09\u63db\u6210\u4e9e\u53e4\u7378
 S.tab='save'; // \u6bcf\u6b21\u958b\u555f\u7db2\u9801\u5148\u986f\u793a\u4e0a\u8f09\u5b58\u6a94\uff0f\u5be6\u6642\u9023\u7dda
+/* \u7db2\u9801\u7248\u300c\u89e3\u9664\u9023\u7d50\u300d\uff1a\u6e05\u9664\u5b58\u6a94\u5e36\u5165\u7684\u8cc7\u6599\uff0c\u56de\u5230\u9810\u8a2d\u503c\uff1b\u4fdd\u7559\u8a13\u7df4\u5834\u5730\u3001\u4f11\u606f\u65b9\u5f0f\u3001\u75b2\u52de\u4e0a\u9650\u7b49\u504f\u597d */
+const UNLINK={armed:false,timer:null};
+const SV_KEYS=['svList','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
+  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
+function svUnlink(){
+  SV_KEYS.forEach(k=>{ if(k in DEF) S[k]=JSON.parse(JSON.stringify(DEF[k])); else delete S[k]; });
+  S.sample=true; NH_PREV=null; try{ localStorage.removeItem('dw1nh'); }catch(e){}
+  const f=document.getElementById('sv-file'); if(f) f.value='';
+}
 function save(){ try{ localStorage.setItem('dw1raise', JSON.stringify(S)); }catch(e){} }
 
 /* ---------- helpers ---------- */
@@ -1677,6 +1686,7 @@ function vSave(){
       <label class="f">\u9078\u64c7\u8a18\u61b6\u5361\u6a94\u6848<input type="file" id="sv-file" accept=".mcr,.mcd,.mc,.srm,.mcs,.psv,.gme,.vmp,.mem,.vgs,.ddf,.bin,.dat,application/octet-stream"></label>
       ${L.length>1?`<label class="f">\u5361\u5167\u7684\u300c\u6578\u78bc\u66b4\u9f8d\u4e16\u754c\u300d\u5b58\u6a94<select id="sel-svsel">${L.map((x,i)=>`<option value="${i}"${i===S.svSel?' selected':''}>\u5b58\u6a94 ${x.n}\uff1a${esc(x.title||DG[x.cur].name)}</option>`).join('')}</select></label>`:''}
       ${S.svErr?`<div class="note">${esc(S.svErr)}</div>`:''}
+      ${BUILD!=='live'&&S.svFile?`<div class="row"><button class="b${UNLINK.armed?' p':''}" id="svUnlink">${UNLINK.armed?'\u518d\u6309\u4e00\u6b21\u78ba\u8a8d\u89e3\u9664\u9023\u7d50':'\u89e3\u9664\u9023\u7d50'}</button><span class="hint">${UNLINK.armed?'\u6703\u6e05\u9664\u5b58\u6a94\u5e36\u5165\u7684\u8cc7\u6599\uff0c\u7cbe\u9748\u548c\u6578\u503c\u56de\u5230\u9810\u8a2d\uff1b\u8a13\u7df4\u5834\u5730\u7b49\u8a2d\u5b9a\u4fdd\u7559\u3002':'\u56de\u5230\u525b\u9032\u5165\u7db2\u9801\u6642\u7684\u9810\u8a2d\u503c\uff08\u4e0d\u6703\u6539\u52d5\u4f60\u7684\u5b58\u6a94\u6a94\u6848\uff09\u3002'}</span></div>`:''}
       ${!v&&BUILD!=='live'?`<div class="note info"><b>\u6c92\u6709\u5b58\u6a94\u4e5f\u53ef\u4ee5\u7528\u3002</b>\u4e0d\u4e0a\u8f09\u5b58\u6a94\u7684\u8a71\uff0c\u53ef\u4ee5\u5230\u300c\u6211\u7684\u7cbe\u9748\u300d\u624b\u52d5\u9078\u64c7\u7cbe\u9748\u3001\u8f38\u5165\u80fd\u529b\u548c\u5e74\u9f61\uff0c\u518d\u5728\u300c\u80b2\u6210\u7d00\u9304\u300d\u52fe\u9078\u5df2\u5b78\u6703\u7684\u62db\u5f0f\u3002<button class="b" data-tab="me">\u624b\u52d5\u8f38\u5165</button></div>`:''}
       <p class="hint">\u652f\u63f4 .mcr\uff0f.mcd\uff0f.srm \u7b49\u6574\u5f35\u8a18\u61b6\u5361\uff0c\u4ee5\u53ca .mcs\u3001.psv\u3001.gme \u55ae\u4e00\u5b58\u6a94\uff08\u65e5\u7248 Rev 1\uff09\u3002\u9078\u597d\u6a94\u6848\u5f8c\uff0c\u7db2\u9801\u6240\u6709\u95dc\u65bc\u7cbe\u9748\u7684\u8cc7\u6599\u6703\u81ea\u52d5\u66f4\u65b0\u3002\u6a94\u6848\u53ea\u5728\u4f60\u7684\u700f\u89bd\u5668\u88e1\u8b80\u53d6\uff0c\u4e0d\u6703\u4e0a\u8f09\u5230\u4efb\u4f55\u4f3a\u670d\u5668\uff0c\u4e5f\u4e0d\u6703\u88ab\u4fee\u6539\u3002</p>
     </section>`;
@@ -2238,6 +2248,9 @@ document.addEventListener('click',e=>{
   if(t.dataset.gomap){ S.tab='map'; if(t.dataset.gotime) S.mapTime=t.dataset.gotime; const id=t.dataset.gomap; if(id.startsWith('off:')){ S.mapSel=id; render(); } else mapSelect(id,false); window.scrollTo(0,0); return; }
   if(t.dataset.recf){ S.recFilter=t.dataset.recf; render(); return; }
   if(t.id==='liveBtn'){ LIVE.on?liveStop():liveStart(); return; }
+  if(t.id==='svUnlink'){ clearTimeout(UNLINK.timer);
+    if(!UNLINK.armed){ UNLINK.armed=true; UNLINK.timer=setTimeout(()=>{ UNLINK.armed=false; if(S.tab==='save') render(); },5000); render(); return; }
+    UNLINK.armed=false; svUnlink(); render(); return; }
   if(t.id==='clearSaveData'){ S.bag=null; S.storage=null; S.bagCap=null; S.boost=null; S.drillCnt=null; render(); return; }
   if(t.id==='useAgeEst'){ const e=ageFromClock(); if(e!=null) S.age=e; S.ageKnown=true; render(); return; }
   if(t.dataset.svapply){ svApply(); t.textContent='\u5df2\u5957\u7528 \u2713'; save(); renderLCD(); return; }
