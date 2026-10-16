@@ -199,11 +199,19 @@ h3.regh{margin:14px 0 6px;font-size:15px;border-bottom:1px solid var(--line);pad
 .goalbox{border:1px dashed var(--accent);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin:6px 0}
 ul.tips li{line-height:1.6}.cand.goal{box-shadow:inset 3px 0 0 var(--accent)}
 .note.ok-note{border-color:var(--good)}
-.skipbox{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0 10px}
-.skipbox p{margin:4px 0}
-.skipt tr.dim{opacity:.5}
-.skipt tr.sel td{background:color-mix(in srgb,var(--good) 12%,transparent)}
+.ecards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin:6px 0}
+.ecard{display:flex;flex-direction:column;gap:3px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:14px}
+.ecard.on{border-color:var(--good);box-shadow:inset 0 0 0 1px var(--good)}
+.ecard.bad{opacity:.7}
+.ecard .er{display:block}
+.ecard .good{color:var(--good)}
+.badt{color:var(--bad)}
 .besttag{display:inline-block;font-size:.75em;padding:1px 6px;border-radius:8px;background:var(--good);color:#fff}
+.ehelp h3{margin:12px 0 4px}
+.etodo li{margin:4px 0}
+.elater{border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+#view>.panel+.panel,#view>.panel+details.panel{margin-top:12px}
+.homelink{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit;margin-left:8px}
 .raisedgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px 10px;margin-top:6px;font-size:13px}
 </style>
 
@@ -217,7 +225,7 @@ ul.tips li{line-height:1.6}.cand.goal{box-shadow:inset 3px 0 0 var(--accent)}
  <g fill="var(--lcd-ink)"><rect x="28" y="29" width="2" height="2"/><rect x="30" y="31" width="6" height="2"/><rect x="27" y="33" width="10" height="2"/><rect x="26" y="35" width="12" height="2"/><rect x="26" y="37" width="12" height="2"/><rect x="27" y="39" width="10" height="2"/><rect x="28" y="41" width="2" height="2"/><rect x="34" y="41" width="2" height="2"/></g>
  <g fill="var(--lcd)"><rect x="29" y="35" width="2" height="2"/><rect x="33" y="35" width="2" height="2"/></g>
  <g fill="var(--toy-btn)" stroke="var(--toy-ink)" stroke-width="1.5"><circle cx="22" cy="60" r="3.6"/><circle cx="32" cy="63" r="3.6"/><circle cx="42" cy="60" r="3.6"/></g>
-</svg></div><p>數碼暴龍世界（PS1 日版 Rev 1）育成、進化與學招輔助<span id="verlink"></span></p></div>
+</svg></div><p>數碼暴龍世界（PS1 日版 Rev 1）育成、進化與學招輔助<span id="verlink"></span><button class="homelink" id="homelink" data-tab="save"></button></p></div>
   </header>
   <div class="bar"><button class="lcd" id="lcd" data-tab="me" aria-label="打開我的精靈"></button></div>
   <nav class="tabs" role="tablist" id="tabs"></nav>
@@ -301,7 +309,7 @@ const BRAIN_TH = [150,250,350,450,550,650,750,800,850,900,950];
 
 /* ---------- state ---------- */
 const DEF = {tab:'save',cur:nid('亞古獸'),stats:{hp:800,mp:700,atk:60,def:50,spd:50,int:50},weight:20,mis:0,win:0,tech:0,hap:50,dis:50,fat:0,lives:3,age:24,battles:0,
-  learned:[], spec:'normal', gym:'green', manual:false, kuwa:false, kabu:false, itTen:false, food:'none', foe:'', foeUsed:{}, battlesN:10, brainN:20, log:[], target:nid('鳳凰獸'), sample:true, planTarget:nid('暴龍獸'), planPath:0, planGyms:['green'], planRest:'hosp', planCap:80, planSkip:{}};
+  learned:[], spec:'normal', gym:'green', manual:false, kuwa:false, kabu:false, itTen:false, food:'none', foe:'', foeUsed:{}, battlesN:10, brainN:20, log:[], target:nid('鳳凰獸'), sample:true, planTarget:nid('暴龍獸'), planPath:0, planGyms:['green'], planRest:'hosp', planCap:80, evoPick:{}};
 let S;
 try{ S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('dw1raise')||'{}')); }catch(e){ S = Object.assign({},DEF); }
 if(S.sample){ ['cur','stats','weight','mis','win','tech','hap','dis','fat','lives','age','battles','planTarget'].forEach(k=>S[k]=JSON.parse(JSON.stringify(DEF[k]))); S.learned=[]; } // 舊範例資料（天使獸）換成亞古獸
@@ -662,17 +670,7 @@ function trainGain(gym, base, lv, noFood, main){
 const REST = {hosp:{name:'人馬醫院休息',per:20},chair:{name:'布尼獸椅子休息',per:10}};
 function drills(){ const out=[]; GYMS.filter(g=>S.planGyms.includes(g.id)).forEach(g=>g.items.forEach(([n,base,main])=>out.push({gym:g,n,base,main}))); return out; }
 function forwardPaths(target){
-  const cur=S.cur; return pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur)));
-}
-function goalOf(from,to,finalReq){
-  const dt=DG[to];
-  if(dt.level===3){
-    const r=ROOKIE.find(r=>r.to===dt.name); if(!r) return {special:true};
-    return {rookie:true, top:r.top, w:15};
-  }
-  if(dt.level===2) return {time:true};
-  const e=D.evo[to]; if(!e||e.special||!e.stats) return {special:true};
-  return {stats:e.stats, w:e.w, e};
+  const cur=S.cur; const seen=new Set(); return pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur))).filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
 }
 let PF=0;
 function simulate(st0, lv, goalFn, pickStat, cap){
@@ -697,126 +695,176 @@ function simulate(st0, lv, goalFn, pickStat, cap){
   return {st,steps,n,restH,fat,ok:goalFn(st)};
 }
 function topOK(st,t){ const v=k=>scaled(k,st[k]); return STATKEYS.every(k=>k===t||v(t)>v(k)); }
-function makePlan(path){
-  let st={...S.stats}; PF=known('fat')?S.fat:0; const stages=[]; const cap=S.planCap;
-  const finalId=path[path.length-1]; const finalE=D.evo[finalId];
-  const later = new Set(); path.forEach(id=>{ const e=D.evo[id]; if(e&&e.stats) Object.keys(e.stats).forEach(k=>later.add(k)); });
-  for(let i=0;i<path.length-1;i++){
-    const from=path[i], to=path[i+1], lv=DG[from].level, g=goalOf(from,to);
-    if(g.time){ stages.push({from,to,note:'幼年期 I 經過 6 小時自動進化，不用訓練。'}); continue; }
-    if(g.special){ stages.push({from,to,note:'這一步是特殊進化：'+condText(to)}); continue; }
-    if(g.rookie){
-      // 選一個「最高能力」：優先選之後也用得到的，否則選訓練次數最少的
-      let best=null;
-      const pf0=PF;
-      g.top.forEach(t=>{ PF=pf0; const r=simulate(st,lv,s=>topOK(s,t),()=>t,cap); const score=r.n-(later.has(t)?1000:0); if(r.ok&&(!best||score<best.score)) best={t,score}; });
-      PF=pf0;
-      if(!best){ stages.push({from,to,note:'用選擇的訓練場地無法讓指定能力成為最高。'}); continue; }
-      const r=simulate(st,lv,s=>topOK(s,best.t),()=>best.t,cap);
-      const ev=D.evo[to]||{}; const bonusOK=ev.bonusDigi===from; const wTxt=`體重 ${g.w-5}～${g.w+5}g`;
-      const topTxt=`${SN[best.t]}成為最高能力（HP、MP 先 ÷10；可選：${g.top.map(k=>SN[k]).join('、')}）`;
-      const bTxt=`目前是${DG[ev.bonusDigi]?.name||'？'}`;
-      const opts=[{k:'none',label:bonusOK?'3 組全部達成':'能力＋體重',n:r.n,restH:r.restH,need:[topTxt,wTxt].concat(bonusOK?[bTxt+'（這條路線已符合）']:[]),ok:true},
-        {k:'stat',label:'放棄能力組',n:0,restH:0,need:[wTxt,bTxt],ok:bonusOK,why:bonusOK?'':`額外加成要由${DG[ev.bonusDigi]?.name||'？'}進化，這條路線做不到`},
-        {k:'w',label:'放棄體重組',n:r.n,restH:r.restH,need:[topTxt,bTxt],ok:bonusOK,why:bonusOK?'':`額外加成要由${DG[ev.bonusDigi]?.name||'？'}進化，這條路線做不到`}];
-      const sk=pickSkip(from,to,opts);
-      const rr= sk==='stat'? {st:{...st},steps:[],n:0,restH:0,fat:pf0,ok:true} : r; if(sk==='stat') PF=pf0;
-      stages.push({from,to,r:rr,opts,skip:sk,rookie:true,goalText:opts.find(o=>o.k===sk).need.join('；')+'（失誤組永遠符合）'});
-      st=rr.st; continue;
-    }
-    const req=g.stats;
-    // 試所有練習順序（一次練完一項再換下一項），取訓練次數最少、休息最少的
-    const perms=a=>a.length<=1?[a]:a.flatMap((x,i)=>perms([...a.slice(0,i),...a.slice(i+1)]).map(q=>[x,...q]));
-    const pf0=PF; let r=null, rpf=0;
-    perms(Object.keys(req)).forEach(ord=>{ PF=pf0; const t=simulate(st,lv,s=>Object.keys(req).every(k=>s[k]>=req[k]),s=>ord.find(k=>s[k]<req[k]),cap);
-      if(!r||(t.ok&&!r.ok)||(t.ok===r.ok&&(t.n<r.n||(t.n===r.n&&t.restH<r.restH)))){ r=t; rpf=PF; } });
-    PF=rpf;
-    const e=g.e; const bonusArr=e.bonus.filter(b=>b.k!=='prev'||b.v===from); const bonus=e.bonus.map(b=>b.k==='prev'?'目前是'+DG[b.v].name+(b.v===from?'（這條路線已符合）':''):({hap:'心情',dis:'教養',win:'戰勝',tech:'技能'}[b.k])+' '+b.v+(b.op==='le'?' 以下':' 以上')).join(' 或 ');
-    const T={stat:'能力：'+Object.entries(req).map(([k,v])=>SN[k]+' '+v).join('、'), w:`體重 ${e.w-5}～${e.w+5}g`, mis:`失誤 ${e.mis[0]} 次${e.mis[1]==='le'?'以下':'以上'}`, bonus:'加成（任一）：'+bonus};
-    const G4=['stat','w','mis','bonus'], GN={stat:'能力組',w:'體重組',mis:'失誤組',bonus:'額外加成組'};
-    const opts=[{k:'none',label:'4 組全部達成',n:r.n,restH:r.restH,need:G4.map(x=>T[x]),ok:r.ok}].concat(G4.map(x=>({k:x,label:'放棄'+GN[x],n:x==='stat'?0:r.n,restH:x==='stat'?0:r.restH,need:G4.filter(y=>y!==x).map(y=>T[y]),
-      ok: x==='bonus' || bonusArr.length>0, why: x!=='bonus'&&!bonusArr.length?'額外加成只能由別的精靈進化取得，這條路線做不到':''})));
-    const sk=pickSkip(from,to,opts);
-    const rr= sk==='stat'? {st:{...st},steps:[],n:0,restH:0,fat:pf0,ok:true} : r; if(sk==='stat') PF=pf0;
-    stages.push({from,to,r:rr,opts,skip:sk,goalText:opts.find(o=>o.k===sk).need.join('；')});
-    st=rr.st;
+/* ---------- 進化助手：選目標 → 勾選 4 組條件中的 3 組（或全部）→ 列出進化前要做的事 ---------- */
+const GRP_NAME={stat:'能力值',w:'體重',mis:'失誤',bonus:'額外加成'};
+const PERMS=a=>a.length<=1?[a]:a.flatMap((x,i)=>PERMS([...a.slice(0,i),...a.slice(i+1)]).map(q=>[x,...q]));
+// 練到 to 的能力條件：成長期要令指定能力成為最高；其他要全部達標。試所有練習順序，取訓練次數最少、休息最少的
+function trainFor(from,to,st0,pf0){
+  const lv=DG[from].level, cap=S.planCap, e=D.evo[to];
+  if(e.rookie){ let best=null;
+    e.top.forEach(t=>{ PF=pf0; const r=simulate(st0,lv,s=>topOK(s,t),()=>t,cap); if(!r.fail&&r.ok&&(!best||r.n<best.n)) best={...r,top:t}; });
+    PF=pf0; return best||{fail:'用選擇的訓練場地無法讓指定能力成為最高。',n:Infinity}; }
+  const req=e.stats; let r=null;
+  PERMS(Object.keys(req)).forEach(ord=>{ PF=pf0; const t=simulate(st0,lv,s=>Object.keys(req).every(k=>s[k]>=req[k]),s=>ord.find(k=>s[k]<req[k]),cap);
+    if(t.fail) return; if(!r||(t.ok&&!r.ok)||(t.ok===r.ok&&(t.n<r.n||(t.n===r.n&&t.restH<r.restH)))) r=t; });
+  PF=pf0; return r||{fail:'選擇的訓練場地沒有可以練所需能力的項目。',n:Infinity};
+}
+// 每一組：目前狀態、做得到與否、代價（用來排「建議」）、要做的事
+function evoGroups(cur,to,base){
+  const e=D.evo[to]; const info={}; const pf0=known('fat')?(S.fat||0):0;
+  const now=critOf(to,base); const gS=now.groups.find(g=>g.k==='stat');
+  const tr=gS.ok? {n:0,restH:0,steps:[],st:{...base.stats},ok:true} : trainFor(cur,to,base.stats,pf0);
+  info.stat={ok:gS.ok, can:!tr.fail, cost:gS.ok?0:tr.n, tr,
+    need: e.rookie? `${e.top.map(k=>SN[k]).join('、')}其中一項成為最高能力（HP、MP 先 ÷10）` : Object.entries(e.stats).map(([k,v])=>SN[k]+' '+v).join('、'),
+    cur: e.rookie? `目前最高：${SN[lastTopStat(base.stats)]}` : Object.keys(e.stats).map(k=>`${SN[k]} ${base.stats[k]}`).join('、'),
+    gap: gS.ok?'已符合':tr.fail?'做不到：'+tr.fail:`約 ${tr.n} 次訓練`+(tr.restH?`＋休息 ${tr.restH} 小時`:'')};
+  const lo=e.w-5, hi=e.w+5, w=base.weight; const dw= w<lo? lo-w : w>hi? hi-w : 0;
+  info.w={ok:dw===0, can:true, cost:Math.abs(dw)*2, lo, hi, dw, need:`${lo}～${hi}g`, cur:`${w}g`, gap: dw===0?'已符合':`${dw>0?'增':'減'} ${Math.abs(dw)}g`};
+  if(e.rookie) info.mis={ok:true, can:true, cost:-1, auto:true, need:'沒有限制', cur:`${base.mis} 次`, gap:'永遠符合'};
+  else { const [mv,mop]=e.mis, m=base.mis;
+    info.mis= mop==='le'? {ok:m<=mv, can:m<=mv, cost:0, le:true, left:mv-m, need:`${mv} 次以下`, cur:`${m} 次`, gap: m<=mv? (mv-m? `已符合，之後最多再犯 ${mv-m} 次`:'已符合，之後不能再犯') : '做不到：失誤只會增加，要到下一次進化才歸零'}
+      : {ok:m>=mv, can:true, cost:Math.max(0,mv-m), add:Math.max(0,mv-m), need:`${mv} 次以上`, cur:`${m} 次`, gap: m>=mv?'已符合':`再漠視呼叫 ${mv-m} 次`}; }
+  const lab={hap:'心情',dis:'教養',win:'戰勝',tech:'技能'};
+  const bopts= e.rookie? [{k:'prev',ok:cur===e.bonusDigi,can:cur===e.bonusDigi,cost:0,t:`由${DG[e.bonusDigi].name}進化`,gap:cur===e.bonusDigi?'已符合（這條路線）':`做不到：要由${DG[e.bonusDigi].name}進化`}]
+    : e.bonus.map(b=>{ if(b.k==='prev'){ const ok=cur===b.v; return {b,k:'prev',ok,can:ok,cost:0,t:`由${DG[b.v].name}進化`,gap:ok?'已符合（這條路線）':`做不到：要由${DG[b.v].name}進化`}; }
+      const v=base[b.k]??0, le=b.op==='le', ok=le?v<=b.v:v>=b.v, grow=b.k==='win'||b.k==='tech', can=ok||!le||!grow, d=Math.abs(v-b.v);
+      const how={tech:'到「戰鬥學招」「智力學招」學更多招式', win:'多打勝仗', dis:le?'稱讚會降低教養':'責罵會提高教養', hap:le?'責罵會降低心情':'稱讚、餵食會提高心情'}[b.k];
+      return {b,k:b.k,ok,can,cost:ok?0:!can?Infinity:({tech:d*3,win:d,dis:d/2,hap:d/2}[b.k]),
+        t:`${lab[b.k]} ${b.v}${le?' 以下':' 以上'}`+(b.k==='hap'?`（≈ ${(b.v+100)/2}%）`:''), cur:`${lab[b.k]} ${v}`,
+        gap: ok? (le&&grow? `已符合（${lab[b.k]}只會增加，之後要保持）`:'已符合') : !can? `做不到：${lab[b.k]}只會增加` : `${le?'降低':'提高'} ${d}：${how}`}; });
+  const bb=bopts.filter(x=>x.can).sort((a,b)=>a.cost-b.cost)[0];
+  info.bonus={ok:bopts.some(x=>x.ok), can:!!bb, cost:bb?bb.cost:Infinity, pick:bb, opts:bopts, need:bopts.map(x=>x.t).join(' 或 '), cur:bopts.map(x=>x.cur).filter(Boolean).join('、'), gap: bb? (bopts.length>1?`選「${bb.t}」：`:'')+bb.gap : (bopts[0]?.gap||'做不到')};
+  return info;
+}
+function evoRec(e,info){
+  if(e.rookie) return ['mis',...['stat','w','bonus'].filter(k=>info[k].can).sort((a,b)=>info[a].cost-info[b].cost).slice(0,2)];
+  return ['stat','w','mis','bonus'].filter(k=>info[k].can).sort((a,b)=>info[a].cost-info[b].cost).slice(0,3);
+}
+function evoTrainTable(r){
+  const rows=r.steps.map((x,i)=>x.rest? `<tr><td class="num">${i+1}</td><td><b>${REST[S.planRest].name} ${x.h} 小時</b></td><td class="hint">疲勞歸零</td><td></td></tr>`
+    : `<tr><td class="num">${i+1}</td><td><b>${x.d.gym.name}・${x.d.n} × ${x.n}</b><br><span class="hint">每次 ${Object.entries(x.g).map(([k,v])=>SN[k]+'+'+v).join('、')}</span></td><td class="hint">${STATKEYS.map(k=>SN[k]+' '+x.after[k]).join('、')}</td><td class="num">${x.fat}</td></tr>`).join('');
+  return `<div class="tw"><table><thead><tr><th class="num">#</th><th>做什麼</th><th>做完後的能力</th><th class="num">疲勞</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function evoHelper(cur,to){
+  const e=D.evo[to], lv=DG[cur].level, key=cur+'>'+to;
+  const base={cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win??0, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised};
+  const info=evoGroups(cur,to,base); const rec=evoRec(e,info);
+  let picks=(S.evoPick||{})[key]; if(!Array.isArray(picks)) picks=rec.slice();
+  if(e.rookie && !picks.includes('mis')) picks=['mis',...picks];
+  const G=['stat','w','mis','bonus'];
+  // ① 條件卡
+  const cards=G.map(k=>{ const x=info[k], on=picks.includes(k);
+    const tag= x.auto? '<span class="pill ok">永遠符合</span>' : x.ok? '<span class="pill ok">已符合</span>' : !x.can? '<span class="pill no">做不到</span>' : '';
+    return `<label class="ecard${on?' on':''}${x.can?'':' bad'}"><span class="eh"><input type="checkbox" data-epick="${key}" value="${k}"${on?' checked':''}${x.auto?' disabled':''}> <b>${GRP_NAME[k]}</b> ${tag}${rec.includes(k)&&!x.auto?' <span class="besttag">建議</span>':''}</span>
+      <span class="er">要求：${esc(x.need)}</span>${x.cur?`<span class="er hint">目前：${esc(x.cur)}</span>`:''}<span class="er${x.ok?' good':x.can?'':' badt'}">${esc(x.gap)}</span></label>`; }).join('');
+  const nPick=picks.length; const badPick=picks.filter(k=>!info[k].can);
+  let warn='';
+  if(nPick<3) warn+=`<div class="nstat r">⚠ 最少要滿足 3 項才會進化，目前只勾選了 ${nPick} 項${e.rookie?'（成長期的失誤組永遠符合，已自動計算）':''}。</div>`;
+  if(badPick.length) warn+=`<div class="nstat r">⚠ ${badPick.map(k=>GRP_NAME[k]).join('、')}按目前情況做不到，請改勾其他條件。</div>`;
+  if(nPick===4 && !e.rookie) warn+=`<div class="hint">4 項全勾最穩陣：其中一項失手仍然有 3 項。</div>`;
+  else if(nPick===3 && !badPick.length) warn+=`<div class="hint">只勾 3 項就沒有後備，3 項都要做到。</div>`;
+  // ② 照勾選做到後的結果
+  const tr=info.stat.tr; const fin={...base};
+  if(picks.includes('stat') && !info.stat.ok && !tr.fail) fin.stats={...tr.st};
+  if(picks.includes('w') && !info.w.ok) fin.weight=base.weight+info.w.dw;
+  if(picks.includes('mis') && info.mis.add) fin.mis=base.mis+info.mis.add;
+  const bb=info.bonus.pick; if(picks.includes('bonus') && bb && !bb.ok && bb.b) fin[bb.b.k]=bb.b.v;
+  const P=predictEvo(fin); const row=P.rows.find(r=>r.id===to);
+  let result='';
+  if(nPick>=3 && !badPick.length){
+    if(P.best===to) result=`<div class="nstat g">✓ 照勾選的條件做到，會進化成 <b>${DG[to].name}</b>。</div>`;
+    else { const riv=P.rows.filter(r=>r.eff>=3 && r.id!==to);
+      result=`<div class="nstat r">✗ 照勾選的條件做到，${P.best===-1?(row&&row.adj?`${DG[to].name}${row.adj}`:'仍然沒有候選合資格'):`會進化成 <b>${DG[P.best].name}</b>，不是${DG[to].name}`}。</div>`
+        + (riv.length?`<ul class="ml2 tips">${riv.map(r=>{ const w=breakWays(r,to); return `<li><b>${DG[r.id].name}</b>（第 ${r.order} 位）也合資格${P.avgMode&&r.avg!==undefined?`，能力平均 ${r.avg}`:''}${w.length?'。令它少於 3 組：'+w.join('；或 '):''}</li>`; }).join('')}</ul>`:'')
+        + (P.avgMode&&riv.length?'<p class="hint">完全體的判定：幾隻候選同時合資格時，比較各自要求能力的平均值，高者勝。放棄能力組時能力偏低，較易輸給其他候選。</p>':''); }
   }
-  return stages;
+  // ③ 進化前要做的事
+  const todo=[];
+  const dflt=D.evo[cur]?.w;
+  if(picks.includes('stat')){
+    if(info.stat.ok) todo.push(`<li><b>能力</b>：已符合，保持即可。</li>`);
+    else if(tr.fail) todo.push(`<li><b>能力</b>：${esc(tr.fail)}請在下面「訓練設定」加入場地。</li>`);
+    else todo.push(`<li><b>能力</b>：${e.rookie?`令${SN[tr.top]}成為最高能力`:`練到 ${info.stat.need}`}，共 ${tr.n} 次訓練${tr.restH?`、休息 ${tr.restH} 小時`:''}。<details><summary>訓練與休息路徑</summary>${evoTrainTable(tr)}</details></li>`);
+  }
+  if(picks.includes('w')){ const x=info.w;
+    todo.push(`<li><b>體重</b>：${x.ok?`已在 ${x.lo}～${x.hi}g，留意進食和睡覺不要偏離。`:x.dw>0?`${base.weight}g → ${x.lo}～${x.hi}g，要增 ${x.dw}g：多餵食（各種食物的體重效果見「道具」分頁）。`:`${base.weight}g → ${x.lo}～${x.hi}g，要減 ${-x.dw}g：睡覺每次約 −${dflt?Math.max(1,Math.floor(dflt/10)):'?'}g（預設體重的 1/10），大便也會減輕；少餵食。`}</li>`); }
+  if(picks.includes('mis') && !info.mis.auto){ const x=info.mis;
+    todo.push(`<li><b>失誤</b>：${x.le? (x.ok? (x.left? `目前 ${base.mis} 次，最多再犯 ${x.left} 次：盡量回應肚餓、便意、想睡等呼叫。` : `目前 ${base.mis} 次，已到上限：不能再漠視任何呼叫。`) : esc(x.gap)) : (x.ok? '已符合。' : `目前 ${base.mis} 次，要再漠視呼叫 ${x.add} 次（不理會肚餓、便意等呼叫一次算一次）。`)}</li>`); }
+  if(picks.includes('bonus')){ const x=info.bonus;
+    let t=x.pick? (x.opts.length>1?`在「${x.need}」中選「${x.pick.t}」：`:'')+x.pick.gap+'。' : esc(x.gap);
+    const winLe=x.opts.find(o=>o.k==='win'&&o.b&&o.b.op==='le');
+    if(x.pick && x.pick.k==='win' && winLe) t+=' 之後不要打贏任何戰鬥；想學招式的話用「智力學招」，避免戰鬥學招增加勝場。';
+    if(x.pick && x.pick.k==='tech' && winLe && winLe.ok) t+=' （如果用「戰鬥學招」，勝場會增加，「戰勝 '+winLe.b.v+' 以下」就不再符合，但只要技能數達標就夠。）';
+    todo.push(`<li><b>額外加成</b>：${t}</li>`); }
+  // 時間
+  const start=STAGE_AGE[lv]; const age=known('age')?S.age:null; const hrs=(picks.includes('stat')&&!info.stat.ok&&!tr.fail)? tr.n+tr.restH : 0;
+  let tm= age==null? `這個形態滿 ${start} 小時開始判定，之後每到整點判定一次。` : age<start? `目前形態計時 ${age} 小時，滿 ${start} 小時（還有 ${start-age} 小時）開始每到整點判定一次；條件一齊備就會進化。` : `已過 ${start} 小時：每到整點就判定一次，條件一齊備就會進化。`;
+  if(hrs) tm+=` 訓練和休息約需 ${hrs} 小時（未計吃飯、睡覺）。`;
+  if(lv===3) tm+= age!=null&&age+hrs>96? ` <b>注意：會超過 96 小時，屆時沒有候選合資格就會變成鼻涕獸。</b>` : ' 滿 96 小時仍未合資格就會變成鼻涕獸。';
+  if(lv===4) tm+= age!=null&&age+hrs>=240? ` <b>注意：會超過 240 小時，之後稱讚或責罵有 50% 機會變成宇宙腦魔，360 小時必定變成宇宙腦魔。</b>` : ' 成熟期滿 240 小時後，稱讚或責罵有機會變成宇宙腦魔。';
+  todo.push(`<li><b>時間</b>：${tm}</li>`);
+  // 訓練途中會否被搶先（判定期間每小時判定）
+  if(age!=null && hrs){ let h=age, hit=null;
+    for(const s of tr.steps){ h+= s.rest? s.h : s.n; if(s.rest||h<start) continue; const q=predictEvo({...base,stats:s.after}); if(q.best!==-1 && q.best!==to){ hit={to:q.best,h}; break; } }
+    if(hit) todo.push(`<li class="badt"><b>小心</b>：照路徑訓練，約第 ${hit.h} 小時（判定期間）會先進化成 <b>${DG[hit.to].name}</b>。先處理其他條件令它不合資格，或改變勾選。</li>`); }
+  // 狀態欄：按目前數值
+  const P0=predictEvo(base); let stat;
+  if(P0.best===to) stat=`<div class="nstat g">✓ 按目前數值${age!=null&&age<start?`，滿 ${start} 小時時`:''}會進化成 <b>${DG[to].name}</b>。</div>`;
+  else if(P0.best!==-1) stat=`<div class="nstat r">✗ 按目前數值${age!=null&&age<start?`，滿 ${start} 小時時`:''}會進化成 <b>${DG[P0.best].name}</b>。</div>`;
+  else { const r0=P0.rows.find(r=>r.id===to); stat=`<div class="nstat y">目前${DG[to].name}符合 ${r0?r0.met:0}／4 組，還未合資格${lv===3?'；到 96 小時仍沒有候選合資格會變成鼻涕獸':''}。</div>`; }
+  return `<div class="ehelp">${stat}
+    <h3>① 選擇要達成的條件 <small class="hint">已勾選 ${nPick}／4（最少要滿足 3 項）</small></h3>
+    <div class="ecards">${cards}</div>${warn}
+    ${result?`<h3>② 結果預測</h3>${result}`:''}
+    <h3>${result?'③':'②'} 進化前要做的事</h3><ul class="ml2 etodo">${todo.join('')}</ul></div>`;
 }
-// 4 組條件只需 3 組：玩家可以為每一步選擇放棄哪一組（預設 4 組全做）
-function pickSkip(from,to,opts){ const k=(S.planSkip||{})[from+'>'+to]; const o=opts.find(x=>x.k===k&&x.ok); return o? o.k : 'none'; }
-// 放棄一組時的模擬：其他 3 組照要求做到，看看會不會被其他候選搶先
-function skipCheck(from,to,skip,st){
-  const e=D.evo[to]; if(!e) return null; const c={cur:from, stats:st};
-  if(e.rookie){ c.weight= skip==='w'? safeOff(e.w) : e.w; }
-  else { c.weight= skip==='w'? safeOff(e.w) : e.w; c.mis= skip==='mis'? (e.mis[1]==='le'?e.mis[0]+1:0) : (e.mis[1]==='le'?0:e.mis[0]);
-    if(skip!=='bonus'){ const b=e.bonus.find(b=>b.k!=='prev'); if(b) c[b.k]=b.v; } }
-  const p=predictEvo(c); const row=p.rows.find(r=>r.id===to);
-  const rivals=p.best!==to? p.rows.filter(r=>r.eff>=3 && r.id!==to) : [];
-  return {p,row,win:p.best===to,rivals};
+// 之後的步驟：進化後失誤、戰勝會歸零，體重等也會變，所以只列條件和大概的訓練量
+function evoLater(from,to,st){
+  const e=D.evo[to]; const head=`<h3>${DG[from].name} → ${DG[to].name} <span class="hint">（${LV[DG[from].level]}）</span></h3>`;
+  if(!e || e.special || (!e.stats && !e.rookie)) return {html:head+`<p class="hint">${DG[to].level<=2?'時間到自動進化。':'特殊進化：'+esc(condText(to))}</p>`, st};
+  const r=trainFor(from,to,st,0); const after=r.fail?st:r.st;
+  const lab={hap:'心情',dis:'教養',win:'戰勝',tech:'技能'};
+  const req= e.rookie? `${e.top.map(k=>SN[k]).join('、')}其中一項最高；體重 ${e.w-5}～${e.w+5}g；由${DG[e.bonusDigi].name}進化`
+    : `能力 ${Object.entries(e.stats).map(([k,v])=>SN[k]+' '+v).join('、')}；體重 ${e.w-5}～${e.w+5}g；失誤 ${e.mis[0]} 次${e.mis[1]==='le'?'以下':'以上'}；加成（任一）${e.bonus.map(b=>b.k==='prev'?'由'+DG[b.v].name+'進化':lab[b.k]+' '+b.v+(b.op==='le'?' 以下':' 以上')).join(' 或 ')}`;
+  return {html: head+`<p class="hint">條件（4 組達成 3 組）：${esc(req)}</p><p class="hint">${r.fail?esc(r.fail):`能力組由上一步完成後的能力計算，約 ${r.n} 次訓練${r.restH?`、休息 ${r.restH} 小時`:''}；也可以放棄能力組。`}進化成${DG[from].name}後，這一步會變成完整的助手（進化時失誤、戰勝會歸零）。</p>`, st:after};
 }
-function safeOff(w){ return w+6; }
 function vPlan(){
-  const d=DG[S.cur];
+  const d=DG[S.cur], rookie=d.level===3;
   const targets=D.digis.filter(x=>x.level>d.level && x.level>=3 && forwardPaths(x.id).length);
-  if(!targets.find(x=>x.id===S.planTarget)) S.planTarget=targets[0]?.id;
-  const paths=S.planTarget? forwardPaths(S.planTarget):[];
-  if(S.planPath>=paths.length) S.planPath=0;
-  const path=paths[S.planPath];
-  let body='';
-  if(!path) body='<p class="hint">從目前的數碼精靈到不了任何目標，請先在「育成紀錄」選擇目前的數碼精靈。</p>';
-  else {
-    const stages=makePlan(path); let total=0,restT=0;
-    body=stages.map((sg,si)=>{
-      const head=`<h3>${DG[sg.from].name} → ${DG[sg.to].name} <span class="hint">（${LV[DG[sg.from].level]}，訓練係數 ${(1+stageMult(DG[sg.from].level)).toFixed(1)}）</span></h3>`;
-      if(!sg.r && sg.to===NUMEMON && sg.from===S.cur){ const P=predictEvo();
-        return head+`<p class="hint">${esc(sg.note)}</p><div class="note${P.best===-1?' ok-note':''}">${P.best===-1?'按目前數值，到 96 小時會變成 <b>鼻涕獸</b>。':`按目前數值會進化成 <b>${DG[P.best].name}</b>，不是鼻涕獸。`}</div><p class="hint">${BUILD!=='live'&&NOSAVE()?'上載存檔後，可以在上面勾選「進化成鼻涕獸」使用鼻涕獸助手。':S.planNumemon?'怎樣控制失誤、體重和能力，見上面的鼻涕獸助手。':'勾選上面的「進化成鼻涕獸」，查看鼻涕獸助手。'}</p>`;
-      }
-      if(!sg.r) return head+`<p class="hint">${esc(sg.note)}</p>`;
-      total+=sg.r.n; restT+=sg.r.restH;
-      const need=STAGE_AGE[DG[sg.from].level];
-      const rows=sg.r.steps.map((x,i)=>x.rest? `<tr><td class="num">${i+1}</td><td><b>${REST[S.planRest].name} ${x.h} 小時</b></td><td class="hint">疲勞歸零</td><td></td></tr>`
-        : `<tr><td class="num">${i+1}</td><td><b>${x.d.gym.name}・${x.d.n} × ${x.n}</b><br><span class="hint">每次 ${Object.entries(x.g).map(([k,v])=>SN[k]+'+'+v).join('、')}</span></td><td class="hint">${STATKEYS.map(k=>SN[k]+' '+x.after[k]).join('、')}</td><td class="num">${x.fat}</td></tr>`).join('');
-      let pv='', ob='';
-      if(sg.opts){ const okO=sg.opts.filter(o=>o.ok); const minN=Math.min(...okO.map(o=>o.n)); const fullN=sg.opts[0].n;
-        const key=sg.from+'>'+sg.to;
-        ob=`<div class="skipbox"><p><b>${sg.rookie?'進化成成長期時失誤組永遠符合，其餘 3 組再達成 2 組就可以':'4 組條件只需達成 3 組'}</b>，所以可以放棄其中一組${minN<fullN?`。<b>放棄能力組可以由 ${fullN} 次訓練減到 ${minN} 次</b>，省下的時間可以練其他能力`:''}：</p>
-          <div class="tw"><table class="skipt"><thead><tr><th></th><th>做法</th><th>要做到</th><th class="num">訓練</th></tr></thead><tbody>${sg.opts.map(o=>`<tr class="${o.ok?'':'dim'}${o.k===sg.skip?' sel':''}"><td><input type="radio" name="pskip-${sg.from}-${sg.to}" data-pskip="${key}" value="${o.k}"${o.k===sg.skip?' checked':''}${o.ok?'':' disabled'}></td><td><b>${o.label}</b>${o.ok&&o.n===minN&&minN<fullN?' <span class="besttag">最省訓練</span>':''}${o.why?`<br><span class="hint">${esc(o.why)}</span>`:''}</td><td class="hint">${o.need.map(esc).join('<br>')}</td><td class="num">${o.ok?o.n+' 次':'—'}</td></tr>`).join('')}</tbody></table></div>
-          ${sg.skip!=='none'?'<p class="hint">放棄一組就沒有後備：其餘幾組任何一組做不到都不會進化。</p>':''}</div>`;
-        if(sg.skip!=='none' && D.evo[sg.from]?.to?.includes(sg.to)){ const K=skipCheck(sg.from,sg.to,sg.skip,sg.r.st);
-          if(K) pv= K.win? `<div class="note ok-note">照「${sg.opts.find(o=>o.k===sg.skip).label}」做到其餘條件，會進化成 <b>${DG[sg.to].name}</b>。</div>`
-            : `<div class="note">照「${sg.opts.find(o=>o.k===sg.skip).label}」做到其餘條件，${K.p.best===-1?'仍然沒有候選合資格':`會先進化成 <b>${DG[K.p.best].name}</b>`}，不是${DG[sg.to].name}。${K.rivals.length?`<ul class="ml2 tips">${K.rivals.map(r=>{ const w=breakWays(r,sg.to); return `<li><b>${DG[r.id].name}</b>也合資格${w.length?'，令它少於 3 組：'+w.join('；或 '):''}</li>`; }).join('')}</ul>`:''}</div>`;
-        }
-      }
-      if(!pv && DG[sg.to].level>=3 && D.evo[sg.from]?.to?.includes(sg.to)){
-        const ctx={cur:sg.from, stats:sg.r.st}; const A=evoAdvice(sg.to,ctx);
-        pv = A.ok? `<div class="note ok-note">練完後（體重、失誤、心情、教養等沿用「我的精靈」的數值）會進化成 <b>${DG[sg.to].name}</b>。</div>`
-          : `<div class="note">練完後按現時的體重、失誤、心情、教養等，會進化成 <b>${A.p.best===-1?(A.p.lvl===3?'（沒有候選，96 小時後變成鼻涕獸）':'（沒有候選）'):DG[A.p.best].name}</b>，不是${DG[sg.to].name}。<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
-      }
-      return head+ob+`<p class="hint">目標：${esc(sg.goalText)}</p>${pv}
-        <div class="kpis"><div><span>訓練次數</span><b class="big">${sg.r.n}</b></div><div><span>休息時數</span><b class="big">${sg.r.restH}</b></div>${need?`<div><span>最早進化</span><b class="big">${need} 小時</b></div>`:''}</div>
-        ${sg.r.ok?'':'<div class="note">3000 次內達不到目標，請增加訓練場地或檢查數值。</div>'}
-        <div class="tw"><table><thead><tr><th class="num">#</th><th>做什麼</th><th>做完後的能力</th><th class="num">疲勞</th></tr></thead><tbody>${rows||`<tr><td colspan="4">${sg.skip==='stat'?'放棄能力組，這一步不用訓練；只要照顧體重、失誤和加成，等年齡夠就會判定。':'已經達到這一步的能力條件。'}</td></tr>`}</tbody></table></div>`;
-    }).join('');
-    body=`<div class="kpis"><div><span>總訓練次數</span><b class="big">${total}</b></div><div><span>總休息時數</span><b class="big">${restT}</b></div></div>`+body;
-  }
-  const rookie=d.level===3;
-  // 網頁版沒有上載存檔時不能用：助手要靠失誤次數等遊戲畫面不顯示的數值（實時版不受影響）
+  const ids=targets.map(x=>x.id).concat(rookie?[NUMEMON]:[]);
+  if(!ids.includes(S.planTarget)) S.planTarget=(targets.find(x=>x.level===5)||targets[0]||{}).id ?? (rookie?NUMEMON:undefined);
+  const tgt=S.planTarget;
   const numOk=rookie && !(BUILD!=='live' && NOSAVE());
-  const numTop=`<section class="panel numtop"><label><input type="checkbox" id="c-plannum"${S.planNumemon&&numOk?' checked':''}${numOk?'':' disabled'}> <b>進化成鼻涕獸</b></label> <span class="hint">${!rookie?'只有成長期可以變成鼻涕獸。':numOk?'劇情需要養一次鼻涕獸時使用：建議失誤次數、體重和可以做的訓練。':'上載存檔後才可以使用（需要失誤次數等遊戲不顯示的數值）。'}</span>${S.planNumemon&&numOk?numemonHelper():''}</section>`;
-  $('#view').innerHTML=numTop+`<div class="grid plangrid">
-  <section class="panel"><h2>計劃設定</h2>
-    <p class="hint">從目前的數碼精靈「${esc(d.name)}」和「育成紀錄」裡的能力、疲勞開始計算。訓練手冊、村民和擅長項目的設定也一樣沿用；食物不計入。</p>${known('fat')?'':'<p class="hint">疲勞值是 ***（上載存檔才可以獲得），計劃假設由 0 開始，即剛睡醒或剛休息完。</p>'}
-    <label class="f">目標<select id="sel-ptarget">${digiOptions(S.planTarget,x=>targets.includes(x))}</select></label>
-    <label class="f">路線<select id="sel-ppath">${paths.map((p,i)=>`<option value="${i}"${i===S.planPath?' selected':''}>${p.map(id=>DG[id].name).join(' → ')}</option>`).join('')}</select></label>
-    <h3>可以用的訓練場地</h3>
-    <div class="list">${GYMS.map(g=>`<label><input type="checkbox" data-pgym="${g.id}" ${S.planGyms.includes(g.id)?'checked':''}> ${g.name}</label>`).join('')}</div>
+  const opt=x=>`<option value="${x.id}"${x.id===tgt?' selected':''}>${x.name}</option>`;
+  const sel=[3,4,5].map(lv=>{ const xs=targets.filter(x=>x.level===lv); const extra= lv===4&&rookie? `<option value="${NUMEMON}"${tgt===NUMEMON?' selected':''}>鼻涕獸（成長期期滿未進化）</option>` : '';
+    return xs.length||extra? `<optgroup label="${LV[lv]}">${extra}${xs.filter(x=>x.id!==NUMEMON).map(opt).join('')}</optgroup>` : ''; }).join('');
+  let body='', paths=[];
+  if(tgt===NUMEMON){
+    body= numOk? `<section class="panel numtop">${numemonHelper()}</section>` : `<section class="panel"><p class="hint">鼻涕獸助手要用失誤次數等遊戲不顯示的數值，上載存檔後才可以使用。</p></section>`;
+  } else if(tgt==null){
+    body='<section class="panel"><p class="hint">從目前的數碼精靈到不了任何目標，請先在「我的精靈」選擇目前的數碼精靈。</p></section>';
+  } else {
+    paths=forwardPaths(tgt); if(S.planPath>=paths.length) S.planPath=0; const path=paths[S.planPath];
+    const next=path[1]; const ne=D.evo[next];
+    let step1;
+    if(DG[next].level<=2 || !ne || ne.special || (!ne.stats && !ne.rookie)) step1=`<p class="hint">${DG[next].level<=2?`這個形態經過 ${EVO_AT[d.level]} 小時自動進化，不用訓練。`:'這一步是特殊進化：'+esc(condText(next))}</p>`;
+    else step1=evoHelper(S.cur,next);
+    let st={...S.stats}; if(ne&&(ne.stats||ne.rookie)){ const r=trainFor(S.cur,next,st,known('fat')?(S.fat||0):0); if(!r.fail && (S.evoPick?.[S.cur+'>'+next]||evoRec(ne,evoGroups(S.cur,next,{cur:S.cur,stats:{...S.stats},weight:S.weight,mis:S.mis??0,win:S.win??0,hap:S.hap,dis:S.dis,tech:S.tech,raised:S.raised}))).includes('stat')) st=r.st; }
+    const later=[]; for(let i=1;i<path.length-1;i++){ const L=evoLater(path[i],path[i+1],st); st=L.st; later.push(`<div class="elater"><b class="hint">第 ${i+1} 步</b>${L.html}</div>`); }
+    body=`<section class="panel"><h2>第 1 步：${d.name} → ${DG[next].name}</h2>${step1}</section>`
+      + (later.length?`<section class="panel"><h2>之後的步驟 <small>預告</small></h2>${later.join('')}</section>`:'');
+  }
+  const route= paths.length? `<label class="f">路線<select id="sel-ppath">${paths.map((p,i)=>`<option value="${i}"${i===S.planPath?' selected':''}>${p.map(id=>DG[id].name).join(' → ')}</option>`).join('')}</select></label>` : '';
+  const settings=`<details class="panel"><summary><b>訓練設定</b> <span class="hint">場地、休息方式、疲勞上限</span></summary>
+    <p class="hint">由目前的數碼精靈和「我的精靈」裡的能力、疲勞開始計算；訓練手冊、村民和擅長項目的設定也一樣沿用，食物不計入。${known('fat')?'':'疲勞值未知（上載存檔才可以獲得），假設由 0 開始。'}</p>
+    <h3>可以用的訓練場地</h3><div class="list">${GYMS.map(g=>`<label><input type="checkbox" data-pgym="${g.id}" ${S.planGyms.includes(g.id)?'checked':''}> ${g.name}</label>`).join('')}</div>
     <label class="f">休息方式<select id="sel-prest">${Object.entries(REST).map(([k,v])=>`<option value="${k}"${k===S.planRest?' selected':''}>${v.name}（每小時 −${v.per}）</option>`).join('')}</select></label>
     <label class="f">疲勞到多少前要休息<input type="number" id="f-planCap" data-k="planCap" value="${S.planCap}" min="20" max="100"></label>
-    <p class="hint">計劃不會讓疲勞到達這個數字（80 會進入疲倦）。每次選「每 1 點疲勞換到最多目標能力」的項目。睡覺也能清疲勞，晚上可以用睡覺代替休息。</p>
-  </section>
-  <section class="panel" style="min-width:0"><h2>訓練與休息路徑 <small>${path?path.map(id=>DG[id].name).join(' → '):''}</small></h2>${body}
-    <p class="hint">計劃只處理能力條件。體重、失誤和額外加成要自己照顧：體重靠餵食和睡覺調整，進化前不要犯失誤。訓練本身也會花遊戲時間，進化要等到年齡夠才會發生。</p></section></div>`;
+    <p class="hint">計劃不會讓疲勞到達這個數字（80 會進入疲倦）。每次選「每 1 點疲勞換到最多目標能力」的項目。睡覺也能清疲勞。</p></details>`;
+  $('#view').innerHTML=`<section class="panel"><h2>進化助手 <small>目前：${esc(d.name)}（${LV[d.level]}）</small></h2>
+    <label class="f">我想進化成<select id="sel-ptarget">${sel}</select></label>${route}
+    <p class="hint">選好目標後，助手會列出下一次進化的 4 組條件。勾選想達成的條件（最少 3 項），再照「進化前要做的事」去做。</p></section>
+    ${body}${settings}`;
 }
 
 const ITEMS=[
@@ -1812,7 +1860,7 @@ function renderLCD(){
     <div><span>開心度</span><b>${S.hap??0}</b></div><div><span>教養</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** 代表上載存檔才可以獲得該項數值"'}><span>疲勞</span><b>${known('fat')?S.fat:'***'}</b></div><div title="漠視數碼精靈呼叫的次數"><span>失誤</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${NOSAVE()?'<div title="*** 代表上載存檔才可以獲得該項數值"><span>壽命</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' ・ 網頁版'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` ・ 實時版 ・ <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">網頁版（手機、上載存檔）↗</a>`; }
-function render(){ verLink(); renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,bag:vBag,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
+function render(){ verLink(); const hl=$('#homelink'); if(hl){ hl.textContent=BUILD==='live'?'⇦ 回到實時連線':'⇦ 回到上載存檔'; hl.hidden=S.tab==='save'; } renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,bag:vBag,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
 
 /* 網頁版沒有上載存檔時：遊戲畫面不顯示的數值以 *** 代替（實時版不受影響） */
 const NOSAVE=()=>BUILD!=='live' && !S.svFile;
@@ -2214,7 +2262,6 @@ document.addEventListener('change',e=>{
   if(t.dataset.rec){ const n=t.dataset.rec; S.recruited=(S.recruited||[]).filter(x=>x!==n); if(t.checked) S.recruited.push(n); render(); return; }
   if(t.id==='sel-evogoal'){ S.evoGoal=+t.value; render(); return; }
   if(t.id==='c-numtrain'){ S.numTrain=t.checked; render(); return; }
-  if(t.id==='c-plannum'){ S.planNumemon=t.checked; render(); return; }
   if(t.dataset.raised){ const id=+t.dataset.raised; S.raised=(S.raised||[]).filter(x=>x!==id); if(t.checked) S.raised.push(id); render(); return; }
   if(t.id==='sel-mreg'){ S.mapRegion=t.value; if(!t.value) S._mapWasZoom=true; render(); return; }
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
@@ -2230,7 +2277,9 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-foe'){ S.foe=t.value; render(); return; }
   if(t.id==='sel-ptarget'){ S.planTarget=+t.value; S.planPath=0; render(); return; }
   if(t.id==='sel-ppath'){ S.planPath=+t.value; render(); return; }
-  if(t.dataset.pskip){ S.planSkip={...(S.planSkip||{}),[t.dataset.pskip]:t.value}; render(); return; }
+  if(t.dataset.epick){ const k=t.dataset.epick; const cur=(S.evoPick||{})[k]; const [f,to]=k.split('>').map(Number);
+    let L=Array.isArray(cur)?cur.slice():evoRec(D.evo[to],evoGroups(f,to,{cur:f,stats:{...S.stats},weight:S.weight,mis:S.mis??0,win:S.win??0,hap:S.hap,dis:S.dis,tech:S.tech,raised:S.raised}));
+    L=L.filter(x=>x!==t.value); if(t.checked) L.push(t.value); S.evoPick={...(S.evoPick||{}),[k]:L}; render(); return; }
   if(t.id==='sel-prest'){ S.planRest=t.value; render(); return; }
   if(t.dataset.pgym){ const g=t.dataset.pgym; S.planGyms=S.planGyms.filter(x=>x!==g); if(t.checked) S.planGyms.push(g); render(); return; }
   if(t.id==='c-manual'){ S.manual=t.checked; render(); return; }
