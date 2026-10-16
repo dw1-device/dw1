@@ -406,6 +406,7 @@ function critOf(id, ctx){
   const c=ctx||{}; const st=c.stats||S.stats; const cur=c.cur??S.cur;
   const val={mis:c.mis??S.mis, w:c.weight??S.weight, hap:c.hap??S.hap, dis:c.dis??S.dis, win:c.win??S.win, tech:c.tech??S.tech};
   const e=D.evo[id]; const g=[];
+  if(e && e.rookie && !(e.top||[]).length) return null;  // \u53e4\u5c3c\u7378\uff1a\u5728\u5e8a\u4e0a\u7761\u89ba\u7684\u7279\u6b8a\u9032\u5316
   if(e && e.rookie){
     const t=lastTopStat(st); const ok=e.top.includes(t);
     g.push({k:'stat',name:'\u80fd\u529b\u503c',ok,detail:`\u6700\u9ad8\u80fd\u529b\u5224\u5b9a\u70ba ${SN[t]}\uff08\u540c\u5206\u6642\u53d6\u8f03\u5f8c\u7684\u4e00\u9805\uff09\uff1b\u9700\u8981 ${e.top.map(k=>SN[k]).join('\u3001')}`});
@@ -840,7 +841,7 @@ function evoHelper(cur,to){
 // \u4e4b\u5f8c\u7684\u6b65\u9a5f\uff1a\u9032\u5316\u5f8c\u5931\u8aa4\u3001\u6230\u52dd\u6703\u6b78\u96f6\uff0c\u9ad4\u91cd\u7b49\u4e5f\u6703\u8b8a\uff0c\u6240\u4ee5\u53ea\u5217\u689d\u4ef6\u548c\u5927\u6982\u7684\u8a13\u7df4\u91cf
 function evoLater(from,to,st,browse){
   const e=D.evo[to]; const head=`<h3>${DG[from].name} \u2192 ${DG[to].name} <span class="hint">\uff08${LV[DG[from].level]}\uff09</span></h3>`;
-  if(!e || e.special || (!e.stats && !e.rookie)) return {html:head+`<p class="hint">${DG[to].level<=2?'\u6642\u9593\u5230\u81ea\u52d5\u9032\u5316\u3002':'\u7279\u6b8a\u9032\u5316\uff1a'+esc(condText(to))}</p>`, st};
+  if(!e || e.special || (!e.stats && !e.rookie) || (e.rookie && !(e.top||[]).length)) return {html:head+`<p class="hint">${DG[to].level<=2?'\u6642\u9593\u5230\u81ea\u52d5\u9032\u5316\u3002':'\u7279\u6b8a\u9032\u5316\uff1a'+esc(condText(to))}</p>`, st};
   const r=trainFor(from,to,st,0); const after=r.fail?st:r.st;
   const lab={hap:'\u5fc3\u60c5',dis:'\u6559\u990a',win:'\u6230\u52dd',tech:'\u6280\u80fd'};
   const req= e.rookie? `${e.top.map(k=>SN[k]).join('\u3001')}\u5176\u4e2d\u4e00\u9805\u6700\u9ad8\uff1b\u9ad4\u91cd ${e.w-5}\uff5e${e.w+5}g\uff1b\u7531${DG[e.bonusDigi].name}\u9032\u5316`
@@ -866,9 +867,9 @@ function vPlan(){
     paths=forwardPaths(tgt); if(S.planPath>=paths.length) S.planPath=0; const path=paths[S.planPath];
     const next=path[1]; const ne=D.evo[next];
     let step1;
-    if(DG[next].level<=2 || !ne || ne.special || (!ne.stats && !ne.rookie)) step1=`<p class="hint">${DG[next].level<=2?`\u9019\u500b\u5f62\u614b\u7d93\u904e ${EVO_AT[d.level]} \u5c0f\u6642\u81ea\u52d5\u9032\u5316\uff0c\u4e0d\u7528\u8a13\u7df4\u3002`:'\u9019\u4e00\u6b65\u662f\u7279\u6b8a\u9032\u5316\uff1a'+esc(condText(next))}</p>`;
+    if(DG[next].level<=2 || !ne || ne.special || (!ne.stats && !ne.rookie) || (ne.rookie && !(ne.top||[]).length)) step1=`<p class="hint">${DG[next].level<=2?`\u9019\u500b\u5f62\u614b\u7d93\u904e ${EVO_AT[d.level]} \u5c0f\u6642\u81ea\u52d5\u9032\u5316\uff0c\u4e0d\u7528\u8a13\u7df4\u3002`:'\u9019\u4e00\u6b65\u662f\u7279\u6b8a\u9032\u5316\uff1a'+esc(condText(next))}</p>`;
     else step1=evoHelper(S.cur,next);
-    let st={...S.stats}; if(ne&&(ne.stats||ne.rookie)){ const r=trainFor(S.cur,next,st,known('fat')?(S.fat||0):0); if(!r.fail && (S.evoPick?.[S.cur+'>'+next]||evoRec(ne,evoGroups(S.cur,next,{cur:S.cur,stats:{...S.stats},weight:S.weight,mis:S.mis??0,win:S.win??0,hap:S.hap,dis:S.dis,tech:S.tech,raised:S.raised}))).includes('stat')) st=r.st; }
+    let st={...S.stats}; if(ne&&(ne.stats||(ne.rookie&&(ne.top||[]).length))){ const r=trainFor(S.cur,next,st,known('fat')?(S.fat||0):0); if(!r.fail && (S.evoPick?.[S.cur+'>'+next]||evoRec(ne,evoGroups(S.cur,next,{cur:S.cur,stats:{...S.stats},weight:S.weight,mis:S.mis??0,win:S.win??0,hap:S.hap,dis:S.dis,tech:S.tech,raised:S.raised}))).includes('stat')) st=r.st; }
     const later=[]; for(let i=1;i<path.length-1;i++){ const L=evoLater(path[i],path[i+1],st); st=L.st; later.push(`<div class="elater"><b class="hint">\u7b2c ${i+1} \u6b65</b>${L.html}</div>`); }
     body=`<section class="panel"><h2>\u7b2c 1 \u6b65\uff1a${d.name} \u2192 ${DG[next].name}</h2>${step1}</section>`
       + (later.length?`<section class="panel"><h2>\u4e4b\u5f8c\u7684\u6b65\u9a5f <small>\u9810\u544a</small></h2>${later.join('')}</section>`:'');

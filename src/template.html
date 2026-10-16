@@ -397,6 +397,7 @@ function critOf(id, ctx){
   const c=ctx||{}; const st=c.stats||S.stats; const cur=c.cur??S.cur;
   const val={mis:c.mis??S.mis, w:c.weight??S.weight, hap:c.hap??S.hap, dis:c.dis??S.dis, win:c.win??S.win, tech:c.tech??S.tech};
   const e=D.evo[id]; const g=[];
+  if(e && e.rookie && !(e.top||[]).length) return null;  // 古尼獸：在床上睡覺的特殊進化
   if(e && e.rookie){
     const t=lastTopStat(st); const ok=e.top.includes(t);
     g.push({k:'stat',name:'能力值',ok,detail:`最高能力判定為 ${SN[t]}（同分時取較後的一項）；需要 ${e.top.map(k=>SN[k]).join('、')}`});
@@ -831,7 +832,7 @@ function evoHelper(cur,to){
 // 之後的步驟：進化後失誤、戰勝會歸零，體重等也會變，所以只列條件和大概的訓練量
 function evoLater(from,to,st,browse){
   const e=D.evo[to]; const head=`<h3>${DG[from].name} → ${DG[to].name} <span class="hint">（${LV[DG[from].level]}）</span></h3>`;
-  if(!e || e.special || (!e.stats && !e.rookie)) return {html:head+`<p class="hint">${DG[to].level<=2?'時間到自動進化。':'特殊進化：'+esc(condText(to))}</p>`, st};
+  if(!e || e.special || (!e.stats && !e.rookie) || (e.rookie && !(e.top||[]).length)) return {html:head+`<p class="hint">${DG[to].level<=2?'時間到自動進化。':'特殊進化：'+esc(condText(to))}</p>`, st};
   const r=trainFor(from,to,st,0); const after=r.fail?st:r.st;
   const lab={hap:'心情',dis:'教養',win:'戰勝',tech:'技能'};
   const req= e.rookie? `${e.top.map(k=>SN[k]).join('、')}其中一項最高；體重 ${e.w-5}～${e.w+5}g；由${DG[e.bonusDigi].name}進化`
@@ -857,9 +858,9 @@ function vPlan(){
     paths=forwardPaths(tgt); if(S.planPath>=paths.length) S.planPath=0; const path=paths[S.planPath];
     const next=path[1]; const ne=D.evo[next];
     let step1;
-    if(DG[next].level<=2 || !ne || ne.special || (!ne.stats && !ne.rookie)) step1=`<p class="hint">${DG[next].level<=2?`這個形態經過 ${EVO_AT[d.level]} 小時自動進化，不用訓練。`:'這一步是特殊進化：'+esc(condText(next))}</p>`;
+    if(DG[next].level<=2 || !ne || ne.special || (!ne.stats && !ne.rookie) || (ne.rookie && !(ne.top||[]).length)) step1=`<p class="hint">${DG[next].level<=2?`這個形態經過 ${EVO_AT[d.level]} 小時自動進化，不用訓練。`:'這一步是特殊進化：'+esc(condText(next))}</p>`;
     else step1=evoHelper(S.cur,next);
-    let st={...S.stats}; if(ne&&(ne.stats||ne.rookie)){ const r=trainFor(S.cur,next,st,known('fat')?(S.fat||0):0); if(!r.fail && (S.evoPick?.[S.cur+'>'+next]||evoRec(ne,evoGroups(S.cur,next,{cur:S.cur,stats:{...S.stats},weight:S.weight,mis:S.mis??0,win:S.win??0,hap:S.hap,dis:S.dis,tech:S.tech,raised:S.raised}))).includes('stat')) st=r.st; }
+    let st={...S.stats}; if(ne&&(ne.stats||(ne.rookie&&(ne.top||[]).length))){ const r=trainFor(S.cur,next,st,known('fat')?(S.fat||0):0); if(!r.fail && (S.evoPick?.[S.cur+'>'+next]||evoRec(ne,evoGroups(S.cur,next,{cur:S.cur,stats:{...S.stats},weight:S.weight,mis:S.mis??0,win:S.win??0,hap:S.hap,dis:S.dis,tech:S.tech,raised:S.raised}))).includes('stat')) st=r.st; }
     const later=[]; for(let i=1;i<path.length-1;i++){ const L=evoLater(path[i],path[i+1],st); st=L.st; later.push(`<div class="elater"><b class="hint">第 ${i+1} 步</b>${L.html}</div>`); }
     body=`<section class="panel"><h2>第 1 步：${d.name} → ${DG[next].name}</h2>${step1}</section>`
       + (later.length?`<section class="panel"><h2>之後的步驟 <small>預告</small></h2>${later.join('')}</section>`:'');
