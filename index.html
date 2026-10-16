@@ -365,7 +365,7 @@ S.tab='save'; // \u6bcf\u6b21\u958b\u555f\u7db2\u9801\u5148\u986f\u793a\u4e0a\u8
 /* \u7db2\u9801\u7248\u300c\u89e3\u9664\u9023\u7d50\u300d\uff1a\u6e05\u9664\u5b58\u6a94\u5e36\u5165\u7684\u8cc7\u6599\uff0c\u56de\u5230\u9810\u8a2d\u503c\uff1b\u4fdd\u7559\u8a13\u7df4\u5834\u5730\u3001\u4f11\u606f\u65b9\u5f0f\u3001\u75b2\u52de\u4e0a\u9650\u7b49\u504f\u597d */
 const UNLINK={armed:false,timer:null};
 const SV_KEYS=['svList','poop','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
-  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','poop','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
+  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
 function svUnlink(){
   SV_KEYS.forEach(k=>{ if(k in DEF) S[k]=JSON.parse(JSON.stringify(DEF[k])); else delete S[k]; });
   S.sample=true; NH_PREV=null; try{ localStorage.removeItem('dw1nh'); }catch(e){}
@@ -1966,7 +1966,11 @@ function render(){ verLink(); const hl=$('#homelink'); if(hl){ hl.textContent=BU
   try{ VIEWS[S.tab](); }catch(e){ console.error(e);
     const reset={plan:['planTarget','planPath','evoPick','planGyms','planRest','planCap'],raise:['gym','food','log'],map:['mapSel','mapRegion']}[S.tab]||[];
     let ok=false; if(reset.length){ reset.forEach(k=>{ S[k]=DEF[k]!==undefined?JSON.parse(JSON.stringify(DEF[k])):undefined; }); try{ VIEWS[S.tab](); ok=true; }catch(e2){ e=e2; console.error(e2); } }
-    if(!ok) $('#view').innerHTML=`<section class="panel"><h2>\u9019\u4e00\u9801\u66ab\u6642\u7121\u6cd5\u986f\u793a</h2><p class="hint">\u932f\u8aa4\uff1a${esc(String(e&&e.message||e))}</p><p class="hint">${esc(String(e&&e.stack||'').split('\n').slice(0,3).join(' / '))}</p><p class="hint">\u8acb\u628a\u9019\u6bb5\u6587\u5b57\u622a\u5716\u7d66\u7dad\u8b77\u8005\u3002</p></section>`; } if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
+    if(!ok) $('#view').innerHTML=`<section class="panel"><h2>\u9019\u4e00\u9801\u66ab\u6642\u7121\u6cd5\u986f\u793a</h2><p class="hint">\u932f\u8aa4\uff1a${esc(String(e&&e.message||e))}</p><p class="hint">${esc(String(e&&e.stack||'').split('\n').slice(0,3).join(' / '))}</p><p class="hint">\u8acb\u628a\u9019\u6bb5\u6587\u5b57\u622a\u5716\u7d66\u7dad\u8b77\u8005\u3002</p></section>`; } if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); detRestore(); save(); liveDecorate(); }
+// \u6c92\u6709 id \u7684\u5c55\u958b\u6b04\uff08\u4f8b\u5982\u300c\u8a13\u7df4\u8207\u4f11\u606f\u8def\u5f91\u300d\uff09\uff1a\u8a18\u4f4f\u73a9\u5bb6\u6253\u958b\u6216\u6536\u8d77\uff0c\u91cd\u65b0\u7e6a\u756b\uff08\u5be6\u6642\u66f4\u65b0\uff09\u5f8c\u4fdd\u6301\u539f\u72c0
+const detKey=d=>S.tab+'|'+((d.querySelector('summary')||{}).textContent||'').replace(/[\d\s]/g,'').slice(0,40);
+function detRestore(){ const st=S.detState||{}; document.querySelectorAll('#view details:not([id])').forEach(d=>{ const k=detKey(d); if(k in st) d.open=st[k]; }); }
+document.addEventListener('toggle',e=>{ const d=e.target; if(!d||d.tagName!=='DETAILS'||d.id||!d.closest('#view')) return; S.detState=Object.assign({},S.detState,{[detKey(d)]:d.open}); save(); },true);
 
 /* \u7db2\u9801\u7248\u6c92\u6709\u4e0a\u8f09\u5b58\u6a94\u6642\uff1a\u904a\u6232\u756b\u9762\u4e0d\u986f\u793a\u7684\u6578\u503c\u4ee5 *** \u4ee3\u66ff\uff08\u5be6\u6642\u7248\u4e0d\u53d7\u5f71\u97ff\uff09 */
 const NOSAVE=()=>BUILD!=='live' && !S.svFile;
