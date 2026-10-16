@@ -1136,7 +1136,7 @@ const MAP_EDGES=('m5-m4 m4-m2 m6-m1 m1-m2 m2-m3 m3-m7 m7-m5 m1-f2 kyo-f2 f2-f1 f
  'g1-wsl wsl-wr2 wr2-wcl wcl-ws2 wcl-ws1 ws1-wr1 wr1-nf2 wsl-lk1 lk1-lk2 lk2-dt2 gym-tn tn-ts ts-nf1 ts-br nf1-gym nf1-nf2 nf2-nf3 nf2-kb nf3-nf4 nf4-nf5 nf5-kb nf5-sea sea-kb kb-br '+
  'lk1-nf3 lk2-nf4 lk2-bis dte-nf2 dte-dt1 dt1-b21 b21-b3 b21-drv b21-ulk ulk-b22 b22-lv1 lv1-lv2 lv1-lv3 lv3-lv4 lv4-lv5 lv3-dt2 bkg-bar bar-bqg bar-bis '+
  'tn-fc1 fc1-fc2 fc2-fc3 fc3-fsw fc3-fce fce-fc4 fce-fc5 fce-fc6 fc6-fc7 fc6-fc8 br-tr1 tr1-tr2 tr2-tr3 tr3-tr4 tr2-mg2 tr4-mg1 mg1-mg2 mg2-ami ami-rue rue-st1 st1-st2 st2-st3 st3-rp1 rp1-rp2 rp2-rp3 rp2-rp4 rp4-rp5 '+
- 'tr3-ovd ovd-grv grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fz10 fz10-fz11 fz10-fz12 fz10-fz13 fz8-m7 fz1-gc3 gc3-gcl gcl-ogg').split(' ').map(e=>e.split('-'));
+ 'tr3-ovd ovd-grv grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gbr-gc4 gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fz10 fz10-fz11 fz10-fz12 fz10-fz13 fz8-m7 fz1-gc3 gc3-gcl gcl-ogg').split(' ').map(e=>e.split('-'));
 const MAP_ICONS={save:'\u8a18\u9304\u9ede',wc:'\u5ec1\u6240',meat:'\u8089\u7530',gym:'\u8a13\u7df4\u8a2d\u65bd',ev:'\u4e8b\u4ef6\u30fb\u9080\u8acb',shop:'\u5546\u5e97\u30fb\u4ea4\u6613',vend:'\u81ea\u52d5\u8ca9\u8ce3\u6a5f',bird:'\u5df4\u591a\u62c9\u904b\u8f38',whale:'\u5de8\u9be8\u8239',curl:'\u51b0\u58fa',poo:'\u5927\u4fbf\u7378\u5927\u738b',frog:'\u602a\u86d9\u7687',ham:'\u6539\u9020\u7684\u5b88\u885b\u7378'};
 const MAP_GYM={m5:'forest',j2:'junk',g9:'leo',ice:'ice',bkg:'kabu',bqg:'kuwa',gym:'green'};
 const MAP_TRADE={fz12:'\u6bdb\u4eba\u7378\u4ea4\u63db\uff08\u5de6\u4e0b\uff09\uff1a\u842c\u80fd\u78c1\u7247\u2192\u653b\u64ca\u63d2\u4ef6 S\uff1b\u4e2d\u56de\u5fa9\u78c1\u7247\u2192\u9632\u79a6\u63d2\u4ef6 S\uff1b\u6578\u78bc\u96dc\u9b5a\u2192\u9ad8\u901f\u63d2\u4ef6 S\u3002\uff08\u53f3\u4e0b\uff09\uff1a\u5de8\u5927\u8089\u2192\u81ea\u52d5\u99d5\u99db\u54e1\uff1b\u6578\u78bc\u9ed1\u9c78\u9b5a\u2192\u518d\u751f\u78c1\u7247\uff1b\u9ad8\u901f\u63d2\u4ef6 S\u2192\u85e5\u7269\u3002\u4e2d\u56de\u5fa9\u78c1\u7247\u63db\u9632\u79a6\u63d2\u4ef6 S \u53ef\u4ee5\u8cfa\u53d6\u9ad8\u984d\u5dee\u50f9\u3002',
@@ -1180,6 +1180,11 @@ const BIRD_INFO={
 const VEND_NOTE={
  g2:'\u81ea\u52d5\u8ca9\u8ce3\u6a5f\uff08\u9644\u62bd\u734e\uff09\uff1a\u56de\u5fa9\u78c1\u7247 200\uff5b\uff5d\u3001\u651c\u5e36\u5f0f\u5ec1\u6240 500\uff5b\uff5d\uff1b\u6bcf\u6b21\u8cfc\u8cb7\u7d04 10% \u4e2d\u734e\uff0c\u984d\u5916\u5f97\u5230\u96d9\u91cd\u78c1\u7247\u3002',
  st2:'\u81ea\u52d5\u8ca9\u8ce3\u6a5f\uff1a\u6bcf\u6b21 200\uff5b\uff5d\uff0c\u96a8\u6a5f\u51fa\u4e00\u4ef6\uff1a\u8089\uff08\u7d04 30%\uff09\u3001\u56de\u5fa9\u78c1\u7247\uff08\u7d04 30%\uff09\u3001\u8150\u721b\u6389\u7684\u8089\uff08\u7d04 20%\uff09\u3001MP \u78c1\u7247\uff08\u7d04 20%\uff09\u3002\u80cc\u5305\u6eff\u4e86\u4e0d\u6703\u51fa\u8ca8\u3002'};
+// \u500b\u5225\u65b9\u683c\u7684\u8def\u7dda\u8aaa\u660e\uff08\u7528\u6236\u5be6\u6a5f\u78ba\u8a8d\uff09
+const TILE_NOTE={
+ gbr:'\u5287\u60c5\u62db\u52df\u8c9d\u6bbc\u7378\u8981\u5230\u9019\u88cf\u3002\u4e00\u76f4\u5f80\u4e0b\u8d70\u5230\u5049\u5927\u5cfd\u8c37\u4e0a\u5c64\uff084\uff09\uff1b\u53e6\u4e00\u908a\u901a\u5f80\u51b0\u7d50\u51cd\u571f\uff081\uff09\u3002',
+ gc4:'\u5de6\u908a\u6709\u4e00\u90e8\u53ea\u80fd\u5f80\u4e0b\u7684\u5347\u964d\u6a5f\uff0c\u76f4\u9054\u5967\u52a0\u5c71\u5be8\u5167\u90e8\u3002\u5f80\u4e0a\u8d70\u662f\u5049\u5927\u6e21\u6a4b\u3002',
+ gcl:'\u7531\u4e0a\u5c64\uff083\uff09\u7684\u5347\u964d\u6a5f\u5f80\u4e0b\u5230\u9054\u3002\u665a\u4e0a\u6709\u5169\u96bb\u91ce\u751f\u9f3b\u5c4e\u7378\u3002\u518d\u5f80\u4e0b\u662f\u5967\u52a0\u5c71\u5be8\u5165\u53e3\uff08\u30c9\u30ea\u30c7\u5165\u308a\u53e3\uff09\u3002'};
 const MAP_NOTE={
  bird:'\u5df4\u591a\u62c9\u904b\u8f38\uff1a\u62db\u52df\u5df4\u591a\u62c9\u7378\u5f8c\uff0c\u5728\u8d77\u59cb\u93ae\u5317\u4ed8\u904b\u8cbb\u98db\u5f80\u5404\u5730\u9ede\u3002',
  whale:'\u5de8\u9be8\u8239\uff1a\u62db\u52df\u5de8\u9be8\u7378\u5f8c\uff0c\u53ef\u4ee5\u5728\u8d77\u59cb\u93ae\u5317\u3001\u968e\u4e58\u93ae\uff081\uff09\u548c\u79d8\u5bc6\u6d77\u6d1e\u4e4b\u9593\u4e58\u8239\u3002',
@@ -1282,6 +1287,7 @@ function mapDetail(){
   if(n&&MAP_GYM[n[0]]){ const g=GYMS.find(x=>x.id===MAP_GYM[n[0]]);
     h+=`<h4>\u8a13\u7df4\uff08\u4ee5\u76ee\u524d\u8a2d\u5b9a\u8a08\u7b97\uff09</h4><ul class="ml2">${g.items.map(([nm,base,main])=>{ const r=trainGain(g,base,undefined,false,main); return `<li><b>${nm}</b>\uff1a${Object.entries(r).map(([k,v])=>SN[k]+' +'+v).join('\u3001')}\uff0c\u75b2\u52de +${FATIGUE[main]}</li>`; }).join('')}</ul>`; }
   if(n&&MAP_TRADE[n[0]]) h+=`<h4>\u4ea4\u63db</h4><p>${esc(MAP_TRADE[n[0]])}</p>`;
+  if(n&&TILE_NOTE[n[0]]) h+=`<h4>\u8def\u7dda</h4><p>${esc(TILE_NOTE[n[0]])}</p>`;
   const tl=MAP_TIMES.find(t=>t[0]===(S.mapTime||'day'))[1];
   const keys=[...new Set([...locs, name.replace(/\uff08\d+\uff09.*$/,'').replace(/[\u5317\u5357]$/,'')])].filter(Boolean);
   const its=ITEMS.filter(r=>keys.some(k=>r[7].includes(k)));
