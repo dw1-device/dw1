@@ -666,6 +666,7 @@ function bonusState(){
   return { manual: S.bag? hasItem(33) : !!S.manual, kuwa: rec.has('\u53e4\u52a0\u7378'), kabu: rec.has('\u6bd4\u591a\u7378'),
     cnt: S.drillCnt||null, boost: S.boost!==undefined && S.boost!==null ? (S.boost.mask? S.boost : null) : FOOD_BOOST[S.food||'none'] };
 }
+function hasPillow(){ return S.bag? hasItem(34) : !!S.pillow; }
 function boostText(b){ if(!b||!b.mask) return '\u6c92\u6709'; const ks=STATKEYS.filter(k=>b.mask&STAT_BIT[k]); return ks.map(k=>SN[k]).join('\u3001')+' \u00d7'+(b.mult/10)+(b.time!=null?`\uff08\u7d04\u5269 ${Math.ceil(b.time/1200)} \u5c0f\u6642\uff0c\u53ea\u8a08\u5728\u5916\u9762\u8d70\u52d5\u7684\u6642\u9593\uff09`:''); }
 function trainMult10(gym, main, lv){
   const B=bonusState(); const t=SPEC_BY_ID[S.cur]??0; const d=DRILL_ORDER.indexOf(main);
@@ -935,10 +936,10 @@ const ITEMS=[
 ['\u5e38\u99d0','\u651c\u5e36\u5f0f\u5ec1\u6240','\u3051\u3044\u305f\u3044\u30c8\u30a4\u30ec','\u79fb\u52d5\u4e2d',300,'','\u89e3\u9664\u4fbf\u610f\uff08\u5c31\u5730\u4e0a\u5ec1\u6240\uff0c\u4e0d\u7b97\u5931\u8aa4\uff09','\u9053\u5177\u5546\u5e97'],
 ['\u5e38\u99d0','\u81ea\u52d5\u99d5\u99db\u54e1','\u30aa\u30fc\u30c8\u30d1\u30a4\u30ed\u30c3\u30c8','\u79fb\u52d5\u4e2d',300,'','\u50b3\u9001\u5230\u8d77\u59cb\u93ae\u30fb\u5317','\u9053\u5177\u5546\u5e97'],
 ['\u5e38\u99d0','\u8a13\u7df4\u624b\u518a','\u30c8\u30ec\u30fc\u30de\u30cb\u30e5\u30a2\u30eb','\u2014',9999,'','\u6301\u6709\u6642\u8a13\u7df4\u6548\u679c \u00d71.1','\u9053\u5177\u5546\u5e97'],
-['\u5e38\u99d0','\u5b89\u7720\u6795\u982d','\u5b89\u7720\u307e\u304f\u3089','\u2014',1000,'','\u6301\u6709\u6642\u7761\u7720\u56de\u5fa9\u6548\u679c \u00d71.2','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\uff08\u8ca9\u552e\u8005\u5f85\u78ba\u8a8d\uff09'],
+['\u5e38\u99d0','\u5b89\u7720\u6795\u982d','\u5b89\u7720\u307e\u304f\u3089','\u2014',1000,'','\u6301\u6709\u6642\u7761\u7720\u56de\u5fa9\u6548\u679c \u00d71.2','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\uff08\u6bdb\u4eba\u7378\u8ca9\u552e\uff0c\u7528\u6236\u78ba\u8a8d\uff09'],
 ['\u5e38\u99d0','\u907f\u6575\u8b77\u7b26','\u6575\u3088\u3051\u304a\u5b88\u308a','\u2014',5000,'','\u6e1b\u5c11\u6230\u9b25\u958b\u59cb\u6642\u7684\u6575\u4eba\u6578\u91cf','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\uff08\u9f3b\u6d95\u7378\u8ca9\u552e\uff1b\u8207\u60e1\u9b54\u7378\u8f2a\u6d41\u7576\u503c\uff09'],
 ['\u5e38\u99d0','\u805a\u6575\u8a0a\u865f','\u6575\u3088\u305b\u30b7\u30b0\u30ca\u30eb','\u2014',5000,'','\u589e\u52a0\u6230\u9b25\u958b\u59cb\u6642\u7684\u6575\u4eba\u6578\u91cf','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\uff08\u9f3b\u6d95\u7378\u8ca9\u552e\uff1b\u8207\u60e1\u9b54\u7378\u8f2a\u6d41\u7576\u503c\uff09'],
-['\u5e38\u99d0','\u5065\u5eb7\u6dbc\u978b','\u5065\u5eb7\u30b5\u30f3\u30c0\u30eb','\u2014',2000,'','\u6162\u6162\u8d70\u6642\uff0c\u6bcf 1 \u5206\u9418\u56de\u5fa9 HP\u3001MP \u5404 5','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\uff08\u8ca9\u552e\u8005\u5f85\u78ba\u8a8d\uff09'],
+['\u5e38\u99d0','\u5065\u5eb7\u6dbc\u978b','\u5065\u5eb7\u30b5\u30f3\u30c0\u30eb','\u2014',2000,'','\u6162\u6162\u8d70\u6642\uff0c\u6bcf 1 \u5206\u9418\u56de\u5fa9 HP\u3001MP \u5404 5','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\uff08\u6bdb\u4eba\u7378\u8ca9\u552e\uff0c\u7528\u6236\u78ba\u8a8d\uff09'],
 ['\u98df\u7269','\u8089','\u8089','\u79fb\u52d5\u4e2d',50,'','\u98fd\u8db3 +12\u3001\u9ad4\u91cd +1','\u8089\u7530\uff1b\u9053\u5177\u5546\u5e97'],
 ['\u98df\u7269','\u5de8\u5927\u8089','\u5de8\u5927\u8089','\u79fb\u52d5\u4e2d',500,'','\u98fd\u8db3 +24\u3001\u9ad4\u91cd +2','\u8089\u7530\uff1b\u5361\u7247\u5e02\u5834'],
 ['\u98df\u7269','\u6975\u54c1\u8089','\u6975\u4e0a\u8089','\u79fb\u52d5\u4e2d',1500,'','\u98fd\u8db3 +35\u3001\u9ad4\u91cd +3\u3001\u5fc3\u60c5 +1.5\u3001\u75b2\u52de \u22125','\u8089\u7530'],
@@ -1420,7 +1421,7 @@ const RECRUITS=[
  ['\u8c9d\u6bbc\u7378','\u5049\u5927\u6e21\u6a4b\uff08\u5f80\u51b0\u7d50\u51cd\u571f\uff09','gbr',[],'\u5728\u5967\u52a0\u5c71\u5be8\u6253\u8d0f\u5967\u52a0\u7378\uff08\u7b2c 2 \u6b21\uff09','\u5967\u52a0\u7378\u9003\u8d70\u5f8c\u8ddf\u8457\u8d70\uff0c\u8c9d\u6bbc\u7378\u6703\u548c\u4f60\u8aaa\u8a71\u3002\u4e4b\u5f8c\u4e58\u5347\u964d\u6a5f\u5f80\u51b0\u7d50\u51cd\u571f\u65b9\u5411\u627e\u7260\u3002','\u5efa\u7acb\u544a\u793a\u677f\uff08\u4e4b\u5f8c\u591a\u500b\u62db\u52df\u8981\u770b\u544a\u793a\u677f\uff09\u3002',''],
  ['\u5df4\u591a\u62c9\u7378','\u5049\u5927\u5cfd\u8c37\u9802\u7aef','gct',[],'','\u4e58\u5347\u964d\u6a5f\u4e0a\u53bb\uff0c\u8d70\u9032\u7260\u7684\u5de2\uff0c\u6253\u8d0f\u7260\u3002','\u958b\u8a2d\u5df4\u591a\u62c9\u904b\u8f38\uff08\u4ed8\u8cbb\u98db\u5f80 6 \u500b\u5730\u9ede\uff09\u3002',''],
  ['\u5de8\u9be8\u7378','\u51b0\u7d50\u51cd\u571f\uff0813\uff09\u79d8\u5bc6\u6d77\u6d1e','fz13',[],'\u5728\u5967\u52a0\u5c71\u5be8\u6253\u8d0f\u5967\u52a0\u7378','\u5de8\u9be8\u7378\u5e36\u4f60\u5230\u79d8\u5bc6\u6d77\u6d1e\uff0c\u6253\u8d0f\u5967\u52a0\u7378\u548c\u60e1\u6d77\u9f8d\u7378\uff08\u5b8c\u5168\u9ad4\uff09\uff0c\u518d\u548c\u5de8\u9be8\u7378\u8aaa\u8a71\u3002','\u5de8\u9be8\u8239\uff1a\u8d77\u59cb\u93ae\u4f86\u5f80\u968e\u4e58\u93ae\u3001\u79d8\u5bc6\u6d77\u6d1e\u3002',''],
- ['\u6bdb\u4eba\u7378','\u51b0\u7d50\u51cd\u571f\uff0811\uff09\uff0812\uff09','fz11',[],'','\u548c\u51b0\u4e0a\u4e09\u96bb\u6bdb\u4eba\u7378\u9010\u4e00\u4ea4\u63db\u9053\u5177\uff0c\u6700\u5f8c\u4e00\u96bb\u4ea4\u63db\u5f8c\u52a0\u5165\u3002\u7559\u4e0b\u6700\u5212\u7b97\u7684\u5de6\u4e0b\u90a3\u96bb\u6700\u5f8c\u624d\u63db\u3002','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\u51fa\u552e\u56de\u5fa9\u9053\u5177\u3002',''],
+ ['\u6bdb\u4eba\u7378','\u51b0\u7d50\u51cd\u571f\uff0811\uff09\uff0812\uff09','fz11',[],'','\u548c\u51b0\u4e0a\u4e09\u96bb\u6bdb\u4eba\u7378\u9010\u4e00\u4ea4\u63db\u9053\u5177\uff0c\u6700\u5f8c\u4e00\u96bb\u4ea4\u63db\u5f8c\u52a0\u5165\u3002\u7559\u4e0b\u6700\u5212\u7b97\u7684\u5de6\u4e0b\u90a3\u96bb\u6700\u5f8c\u624d\u63db\u3002','\u79d8\u5bc6\u9053\u5177\u5546\u5e97\u51fa\u552e\u56de\u5fa9\u9053\u5177\u3001\u5b89\u7720\u6795\u982d\u3001\u5065\u5eb7\u6dbc\u978b\u3002',''],
  ['\u4f01\u9d5d\u7378','\u51b0\u7d50\u51cd\u571f\uff0811\uff09\u51b0\u58fa','fz11',[],'','\u5728\u51b0\u58fa\u6bd4\u8cfd\u8d0f\u7260\u3002\u7b2c\u4e00\u6b21\u514d\u8cbb\uff0c\u4e4b\u5f8c\u6bcf\u6b21\u8981\u4e00\u689d\u9b5a\u3002','\u5728\u9b25\u6280\u5834\u4e0b\u9762\u958b\u51b0\u58fa\u5834\u3002',''],
  ['\u96ea\u4eba\u7378','\u51b0\u7d50\u51cd\u571f\u30fb\u96ea\u5c4b','igl',[],'\u5148\u7528\u6015\u51b7\u7684\u7cbe\u9748\u75c5\u5012\u4e00\u6b21','\u5e36\u6015\u51b7\u7684\u7cbe\u9748\uff08\u5e7c\u5e74\u671f\uff0c\u6216\u4e9e\u53e4\u7378\u3001\u53e4\u5c3c\u7378\u3001\u66b4\u9f8d\u7378\u3001\u706b\u7130\u7378\u3001\u89d2\u9f8d\u7378\u3001\u4eba\u99ac\u7378\u3001\u5de8\u9f8d\u7378\u3001\u53e4\u52a0\u7378\u3001\u6bd4\u591a\u7378\uff09\u5728\u51b0\u7d50\u51cd\u571f\u5f85\u5230\u751f\u75c5\uff0c\u75c5\u5012\u5f8c\u5728\u96ea\u5c4b\u9192\u4f86\u3002\u4e4b\u5f8c\u63db\u4e0d\u6015\u51b7\u7684\u7cbe\u9748\u56de\u4f86\u548c\u96ea\u4eba\u7378\u8aaa\u8a71\u3002','\u5728\u9910\u5ef3\u5de5\u4f5c\u3002',''],
  ['\u52a0\u9b6f\u9b6f\u7378','\u51b0\u7d50\u51cd\u571f\uff088\uff09','fz8',[],'','\u6253\u8d0f\u4e00\u6b21\u5f8c\uff0c\u7260\u53eb\u4f60\u7fcc\u65e5 16\uff5e20 \u6642\u518d\u4f86\u3002\u7fcc\u65e5\u518d\u6253\u8d0f\uff08\u4e0d\u80fd\u7528\u9053\u5177\u548c\u4e0b\u6307\u4ee4\uff09\u5c31\u52a0\u5165\u3002','\u5728\u9910\u5ef3\u5de5\u4f5c\u3002',''],
@@ -1858,7 +1859,7 @@ function liveDecorate(){
   if(!(LIVE.on && LIVE.stat==='ok')) return;
   const v=$('#view'); if(!v) return;
   v.querySelectorAll('input[data-k]').forEach(el=>{ if(el.dataset.o==='stats'||LIVE_KEYS.has(el.dataset.k)){ el.readOnly=true; el.classList.add('ro'); } });
-  v.querySelectorAll('[data-learn],[data-rec],[data-raised],#sel-cur,#c-kuwa,#c-kabu,#c-manual,#c-it').forEach(el=>{ el.disabled=true; });
+  v.querySelectorAll('[data-learn],[data-rec],[data-raised],#sel-cur,#c-kuwa,#c-kabu,#c-manual,#c-it,#c-pillow,#c-sandal').forEach(el=>{ el.disabled=true; });
   if(['me','raise','recruit','tech'].includes(S.tab) && !v.querySelector('.livebar')){
     const d=document.createElement('div'); d.className='note info livebar';
     d.innerHTML='<b>\u5be6\u6642\u9023\u7dda\u4e2d</b>\uff1a\u7cbe\u9748\u7684\u6578\u503c\u3001\u62db\u5f0f\u3001\u80cc\u5305\u3001\u5df2\u52a0\u5165\u7684\u540c\u4f34\u90fd\u7531\u904a\u6232\u81ea\u52d5\u63d0\u4f9b\uff0c\u4e0d\u7528\u8f38\u5165\u6216\u52fe\u9078\u3002'+(S.tab==='raise'?'\u8a13\u7df4\u6309\u9215\u53ea\u986f\u793a\u4e0b\u4e00\u6b21\u7684\u9810\u8a08\u589e\u9577\uff1b\u5728\u904a\u6232\u88cf\u8a13\u7df4\u3001\u4f11\u606f\u3001\u5403\u6771\u897f\uff0c\u9019\u88cf\u6703\u81ea\u52d5\u66f4\u65b0\u3002':'');
@@ -2035,10 +2036,11 @@ function vRaise(){
     <div class="row">
       <button class="b" data-rest="-20">\u4eba\u99ac\u91ab\u9662\u4f11\u606f 1 \u5c0f\u6642\uff08\u221220\uff09</button>
       <button class="b" data-rest="-10">\u5e03\u5c3c\u7378\u6905\u5b50 1 \u5c0f\u6642\uff08\u221210\uff09</button>
-      <button class="b" data-rest="sleep">\u7761\u4e00\u665a\uff08\u7d04 \u221290\uff09</button>
+      <button class="b" data-rest="sleep">\u7761\u4e00\u665a\uff08\u7d04 \u2212${hasPillow()?'108\uff0c\u6709\u5b89\u7720\u6795\u982d':'90'}\uff09</button>
       <button class="b" data-rest="-5" data-food="1">\u5403\u6975\u4e0a\u8089\uff08\u22125\uff09</button>
       <button class="b" data-rest="5">\u6230\u9b25\u4e00\u5834\uff08+5\uff09</button>
     </div>
+    <p class="hint">\u7761\u4e00\u665a\u7684\u75b2\u52de\u56de\u5fa9 = (80\uff5e100) \u00d7 \u4f11\u606f\u4fc2\u6578\uff1b\u4f11\u606f\u4fc2\u6578 = \u5be6\u969b\u7761\u7720\u6642\u6578 \u00f7 \u6b63\u5e38\u7761\u7720\u6642\u6578 \u00d7 \u5b89\u7720\u6795\u982d 1.2\uff08\u6c92\u6709\u5247 1\uff09\u00d7 \u5340\u57df\uff08\u559c\u6b61\u7684\u5340\u57df 1.2\u3001\u4e0d\u559c\u6b61 0.8\uff09\u3002\u6309\u9215\u4ee5\u4e2d\u9593\u503c 90 \u00d7 \u6795\u982d\u4fc2\u6578\u8a08\u7b97\uff0c\u672a\u8a08\u7761\u7720\u6642\u6578\u548c\u5340\u57df\u3002</p>
     <label class="f">\u8a13\u7df4\u5834\u5730<select id="sel-gym">${GYMS.map(g=>`<option value="${g.id}"${g.id===S.gym?' selected':''}>${g.name}</option>`).join('')}</select></label>
     <div class="row">${trainBtns}</div>
     <h3>\u52a0\u6210 <small class="hint">${S.bag||S.boost?(LIVE.on?'\uff08\u5be6\u6642\u8b80\u53d6\uff09':'\uff08\u53d6\u81ea\u5b58\u6a94\uff09'):''}</small></h3>
@@ -2047,6 +2049,8 @@ function vRaise(){
       let h=`<ul class="ml2 bon">
         <li>\u64c5\u9577\u9805\u76ee\uff1a<b>${SPEC_NAME[t]}</b> <span class="hint">\uff08${esc(d.name)}\u7684\u904a\u6232\u8cc7\u6599\uff09</span></li>
         <li>\u968e\u6bb5\uff1a${LV[lv]} \u00d7${({1:.9,2:.9,3:1,4:1.1,5:1.2})[lv]}</li>
+        ${(()=>{ const own=(id,k)=>S.bag? yes(hasItem(id))+' <span class="hint">\uff08\u80cc\u5305'+(hasItem(id)?'\u6709':'\u6c92\u6709')+'\uff09</span>' : `<label><input type="checkbox" id="c-${k}" ${S[k]?'checked':''}> \u6301\u6709</label>`;
+          return `<li>\u5b89\u7720\u6795\u982d\uff08\u7761\u7720\u56de\u5fa9 \u00d71.2\uff09\uff1a${own(34,'pillow')}</li><li>\u5065\u5eb7\u6dbc\u978b\uff08\u6162\u6162\u8d70\u6642\u56de\u5fa9 HP\u3001MP\uff09\uff1a${own(37,'sandal')}</li>`; })()}
         <li>\u8a13\u7df4\u624b\u518a \u00d71.1\uff1a${S.bag? yes(B.manual)+' <span class="hint">\uff08\u80cc\u5305'+(B.manual?'\u6709':'\u6c92\u6709')+'\uff09</span>' : `<label><input type="checkbox" id="c-manual" ${S.manual?'checked':''}> \u6301\u6709</label>`}</li>`;
       if(gym.full){
         h+=`<li>\u6bd4\u591a\u7378\u5728\u6751\u88e1\uff08HP\u3001\u9632\u3001\u901f \u00d71.2\uff09\uff1a${live?yes(B.kabu):`<label><input type="checkbox" id="c-kabu" ${B.kabu?'checked':''}> \u5df2\u52a0\u5165</label>`}</li>
@@ -2262,7 +2266,7 @@ document.addEventListener('click',e=>{
   if(LIVE.on && LIVE.stat==='ok' && (t.dataset.rest||t.dataset.train!==undefined||t.dataset.inc||t.id==='syncTech')) return;
   if(t.dataset.inc){ const k=t.dataset.inc; S[k]=Math.max(0,(+S[k]||0)+(+t.dataset.d)); render(); return; }
   if(t.id==='syncTech'){ S.tech=techCount(); render(); return; }
-  if(t.dataset.rest){ const r=t.dataset.rest; if(r==='sleep') S.fat=Math.max(0,S.fat-90); else S.fat=Math.min(100,Math.max(0,S.fat+(+r))); if(t.dataset.food){ const had=S.food!=='none'; S.food='none'; S.log.push('\u5403\u6975\u4e0a\u8089'+(had?'\uff1a\u8a13\u7df4\u52a0\u6210\u98df\u7269\u7684\u6548\u679c\u5df2\u4e2d\u65b7':'')); } S.log.push(`\u75b2\u52de \u2192 ${S.fat}`); render(); return; }
+  if(t.dataset.rest){ const r=t.dataset.rest; if(r==='sleep') S.fat=Math.max(0,S.fat-(hasPillow()?108:90)); else S.fat=Math.min(100,Math.max(0,S.fat+(+r))); if(t.dataset.food){ const had=S.food!=='none'; S.food='none'; S.log.push('\u5403\u6975\u4e0a\u8089'+(had?'\uff1a\u8a13\u7df4\u52a0\u6210\u98df\u7269\u7684\u6548\u679c\u5df2\u4e2d\u65b7':'')); } S.log.push(`\u75b2\u52de \u2192 ${S.fat}`); render(); return; }
   if(t.dataset.train!==undefined){
     const gym=GYMS.find(g=>g.id===S.gym); const [n,base,main]=gym.items[+t.dataset.train];
     const before=S.stats.int; const tired=S.fat>=80; let g=trainGain(gym,base,undefined,false,main);
@@ -2320,6 +2324,8 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-prest'){ S.planRest=t.value; render(); return; }
   if(t.dataset.pgym){ const g=t.dataset.pgym; S.planGyms=S.planGyms.filter(x=>x!==g); if(t.checked) S.planGyms.push(g); render(); return; }
   if(t.id==='c-manual'){ S.manual=t.checked; render(); return; }
+  if(t.id==='c-pillow'){ S.pillow=t.checked; render(); return; }
+  if(t.id==='c-sandal'){ S.sandal=t.checked; render(); return; }
   if(t.id==='c-kuwa'){ S.recruited=(S.recruited||[]).filter(x=>x!=='\u53e4\u52a0\u7378'); if(t.checked) S.recruited.push('\u53e4\u52a0\u7378'); render(); return; }
   if(t.id==='c-kabu'){ S.recruited=(S.recruited||[]).filter(x=>x!=='\u6bd4\u591a\u7378'); if(t.checked) S.recruited.push('\u6bd4\u591a\u7378'); render(); return; }
   if(t.id==='c-it'){ S.itTen=t.checked; render(); return; }

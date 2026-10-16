@@ -657,6 +657,7 @@ function bonusState(){
   return { manual: S.bag? hasItem(33) : !!S.manual, kuwa: rec.has('古加獸'), kabu: rec.has('比多獸'),
     cnt: S.drillCnt||null, boost: S.boost!==undefined && S.boost!==null ? (S.boost.mask? S.boost : null) : FOOD_BOOST[S.food||'none'] };
 }
+function hasPillow(){ return S.bag? hasItem(34) : !!S.pillow; }
 function boostText(b){ if(!b||!b.mask) return '沒有'; const ks=STATKEYS.filter(k=>b.mask&STAT_BIT[k]); return ks.map(k=>SN[k]).join('、')+' ×'+(b.mult/10)+(b.time!=null?`（約剩 ${Math.ceil(b.time/1200)} 小時，只計在外面走動的時間）`:''); }
 function trainMult10(gym, main, lv){
   const B=bonusState(); const t=SPEC_BY_ID[S.cur]??0; const d=DRILL_ORDER.indexOf(main);
@@ -926,10 +927,10 @@ const ITEMS=[
 ['常駐','攜帶式廁所','けいたいトイレ','移動中',300,'','解除便意（就地上廁所，不算失誤）','道具商店'],
 ['常駐','自動駕駛員','オートパイロット','移動中',300,'','傳送到起始鎮・北','道具商店'],
 ['常駐','訓練手冊','トレーマニュアル','—',9999,'','持有時訓練效果 ×1.1','道具商店'],
-['常駐','安眠枕頭','安眠まくら','—',1000,'','持有時睡眠回復效果 ×1.2','秘密道具商店（販售者待確認）'],
+['常駐','安眠枕頭','安眠まくら','—',1000,'','持有時睡眠回復效果 ×1.2','秘密道具商店（毛人獸販售，用戶確認）'],
 ['常駐','避敵護符','敵よけお守り','—',5000,'','減少戰鬥開始時的敵人數量','秘密道具商店（鼻涕獸販售；與惡魔獸輪流當值）'],
 ['常駐','聚敵訊號','敵よせシグナル','—',5000,'','增加戰鬥開始時的敵人數量','秘密道具商店（鼻涕獸販售；與惡魔獸輪流當值）'],
-['常駐','健康涼鞋','健康サンダル','—',2000,'','慢慢走時，每 1 分鐘回復 HP、MP 各 5','秘密道具商店（販售者待確認）'],
+['常駐','健康涼鞋','健康サンダル','—',2000,'','慢慢走時，每 1 分鐘回復 HP、MP 各 5','秘密道具商店（毛人獸販售，用戶確認）'],
 ['食物','肉','肉','移動中',50,'','飽足 +12、體重 +1','肉田；道具商店'],
 ['食物','巨大肉','巨大肉','移動中',500,'','飽足 +24、體重 +2','肉田；卡片市場'],
 ['食物','極品肉','極上肉','移動中',1500,'','飽足 +35、體重 +3、心情 +1.5、疲勞 −5','肉田'],
@@ -1411,7 +1412,7 @@ const RECRUITS=[
  ['貝殼獸','偉大渡橋（往冰結凍土）','gbr',[],'在奧加山寨打贏奧加獸（第 2 次）','奧加獸逃走後跟著走，貝殼獸會和你說話。之後乘升降機往冰結凍土方向找牠。','建立告示板（之後多個招募要看告示板）。',''],
  ['巴多拉獸','偉大峽谷頂端','gct',[],'','乘升降機上去，走進牠的巢，打贏牠。','開設巴多拉運輸（付費飛往 6 個地點）。',''],
  ['巨鯨獸','冰結凍土（13）秘密海洞','fz13',[],'在奧加山寨打贏奧加獸','巨鯨獸帶你到秘密海洞，打贏奧加獸和惡海龍獸（完全體），再和巨鯨獸說話。','巨鯨船：起始鎮來往階乘鎮、秘密海洞。',''],
- ['毛人獸','冰結凍土（11）（12）','fz11',[],'','和冰上三隻毛人獸逐一交換道具，最後一隻交換後加入。留下最划算的左下那隻最後才換。','秘密道具商店出售回復道具。',''],
+ ['毛人獸','冰結凍土（11）（12）','fz11',[],'','和冰上三隻毛人獸逐一交換道具，最後一隻交換後加入。留下最划算的左下那隻最後才換。','秘密道具商店出售回復道具、安眠枕頭、健康涼鞋。',''],
  ['企鵝獸','冰結凍土（11）冰壺','fz11',[],'','在冰壺比賽贏牠。第一次免費，之後每次要一條魚。','在鬥技場下面開冰壺場。',''],
  ['雪人獸','冰結凍土・雪屋','igl',[],'先用怕冷的精靈病倒一次','帶怕冷的精靈（幼年期，或亞古獸、古尼獸、暴龍獸、火焰獸、角龍獸、人馬獸、巨龍獸、古加獸、比多獸）在冰結凍土待到生病，病倒後在雪屋醒來。之後換不怕冷的精靈回來和雪人獸說話。','在餐廳工作。',''],
  ['加魯魯獸','冰結凍土（8）','fz8',[],'','打贏一次後，牠叫你翌日 16～20 時再來。翌日再打贏（不能用道具和下指令）就加入。','在餐廳工作。',''],
@@ -1849,7 +1850,7 @@ function liveDecorate(){
   if(!(LIVE.on && LIVE.stat==='ok')) return;
   const v=$('#view'); if(!v) return;
   v.querySelectorAll('input[data-k]').forEach(el=>{ if(el.dataset.o==='stats'||LIVE_KEYS.has(el.dataset.k)){ el.readOnly=true; el.classList.add('ro'); } });
-  v.querySelectorAll('[data-learn],[data-rec],[data-raised],#sel-cur,#c-kuwa,#c-kabu,#c-manual,#c-it').forEach(el=>{ el.disabled=true; });
+  v.querySelectorAll('[data-learn],[data-rec],[data-raised],#sel-cur,#c-kuwa,#c-kabu,#c-manual,#c-it,#c-pillow,#c-sandal').forEach(el=>{ el.disabled=true; });
   if(['me','raise','recruit','tech'].includes(S.tab) && !v.querySelector('.livebar')){
     const d=document.createElement('div'); d.className='note info livebar';
     d.innerHTML='<b>實時連線中</b>：精靈的數值、招式、背包、已加入的同伴都由遊戲自動提供，不用輸入或勾選。'+(S.tab==='raise'?'訓練按鈕只顯示下一次的預計增長；在遊戲裏訓練、休息、吃東西，這裏會自動更新。':'');
@@ -2026,10 +2027,11 @@ function vRaise(){
     <div class="row">
       <button class="b" data-rest="-20">人馬醫院休息 1 小時（−20）</button>
       <button class="b" data-rest="-10">布尼獸椅子 1 小時（−10）</button>
-      <button class="b" data-rest="sleep">睡一晚（約 −90）</button>
+      <button class="b" data-rest="sleep">睡一晚（約 −${hasPillow()?'108，有安眠枕頭':'90'}）</button>
       <button class="b" data-rest="-5" data-food="1">吃極上肉（−5）</button>
       <button class="b" data-rest="5">戰鬥一場（+5）</button>
     </div>
+    <p class="hint">睡一晚的疲勞回復 = (80～100) × 休息係數；休息係數 = 實際睡眠時數 ÷ 正常睡眠時數 × 安眠枕頭 1.2（沒有則 1）× 區域（喜歡的區域 1.2、不喜歡 0.8）。按鈕以中間值 90 × 枕頭係數計算，未計睡眠時數和區域。</p>
     <label class="f">訓練場地<select id="sel-gym">${GYMS.map(g=>`<option value="${g.id}"${g.id===S.gym?' selected':''}>${g.name}</option>`).join('')}</select></label>
     <div class="row">${trainBtns}</div>
     <h3>加成 <small class="hint">${S.bag||S.boost?(LIVE.on?'（實時讀取）':'（取自存檔）'):''}</small></h3>
@@ -2038,6 +2040,8 @@ function vRaise(){
       let h=`<ul class="ml2 bon">
         <li>擅長項目：<b>${SPEC_NAME[t]}</b> <span class="hint">（${esc(d.name)}的遊戲資料）</span></li>
         <li>階段：${LV[lv]} ×${({1:.9,2:.9,3:1,4:1.1,5:1.2})[lv]}</li>
+        ${(()=>{ const own=(id,k)=>S.bag? yes(hasItem(id))+' <span class="hint">（背包'+(hasItem(id)?'有':'沒有')+'）</span>' : `<label><input type="checkbox" id="c-${k}" ${S[k]?'checked':''}> 持有</label>`;
+          return `<li>安眠枕頭（睡眠回復 ×1.2）：${own(34,'pillow')}</li><li>健康涼鞋（慢慢走時回復 HP、MP）：${own(37,'sandal')}</li>`; })()}
         <li>訓練手冊 ×1.1：${S.bag? yes(B.manual)+' <span class="hint">（背包'+(B.manual?'有':'沒有')+'）</span>' : `<label><input type="checkbox" id="c-manual" ${S.manual?'checked':''}> 持有</label>`}</li>`;
       if(gym.full){
         h+=`<li>比多獸在村裡（HP、防、速 ×1.2）：${live?yes(B.kabu):`<label><input type="checkbox" id="c-kabu" ${B.kabu?'checked':''}> 已加入</label>`}</li>
@@ -2253,7 +2257,7 @@ document.addEventListener('click',e=>{
   if(LIVE.on && LIVE.stat==='ok' && (t.dataset.rest||t.dataset.train!==undefined||t.dataset.inc||t.id==='syncTech')) return;
   if(t.dataset.inc){ const k=t.dataset.inc; S[k]=Math.max(0,(+S[k]||0)+(+t.dataset.d)); render(); return; }
   if(t.id==='syncTech'){ S.tech=techCount(); render(); return; }
-  if(t.dataset.rest){ const r=t.dataset.rest; if(r==='sleep') S.fat=Math.max(0,S.fat-90); else S.fat=Math.min(100,Math.max(0,S.fat+(+r))); if(t.dataset.food){ const had=S.food!=='none'; S.food='none'; S.log.push('吃極上肉'+(had?'：訓練加成食物的效果已中斷':'')); } S.log.push(`疲勞 → ${S.fat}`); render(); return; }
+  if(t.dataset.rest){ const r=t.dataset.rest; if(r==='sleep') S.fat=Math.max(0,S.fat-(hasPillow()?108:90)); else S.fat=Math.min(100,Math.max(0,S.fat+(+r))); if(t.dataset.food){ const had=S.food!=='none'; S.food='none'; S.log.push('吃極上肉'+(had?'：訓練加成食物的效果已中斷':'')); } S.log.push(`疲勞 → ${S.fat}`); render(); return; }
   if(t.dataset.train!==undefined){
     const gym=GYMS.find(g=>g.id===S.gym); const [n,base,main]=gym.items[+t.dataset.train];
     const before=S.stats.int; const tired=S.fat>=80; let g=trainGain(gym,base,undefined,false,main);
@@ -2311,6 +2315,8 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-prest'){ S.planRest=t.value; render(); return; }
   if(t.dataset.pgym){ const g=t.dataset.pgym; S.planGyms=S.planGyms.filter(x=>x!==g); if(t.checked) S.planGyms.push(g); render(); return; }
   if(t.id==='c-manual'){ S.manual=t.checked; render(); return; }
+  if(t.id==='c-pillow'){ S.pillow=t.checked; render(); return; }
+  if(t.id==='c-sandal'){ S.sandal=t.checked; render(); return; }
   if(t.id==='c-kuwa'){ S.recruited=(S.recruited||[]).filter(x=>x!=='古加獸'); if(t.checked) S.recruited.push('古加獸'); render(); return; }
   if(t.id==='c-kabu'){ S.recruited=(S.recruited||[]).filter(x=>x!=='比多獸'); if(t.checked) S.recruited.push('比多獸'); render(); return; }
   if(t.id==='c-it'){ S.itTen=t.checked; render(); return; }
