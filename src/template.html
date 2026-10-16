@@ -819,31 +819,31 @@ function evoHelper(cur,to){
     <h3>${result?'③':'②'} 進化前要做的事</h3><ul class="ml2 etodo">${todo.join('')}</ul></div>`;
 }
 // 之後的步驟：進化後失誤、戰勝會歸零，體重等也會變，所以只列條件和大概的訓練量
-function evoLater(from,to,st){
+function evoLater(from,to,st,browse){
   const e=D.evo[to]; const head=`<h3>${DG[from].name} → ${DG[to].name} <span class="hint">（${LV[DG[from].level]}）</span></h3>`;
   if(!e || e.special || (!e.stats && !e.rookie)) return {html:head+`<p class="hint">${DG[to].level<=2?'時間到自動進化。':'特殊進化：'+esc(condText(to))}</p>`, st};
   const r=trainFor(from,to,st,0); const after=r.fail?st:r.st;
   const lab={hap:'心情',dis:'教養',win:'戰勝',tech:'技能'};
   const req= e.rookie? `${e.top.map(k=>SN[k]).join('、')}其中一項最高；體重 ${e.w-5}～${e.w+5}g；由${DG[e.bonusDigi].name}進化`
     : `能力 ${Object.entries(e.stats).map(([k,v])=>SN[k]+' '+v).join('、')}；體重 ${e.w-5}～${e.w+5}g；失誤 ${e.mis[0]} 次${e.mis[1]==='le'?'以下':'以上'}；加成（任一）${e.bonus.map(b=>b.k==='prev'?'由'+DG[b.v].name+'進化':lab[b.k]+' '+b.v+(b.op==='le'?' 以下':' 以上')).join(' 或 ')}`;
-  return {html: head+`<p class="hint">條件（4 組達成 3 組）：${esc(req)}</p><p class="hint">${r.fail?esc(r.fail):`能力組由上一步完成後的能力計算，約 ${r.n} 次訓練${r.restH?`、休息 ${r.restH} 小時`:''}；也可以放棄能力組。`}進化成${DG[from].name}後，這一步會變成完整的助手（進化時失誤、戰勝會歸零）。</p>`, st:after};
+  return {html: head+`<p class="hint">條件（4 組達成 3 組）：${esc(req)}</p><p class="hint">${r.fail?esc(r.fail):r.n===0?'按上一步完成後的能力，能力組已經符合。':`能力組由上一步完成後的能力計算，約 ${r.n} 次訓練${r.restH?`、休息 ${r.restH} 小時`:''}；也可以放棄能力組。`}${browse?`（以蛋的初始能力推算，只供參考）。養到${DG[from].name}後，選這個目標就會變成完整的助手。`:`進化成${DG[from].name}後，這一步會變成完整的助手（進化時失誤、戰勝會歸零）。`}</p>`, st:after};
 }
 function vPlan(){
   const d=DG[S.cur], rookie=d.level===3;
-  const targets=D.digis.filter(x=>x.level>d.level && x.level>=3 && forwardPaths(x.id).length);
-  const ids=targets.map(x=>x.id).concat(rookie?[NUMEMON]:[]);
-  if(!ids.includes(S.planTarget)) S.planTarget=(targets.find(x=>x.level===5)||targets[0]||{}).id ?? (rookie?NUMEMON:undefined);
+  const reach=x=>x.level>d.level && x.level>=3 && forwardPaths(x.id).length>0;
+  if(S.planTarget==null || !DG[S.planTarget]){ const t=D.digis.filter(reach); S.planTarget=(t.find(x=>x.level===5)||t[0]||{}).id ?? nid('暴龍獸'); }
   const tgt=S.planTarget;
   const numOk=rookie && !(BUILD!=='live' && NOSAVE());
-  const opt=x=>`<option value="${x.id}"${x.id===tgt?' selected':''}>${x.name}</option>`;
-  const sel=[3,4,5].map(lv=>{ const xs=targets.filter(x=>x.level===lv); const extra= lv===4&&rookie? `<option value="${NUMEMON}"${tgt===NUMEMON?' selected':''}>鼻涕獸（成長期期滿未進化）</option>` : '';
-    return xs.length||extra? `<optgroup label="${LV[lv]}">${extra}${xs.filter(x=>x.id!==NUMEMON).map(opt).join('')}</optgroup>` : ''; }).join('');
-  let body='', paths=[];
-  if(tgt===NUMEMON){
+  // 全部精靈都可以選（選蛋前也可以查閱）；目前精靈走得到的加上 ★
+  const sel=[3,4,5].map(lv=>{ const xs=D.digis.filter(x=>x.level===lv);
+    return `<optgroup label="${LV[lv]}">${xs.map(x=>`<option value="${x.id}"${x.id===tgt?' selected':''}>${(x.id===NUMEMON?rookie:reach(x))?'★ ':''}${x.name}${x.id===NUMEMON?'（成長期期滿未進化）':''}</option>`).join('')}</optgroup>`; }).join('');
+  let body='', paths=[], browse=false;
+  const te=D.evo[tgt];
+  if(tgt===NUMEMON && rookie){
     body= numOk? `<section class="panel numtop">${numemonHelper()}</section>` : `<section class="panel"><p class="hint">鼻涕獸助手要用失誤次數等遊戲不顯示的數值，上載存檔後才可以使用。</p></section>`;
-  } else if(tgt==null){
-    body='<section class="panel"><p class="hint">從目前的數碼精靈到不了任何目標，請先在「我的精靈」選擇目前的數碼精靈。</p></section>';
-  } else {
+  } else if(tgt===NUMEMON){
+    body=`<section class="panel"><h2>鼻涕獸</h2><p>任何成長期養到 96 小時，仍然沒有任何成熟期合資格，就會變成鼻涕獸。</p><p class="hint">你的精靈是成長期時，選這個目標會出現鼻涕獸助手和 96 小時倒數。</p></section>`;
+  } else if(forwardPaths(tgt).length && tgt!==S.cur){
     paths=forwardPaths(tgt); if(S.planPath>=paths.length) S.planPath=0; const path=paths[S.planPath];
     const next=path[1]; const ne=D.evo[next];
     let step1;
@@ -853,8 +853,23 @@ function vPlan(){
     const later=[]; for(let i=1;i<path.length-1;i++){ const L=evoLater(path[i],path[i+1],st); st=L.st; later.push(`<div class="elater"><b class="hint">第 ${i+1} 步</b>${L.html}</div>`); }
     body=`<section class="panel"><h2>第 1 步：${d.name} → ${DG[next].name}</h2>${step1}</section>`
       + (later.length?`<section class="panel"><h2>之後的步驟 <small>預告</small></h2>${later.join('')}</section>`:'');
+  } else {
+    // 查閱模式：目前的精靈到不了（或就是這隻），由蛋開始列出所有路線
+    browse=true; const seen=new Set(); paths=pathsTo(tgt).filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
+    const why= tgt===S.cur? `你的精靈已經是${DG[tgt].name}。` : `目前的${d.name}（${LV[d.level]}）不能進化成${DG[tgt].name}。`;
+    if(!paths.length){
+      body=`<section class="panel"><h2>${DG[tgt].name} <small>查閱</small></h2><p class="hint">${why}</p><p>${te&&te.special?'這是特殊進化：':''}${esc(condText(tgt))}</p></section>`;
+    } else {
+      if(S.planPath>=paths.length) S.planPath=0; const path=paths[S.planPath];
+      const egg=EGGS.find(e=>nid(e.fresh)===path[0]);
+      let st={...(egg?egg.base:S.stats)}; const steps=[];
+      for(let i=0;i<path.length-1;i++){ const L=evoLater(path[i],path[i+1],st,true); st=L.st; steps.push(`<div class="elater"><b class="hint">第 ${i+1} 步</b>${L.html}</div>`); }
+      body=`<section class="panel"><h2>${DG[tgt].name} 的進化路線 <small>查閱</small></h2>
+        <p class="hint">${why}以下由蛋開始列出這條路線每一步的條件。每一步都是 4 組條件達成 3 組（成長期那一步失誤組永遠符合）。</p>
+        ${egg?`<p>選 <b>${egg.egg}</b>：${egg.fresh} → ${egg.it}（初始 ${STATKEYS.map(k=>SN[k]+' '+egg.base[k]).join('、')}）</p>`:''}${steps.join('')}</section>`;
+    }
   }
-  const route= paths.length? `<label class="f">路線<select id="sel-ppath">${paths.map((p,i)=>`<option value="${i}"${i===S.planPath?' selected':''}>${p.map(id=>DG[id].name).join(' → ')}</option>`).join('')}</select></label>` : '';
+  const route= paths.length? `<label class="f">路線${browse?'（由蛋開始）':''}<select id="sel-ppath">${paths.map((p,i)=>{ const eg=browse?EGGS.find(e=>nid(e.fresh)===p[0]):null; return `<option value="${i}"${i===S.planPath?' selected':''}>${eg?eg.egg+'：':''}${p.map(id=>DG[id].name).join(' → ')}</option>`; }).join('')}</select></label>` : '';
   const settings=`<details class="panel"><summary><b>訓練設定</b> <span class="hint">場地、休息方式、疲勞上限</span></summary>
     <p class="hint">由目前的數碼精靈和「我的精靈」裡的能力、疲勞開始計算；訓練手冊、村民和擅長項目的設定也一樣沿用，食物不計入。${known('fat')?'':'疲勞值未知（上載存檔才可以獲得），假設由 0 開始。'}</p>
     <h3>可以用的訓練場地</h3><div class="list">${GYMS.map(g=>`<label><input type="checkbox" data-pgym="${g.id}" ${S.planGyms.includes(g.id)?'checked':''}> ${g.name}</label>`).join('')}</div>
@@ -863,7 +878,7 @@ function vPlan(){
     <p class="hint">計劃不會讓疲勞到達這個數字（80 會進入疲倦）。每次選「每 1 點疲勞換到最多目標能力」的項目。睡覺也能清疲勞。</p></details>`;
   $('#view').innerHTML=`<section class="panel"><h2>進化助手 <small>目前：${esc(d.name)}（${LV[d.level]}）</small></h2>
     <label class="f">我想進化成<select id="sel-ptarget">${sel}</select></label>${route}
-    <p class="hint">選好目標後，助手會列出下一次進化的 4 組條件。勾選想達成的條件（最少 3 項），再照「進化前要做的事」去做。</p></section>
+    <p class="hint">可以選任何精靈。★ 是目前的精靈走得到的目標：選了會列出下一次進化的 4 組條件，勾選想達成的條件（最少 3 項），再照「進化前要做的事」去做。其他精靈會以查閱模式，由蛋開始列出路線和條件，選蛋前也可以參考。</p></section>
     ${body}${settings}`;
 }
 
