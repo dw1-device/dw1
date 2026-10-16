@@ -275,12 +275,51 @@ const SPECIAL = [
   {when:'睡覺時',from:['鼻屎獸'],to:'伊賀獸',p:30,cond:'戰鬥次數 ≥ 50、教養 100。'},
   {when:'睡覺時',from:['鑽地獸'],to:'角龍獸',p:30,cond:'防禦 ≥ 500、教養 100。'},
   {when:'睡覺時',from:['滾球獸','獨角獸','迪哥獸','種子獸'],to:'古尼獸',p:50,cond:'在古尼獸的床上睡。'},
-  {when:'稱讚或責罵後',from:['巨鯨獸','貝殼獸'],to:'西拉獸',p:30,cond:'年齡剛好 200 小時。'},
+  {when:'稱讚或責罵後',from:['巨鯨獸','貝殼獸'],to:'西拉獸',p:30,cond:'這個形態的計時剛好 200 小時。'},
   {when:'責罵時',from:['亞古獸','比特獸','加布獸','艾力克獸','巴達獸','古尼獸','比丘獸','巴魯獸','企鵝獸'],to:'亞伯獸',p:100,cond:'責罵前教養 0、心情最低（−100）。'},
-  {when:'稱讚或責罵後；年齡剛好 360 小時時自動判定',stage:4,to:'宇宙腦魔',p:50,cond:'任何成熟期，年齡 ≥ 240 小時。'},
+  {when:'稱讚或責罵後；年齡剛好 360 小時時自動判定',stage:4,to:'宇宙腦魔',p:50,cond:'任何成熟期，這個形態的計時 ≥ 240 小時。'},
   {when:'在野外大便',stageMin:2,to:'大便獸',p:100,cond:'不在廁所大便累計 16 次（大便獸本身除外）。'},
   {when:'成長期到 96 小時',stage:3,to:'鼻涕獸',p:100,cond:'到時仍不符合任何成熟期條件。'},
 ];
+// 特殊進化的檢查清單與「何時決定」（遊戲程式確認：每種特殊進化只在固定時刻擲一次）
+function spCheck(sp){
+  const c=[], age=known('age')?S.age:null; let ready=true, when='';
+  const add=(t,ok)=>{ c.push([t,ok]); if(ok===false) ready=false; };
+  if(sp.kind==='death'){
+    add(`戰前至少還有 2 條生命（目前 ${S.lives??'?'} 條）`, S.lives==null?null:S.lives>=2);
+    if(sp.to==='惡魔獸') add(`戰前教養 ≤ 69（目前 ${S.dis}；戰敗扣 20 後要 ≤ 49）`, S.dis<=69);
+    when='戰敗後被送回老爺爺家，<b>對話結束那一刻</b>擲一次。生病 12 小時未治療而倒下也會判定；失去最後一條生命則直接變回數碼蛋，不會判定。可以在戰前存檔，不成功就讀檔再試。';
+    if(sp.to==='惡魔獸') when+=' 另外，成長期使用「漆黑的翅膀」（人型盃優勝獎品）會直接進化成惡魔獸。';
+  } else if(sp.when==='睡覺時'){
+    if(sp.to==='飛龍獸'){ add(`教養 100（目前 ${S.dis}）`, S.dis>=100); add(`心情 100（目前 ${S.hap}）`, S.hap>=100); }
+    if(sp.to==='伊賀獸'){ add(`教養 100（目前 ${S.dis}）`, S.dis>=100); add(`這個形態的戰鬥次數 ≥ 50（目前 ${S.win??'?'}）`, S.win==null?null:S.win>=50); }
+    if(sp.to==='角龍獸'){ add(`教養 100（目前 ${S.dis}）`, S.dis>=100); add(`防禦 ≥ 500（目前 ${S.stats.def}）`, S.stats.def>=500); }
+    if(sp.to==='古尼獸') add('在古尼獸的床鋪（古尼獸床鋪地圖）睡覺', null);
+    when='<b>睡醒畫面淡入後約半秒</b>擲一次。睡醒時沒有進化畫面，就是這次沒有擲中；再睡一次會重新擲。';
+  } else if(sp.to==='西拉獸'){
+    add(`形態計時剛好 200 小時${age==null?'':age<200?`（還有 ${200-age} 小時）`:age===200?'（就是現在）':'（已經錯過）'}`, age==null?null:age===200);
+    when='在形態計時剛好 200 小時的那一小時內<b>稱讚或責罵</b>，之後立即擲一次；同一小時內可以多次稱讚或責罵，每次都會擲。';
+  } else if(sp.to==='亞伯獸'){
+    add(`教養 0（目前 ${S.dis}）`, S.dis<=0); add(`心情 −100（目前 ${S.hap}）`, S.hap<=-100);
+    when='條件符合時<b>責罵</b>一次就必定進化。';
+  } else if(sp.to==='宇宙腦魔'){
+    add(`形態計時 ≥ 240 小時${age==null?'':age<240?`（還有 ${240-age} 小時）`:`（目前 ${age} 小時）`}`, age==null?null:age>=240);
+    when='240 小時後每次<b>稱讚或責罵</b>之後擲一次；另外形態計時剛好 360 小時時自動擲一次。想避開的話，240 小時後不要稱讚或責罵。';
+  } else if(sp.to==='大便獸'){
+    add(`在野外（不在廁所）大便累計 16 次（目前 ${S.poop??'?'} 次）`, S.poop==null?null:S.poop>=16);
+    when='累計到第 16 次時<b>立即</b>進化，沒有機率。想避開的話，有便意時帶它去廁所。';
+  } else if(sp.to==='鼻涕獸'){
+    when='成長期每到整點判定；96 小時仍沒有成熟期合資格就進化。詳見「進化目標」的鼻涕獸助手。';
+  }
+  return {c, ready, when};
+}
+function spCard(sp){
+  const k=spCheck(sp);
+  const pill= sp.kind==='death' ? (k.ready?`<span class="pill ok">若這場輸了：${sp.p}%</span>`:`<span class="pill no">目前不會觸發</span>`)
+    : k.c.length&&k.ready&&k.c.every(x=>x[1]===true) ? `<span class="pill ok">條件已齊：${sp.p}%</span>` : `<span class="pill">${sp.p}%</span>`;
+  const list=k.c.length?`<ul class="ml2">${k.c.map(([t,ok])=>`<li>${ok===true?'✓':ok===false?'✗':'・'} ${esc(t)}</li>`).join('')}</ul>`:'';
+  return `<div class="cand"><header><b>→ ${sp.to}</b>${pill}</header><span class="hint">${esc(sp.when)}：${esc(sp.cond)}</span>${list}<p class="hint">何時決定：${k.when}</p></div>`;
+}
 // 訓練
 const GYMS = [
   {id:'green',name:'深綠健身房',full:true,items:[['HP',{hp:80,atk:2},'hp'],['MP',{mp:80,def:2},'mp'],['攻擊',{atk:8,spd:2},'atk'],['防禦',{def:8,int:2},'def'],['速度',{spd:8,hp:10},'spd'],['智力',{int:8,mp:10},'int']]},
@@ -317,7 +356,7 @@ S.tab='save'; // 每次開啟網頁先顯示上載存檔／實時連線
 /* 網頁版「解除連結」：清除存檔帶入的資料，回到預設值；保留訓練場地、休息方式、疲勞上限等偏好 */
 const UNLINK={armed:false,timer:null};
 const SV_KEYS=['svList','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
-  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
+  'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','poop','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
 function svUnlink(){
   SV_KEYS.forEach(k=>{ if(k in DEF) S[k]=JSON.parse(JSON.stringify(DEF[k])); else delete S[k]; });
   S.sample=true; NH_PREV=null; try{ localStorage.removeItem('dw1nh'); }catch(e){}
@@ -841,7 +880,8 @@ function evoLater(from,to,st,browse){
 }
 function vPlan(){
   const d=DG[S.cur], rookie=d.level===3;
-  const reach=x=>x.level>d.level && x.level>=3 && forwardPaths(x.id).length>0;
+  const spSame=x=>x.level>=d.level && x.level>=3 && SPECIAL.filter(z=>z.to===x.name && ((z.from&&z.from.includes(d.name))||(z.stage&&z.stage===d.level)||(z.stageMin&&d.level>=z.stageMin))).length>0 && x.id!==d.id;
+  const reach=x=>(x.level>d.level && x.level>=3 && forwardPaths(x.id).length>0) || spSame(x);
   if(S.planTarget==null || !DG[S.planTarget]){ const t=D.digis.filter(reach); S.planTarget=(t.find(x=>x.level===5)||t[0]||{}).id ?? nid('暴龍獸'); }
   const tgt=S.planTarget;
   const numOk=rookie && !(BUILD!=='live' && NOSAVE());
@@ -854,12 +894,16 @@ function vPlan(){
     body= numOk? `<section class="panel numtop">${numemonHelper()}</section>` : `<section class="panel"><p class="hint">鼻涕獸助手要用失誤次數等遊戲不顯示的數值，上載存檔後才可以使用。</p></section>`;
   } else if(tgt===NUMEMON){
     body=`<section class="panel"><h2>鼻涕獸</h2><p>任何成長期養到 96 小時，仍然沒有任何成熟期合資格，就會變成鼻涕獸。</p><p class="hint">你的精靈是成長期時，選這個目標會出現鼻涕獸助手和 96 小時倒數。</p></section>`;
+  } else if(spSame(DG[tgt]) && !forwardPaths(tgt).length){
+    const sps=SPECIAL.filter(z=>z.to===DG[tgt].name && ((z.from&&z.from.includes(d.name))||(z.stage&&z.stage===d.level)||(z.stageMin&&d.level>=z.stageMin)));
+    body=`<section class="panel"><h2>${d.name} → ${DG[tgt].name} <small>特殊進化</small></h2>${sps.map(spCard).join('')}</section>`;
   } else if(forwardPaths(tgt).length && tgt!==S.cur){
     paths=forwardPaths(tgt); if(S.planPath>=paths.length) S.planPath=0; const path=paths[S.planPath];
     const next=path[1]; const ne=D.evo[next];
     let step1;
     if(DG[next].level<=2 || !ne || ne.special || (!ne.stats && !ne.rookie) || (ne.rookie && !(ne.top||[]).length)) step1=`<p class="hint">${DG[next].level<=2?`這個形態經過 ${EVO_AT[d.level]} 小時自動進化，不用訓練。`:'這一步是特殊進化：'+esc(condText(next))}</p>`;
     else step1=evoHelper(S.cur,next);
+    { const sps=SPECIAL.filter(x=>x.to===DG[next].name && ((x.from&&x.from.includes(d.name))||(x.stage&&x.stage===d.level)||(x.stageMin&&d.level>=x.stageMin))); if(sps.length && DG[next].level>2 && next!==NUMEMON) step1= step1.includes('這一步是特殊進化') ? sps.map(spCard).join('') : step1+`<h3>另一條路：特殊進化</h3>${sps.map(spCard).join('')}`; }
     let st={...S.stats}; if(ne&&(ne.stats||(ne.rookie&&(ne.top||[]).length))){ const r=trainFor(S.cur,next,st,known('fat')?(S.fat||0):0); if(!r.fail && (S.evoPick?.[S.cur+'>'+next]||evoRec(ne,evoGroups(S.cur,next,{cur:S.cur,stats:{...S.stats},weight:S.weight,mis:S.mis??0,win:S.win??0,hap:S.hap,dis:S.dis,tech:S.tech,raised:S.raised}))).includes('stat')) st=r.st; }
     const later=[]; for(let i=1;i<path.length-1;i++){ const L=evoLater(path[i],path[i+1],st); st=L.st; later.push(`<div class="elater"><b class="hint">第 ${i+1} 步</b>${L.html}</div>`); }
     body=`<section class="panel"><h2>第 1 步：${d.name} → ${DG[next].name}</h2>${step1}</section>`
@@ -1711,7 +1755,7 @@ function svApply(){
   const tot=v.days*24+v.hh-v.age;
   if(v.recruited) S.recruited=v.recruited.slice();
   if(Array.isArray(v.cards)) S.cards=v.cards.map(x=>x.slice());
-  if(v.fat!=null) S.fat=v.fat; if(v.lives!=null) S.lives=v.lives;
+  if(v.fat!=null) S.fat=v.fat; if(v.lives!=null) S.lives=v.lives; if(v.poop!=null) S.poop=v.poop;
   if(v.day!=null){ S.arenaDay=(v.day%30)+1; S.gameDay=v.day; S.gameYear=v.year??null; }
   if(v.bag) S.bag=v.bag.map(x=>x.slice()); if(v.bagCap!=null) S.bagCap=v.bagCap; if(v.storage) S.storage=v.storage.map(x=>x.slice()); if(v.boost) S.boost={...v.boost}; if(v.drillCnt) S.drillCnt=v.drillCnt.slice();
   Object.assign(S,{life:v.life, days:v.days, clock:v.hh, evoDays:Math.floor(tot/24), evoClock:((tot%24)+24)%24, cur:v.cur, stats:{...v.stats}, weight:v.weight, mis:v.mis, win:v.win, hap:v.hap, dis:v.dis, age:v.age, tech:v.tech, learned:v.learned.slice(), raised:v.raised.slice(), sample:false});
@@ -2020,17 +2064,7 @@ function vRaise(){
   }
   // specials
   const sp=SPECIAL.filter(s=>(s.from&&s.from.includes(d.name))||(s.stage&&s.stage===d.level)||(s.stageMin&&d.level>=s.stageMin&&d.name!=='大便獸'));
-  let spHTML = sp.map(s=>{
-    let st='';
-    if(s.kind==='death'){
-      const disAfter=Math.max(0,S.dis-20);
-      const lifeOk=S.lives>=2; const disOk = s.to!=='惡魔獸' || disAfter<=49;
-      st = lifeOk&&disOk ? `<span class="pill ok">若這場輸了：${s.p}%</span>` : `<span class="pill no">目前不會觸發</span>`;
-      const why=[]; if(!lifeOk) why.push('只剩 1 條生命，戰敗會直接變回數碼蛋'); if(!disOk) why.push(`戰敗後教養會是 ${disAfter}，需要 ≤ 49`);
-      if(why.length) st+=`<span class="hint">　${why.join('；')}</span>`;
-    } else st=`<span class="pill">${s.p}%</span>`;
-    return `<div class="cand"><header><b>→ ${s.to}</b>${st}</header><span class="hint">${esc(s.when)}：${esc(s.cond)}</span></div>`;
-  }).join('') || '<p class="hint">這隻數碼精靈沒有特殊進化。</p>';
+  let spHTML = sp.map(spCard).join('') || '<p class="hint">這隻數碼精靈沒有特殊進化。</p>';
 
   const trainBtns = gym.items.map(([n,base,main],i)=>{const g=trainGain(gym,base,undefined,false,main); return `<button class="b" data-train="${i}">${n}<br><span class="hint">${Object.entries(g).map(([k,v])=>SN[k]+' +'+v).join('、')}・疲勞 +${FATIGUE[main]}</span></button>`;}).join('');
 
