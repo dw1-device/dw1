@@ -1109,8 +1109,8 @@ const MAP_NODES=[
  ['rp2','古代秘境時急域（2）',1448,442,'rapid','',['時急域']],['rp3','古代秘境時急域（3）',1448,362,'rapid','',['時急域','時急域深處','時急域最深處']],
  ['rp4','古代秘境時急域（4）',1342,442,'rapid','',['時急域']],['rp5','古代秘境時急域（5）',1342,362,'rapid','ev',['時急域','時急域深處','時急域最深處']],
  ['gce','偉大峽谷入口',1015,852,'canyon','',['偉大峽谷']],['gc1','偉大峽谷上層（1）',1080,762,'canyon','wc ev',['偉大峽谷']],
- ['gc2','偉大峽谷上層（2）',1120,682,'canyon','',['偉大峽谷']],['gc4','偉大峽谷上層（4）',1037,682,'canyon','',['偉大峽谷']],
- ['gc3','偉大峽谷上層（3）',1120,597,'canyon','bird',['偉大峽谷']],['gct','偉大峽谷頂端',1080,512,'canyon','ev',['偉大峽谷']],
+ ['gc2','偉大峽谷上層（2）',1080,620,'canyon','',['偉大峽谷']],['gc4','偉大峽谷上層（4）',990,700,'canyon','',['偉大峽谷']],
+ ['gc3','偉大峽谷上層（3）',1060,520,'canyon','bird',['偉大峽谷']],['gct','偉大峽谷頂端',1175,580,'canyon','ev',['偉大峽谷']],
  ['gbr','偉大渡橋',953,587,'canyon','ev',[]],
  ['fz1','冰結凍土（1）',995,492,'ice','',['冰結凍土']],['fz2','冰結凍土（2）',995,397,'ice','',['冰結凍土']],
  ['fz3','冰結凍土（3）',995,302,'ice','wc',['冰結凍土']],['fz5','冰結凍土（5）',911,252,'ice','',['冰結凍土']],
@@ -1126,7 +1126,7 @@ const MAP_EDGES=('m5-m4 m4-m2 m6-m1 m1-m2 m2-m3 m3-m7 m7-m5 m1-f2 kyo-f2 f2-f1 f
  'g1-wsl wsl-wr2 wr2-wcl wcl-ws2 wcl-ws1 ws1-wr1 wr1-nf2 wsl-lk1 lk1-lk2 lk2-dt2 gym-tn tn-ts ts-nf1 ts-br nf1-gym nf1-nf2 nf2-nf3 nf2-kb nf3-nf4 nf4-nf5 nf5-kb nf5-sea sea-kb kb-br '+
  'lk1-nf3 lk2-nf4 lk2-bis dte-nf2 dte-dt1 dt1-b21 b21-b3 b21-drv b21-ulk ulk-b22 b22-lv1 lv1-lv2 lv1-lv3 lv3-lv4 lv4-lv5 lv3-dt2 bkg-bar bar-bqg bar-bis '+
  'tn-fc1 fc1-fc2 fc2-fc3 fc3-fsw fc3-fce fce-fc4 fce-fc5 fce-fc6 fc6-fc7 fc6-fc8 br-tr1 tr1-tr2 tr2-tr3 tr3-tr4 tr2-mg2 tr4-mg1 mg1-mg2 mg2-ami ami-rue rue-st1 st1-st2 st2-st3 st3-rp1 rp1-rp2 rp2-rp3 rp2-rp4 rp4-rp5 '+
- 'tr3-ovd ovd-grv grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gct-gbr gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fz10 fz10-fz11 fz10-fz12 fz10-fz13 fz8-m7 fz1-gct').split(' ').map(e=>e.split('-'));
+ 'tr3-ovd ovd-grv grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gct-gbr gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fz10 fz10-fz11 fz10-fz12 fz10-fz13 fz8-m7 fz1-gc3').split(' ').map(e=>e.split('-'));
 const MAP_ICONS={save:'記錄點',wc:'廁所',meat:'肉田',gym:'訓練設施',ev:'事件・邀請',shop:'商店・交易',vend:'自動販賣機',bird:'巴多拉運輸',whale:'巨鯨船',curl:'冰壺',poo:'大便獸大王',frog:'怪蛙皇',ham:'改造的守衛獸'};
 const MAP_GYM={m5:'forest',j2:'junk',g9:'leo',ice:'ice',bkg:'kabu',bqg:'kuwa',gym:'green'};
 const MAP_TRADE={fz12:'毛人獸交換（左下）：萬能磁片→攻擊插件 S；中回復磁片→防禦插件 S；數碼雜魚→高速插件 S。（右下）：巨大肉→自動駕駛員；數碼黑鱸魚→再生磁片；高速插件 S→藥物。中回復磁片換防禦插件 S 可以賺取高額差價。',
@@ -1160,7 +1160,7 @@ const OFF_RECRUIT={'無限山':[['惡魔獸',''],['機械飛龍獸',''],['機械
 // 巴多拉運輸：SLPS 0x8013831c 起 6 筆（地圖、解鎖旗標、運費），由起始鎮出發
 const BIRD_INFO={
  tn:'起始鎮北：巴多拉獸的運輸站，從這裏出發。',
- gc3:'偉大峽谷上層（3）：運費 1000｛｝；招募巴多拉獸後就可以去。',
+ gc3:'偉大峽谷上層（3）：運費 1000｛｝；招募巴多拉獸後就可以去。這一格有路牌「北西・冰結凍土」，左方出口連接冰結凍土（1），中間的升降機上到頂端（巴多拉獸的巢），往下是路牌「東・升降機／西・小心懸崖」的上層（2）。',
  g1:'齒輪莽原（1）：運費 1000｛｝；要先去過齒輪莽原的卡片市場。',
  rue:'恐龍古代秘境入口：運費 1500｛｝；要先去過古代秘境時急域。',
  fz7:'冰結凍土（7）：運費 2000｛｝；要先到過冰結凍土路牌「西・朦朧群樹／東・流冰海岸」那一格。',
