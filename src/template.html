@@ -1907,7 +1907,12 @@ function renderLCD(){
     <div><span>開心度</span><b>${S.hap??0}</b></div><div><span>教養</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** 代表上載存檔才可以獲得該項數值"'}><span>疲勞</span><b>${known('fat')?S.fat:'***'}</b></div><div title="漠視數碼精靈呼叫的次數"><span>失誤</span><b>${S.mis??0}</b></div>${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${NOSAVE()?'<div title="*** 代表上載存檔才可以獲得該項數值"><span>壽命</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' ・ 網頁版'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` ・ 實時版 ・ <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">網頁版（手機、上載存檔）↗</a>`; }
-function render(){ verLink(); const hl=$('#homelink'); if(hl){ hl.textContent=BUILD==='live'?'⇦ 回到實時連線':'⇦ 回到上載存檔'; hl.hidden=S.tab==='save'; } renderTabs(); renderLCD(); ({me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,bag:vBag,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena})[S.tab](); if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
+function render(){ verLink(); const hl=$('#homelink'); if(hl){ hl.textContent=BUILD==='live'?'⇦ 回到實時連線':'⇦ 回到上載存檔'; hl.hidden=S.tab==='save'; } renderTabs(); renderLCD(); const VIEWS={me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,bag:vBag,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena};
+  // 某一頁出錯時不要令整個網頁卡住：先清除該頁的舊設定再試一次，仍然出錯就顯示錯誤訊息
+  try{ VIEWS[S.tab](); }catch(e){ console.error(e);
+    const reset={plan:['planTarget','planPath','evoPick','planGyms','planRest','planCap'],raise:['gym','food','log'],map:['mapSel','mapRegion']}[S.tab]||[];
+    let ok=false; if(reset.length){ reset.forEach(k=>{ S[k]=DEF[k]!==undefined?JSON.parse(JSON.stringify(DEF[k])):undefined; }); try{ VIEWS[S.tab](); ok=true; }catch(e2){ e=e2; console.error(e2); } }
+    if(!ok) $('#view').innerHTML=`<section class="panel"><h2>這一頁暫時無法顯示</h2><p class="hint">錯誤：${esc(String(e&&e.message||e))}</p><p class="hint">${esc(String(e&&e.stack||'').split('\n').slice(0,3).join(' / '))}</p><p class="hint">請把這段文字截圖給維護者。</p></section>`; } if(BUILD!=='live' && S.sample && ['me','plan','tech','battle','brain'].includes(S.tab)) $('#view').insertAdjacentHTML('afterbegin',SAMPLE_NOTE); save(); liveDecorate(); }
 
 /* 網頁版沒有上載存檔時：遊戲畫面不顯示的數值以 *** 代替（實時版不受影響） */
 const NOSAVE=()=>BUILD!=='live' && !S.svFile;
