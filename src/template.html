@@ -1094,10 +1094,10 @@ const MAP_NODES=[
  ['bkg','甲蟲島・比多獸健身房',50,1172,'beetle','ev gym',['甲蟲島']],['bar','甲蟲島・競技場櫃台',145,1172,'beetle','',['甲蟲島']],
  ['bqg','甲蟲島・古加獸健身房',240,1172,'beetle','ev gym',['甲蟲島']],['bis','甲蟲島',145,1245,'beetle','bird',['甲蟲島']],
  ['fc7','工業之城（7）',130,85,'fact','ev',['工業之城']],['fc8','工業之城（8）',215,85,'fact','ham',['工業之城']],
- ['fsw','工業之城下水道',45,310,'fact','ev',['下水道','工業之城']],['fc4','工業之城（4）',130,160,'fact','ev',['工業之城']],
- ['fc6','工業之城（6）',215,160,'fact','',['工業之城']],['fc3','工業之城（3）',130,310,'fact','',['工業之城']],
- ['fce','工業之城工廠入口',130,235,'fact','',['工業之城']],['fc2','工業之城（2）',45,385,'fact','ev',['工業之城']],
- ['fc5','工業之城（5）',215,235,'fact','',['工業之城']],['fcg','工業之城（齒輪莽原入口）',215,330,'fact','',['工業之城']],['fc1','工業之城（1）',130,400,'fact','whale',['工業之城']],
+ ['fsw','工業之城下水道',45,235,'fact','ev',['下水道','工業之城']],['fc4','工業之城（4）',130,160,'fact','ev',['工業之城']],
+ ['fc6','工業之城（6）',215,160,'fact','',['工業之城']],['fc3','工業之城（3）',130,235,'fact','',['工業之城']],
+ ['fce','工業之城（齒輪莽原入口）',215,320,'fact','',['工業之城']],['fc2','工業之城（2）',45,385,'fact','ev',['工業之城']],
+ ['fc5','工業之城（5）',215,235,'fact','',['工業之城']],['fc1','工業之城（1）',130,400,'fact','whale',['工業之城']],
  ['mans','黑暗貴族洋樓',848,715,'dark','ev',['黑暗貴族洋樓']],['grv','超載幽谷墓地',848,822,'dark','ev',['超載幽谷墓地','超載幽谷']],
  ['ovd','超載幽谷',932,860,'dark','',['超載幽谷']],
  ['tr1','熱帶雨林（1）',848,1015,'trop','',['熱帶雨林']],['tr2','熱帶雨林（2）',932,1012,'trop','ev',['熱帶雨林']],
@@ -1123,13 +1123,13 @@ const MAP_NODES=[
  ['fz13','冰結凍土（13）秘密海洞',1080,422,'ice','ev whale',['秘密海岸洞','冰結凍土']],
 ];
 const MAP_SIZE={ice:[168,105],mans:[188,105],rue:[150,60],ami:[40,110]};
-const MAP_EDGES=('m5-m4 m4-m2 m6-m1 m1-m2 m2-m3 m3-m7 m7-m5 m1-f2 kyo-f2 f2-f1 f1-g8 j2-j1 j1-g8 g8-g6 g8-g4 g6-g5 g6-g7 g7-g3 g7-fcg fcg-fc3 g3-gc g3-g1 g4-g9 g4-g2 g2-g1 '+
+const MAP_EDGES=('m5-m4 m4-m2 m6-m1 m1-m2 m2-m3 m3-m7 m7-m5 m1-f2 kyo-f2 f2-f1 f1-g8 j2-j1 j1-g8 g8-g6 g8-g4 g6-g5 g6-g7 g7-g3 g7-fce fce-fc3 g3-gc g3-g1 g4-g9 g4-g2 g2-g1 '+
  'g1-wsl wsl-wr2 wr2-wcl wcl-ws2 wcl-ws1 ws1-ws2 ws1-wr1 wr1-nf2 wsl-dte lk1-lk2 lk2-dt2 gym-tn tn-ts ts-nf1 ts-br nf1-gym nf1-nf2 nf2-nf3 nf2-kb nf3-nf4 nf4-nf5 nf5-kb nf5-sea sea-kb kb-br '+
  'lk1-nf3 lk2-nf4 lk2-bis dte-nf2 dte-dt1 dt1-b21 b21-b3 b21-drv b21-ulk ulk-b22 b22-lv1 lv1-lv2 lv1-lv3 lv3-lv4 lv4-lv5 lv3-dt2 bkg-bar bar-bqg bar-bis '+
- 'fc1-fc2 fc2-fc3 fc3-fsw fc3-fce fce-fc4 fce-fc5 fce-fc6 fc6-fc7 fc6-fc8 br-tr1 tr1-tr2 tr2-tr3 tr3-tr4 tr2-mg2 tr4-mg1 mg1-mg2 mg2-ami ami-rue rue-st1 st1-st2 st2-st3 st3-rp1 rp1-rp2 rp2-rp3 rp2-rp4 rp4-rp5 '+
+ 'fc1-fc2 fc2-fc3 fc3-fsw fc3-fc4 fc3-fc5 fc3-fc6 fc6-fc7 fc6-fc8 br-tr1 tr1-tr2 tr2-tr3 tr3-tr4 tr2-mg2 tr4-mg1 mg1-mg2 mg2-ami ami-rue rue-st1 st1-st2 st2-st3 st3-rp1 rp1-rp2 rp2-rp3 rp2-rp4 rp4-rp5 '+
  'tr3-ovd ovd-grv ovd-gce grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gbr-gc4 gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fzc fz9-fz11 fz9-fz12 fz9-fz13 fz8-m7 fz1-gc3 gc3-gcl gcl-ogg').split(' ').map(e=>e.split('-'));
 // 需要轉彎才不會穿過其他方格的連接線（中途點）
-const MAP_BENDS={'g7-fcg':[[265,652],[265,562],[170,562],[170,400]]};
+const MAP_BENDS={'g7-fce':[[265,652],[265,562],[170,562],[170,400]]};
 const MAP_ICONS={save:'記錄點',wc:'廁所',meat:'肉田',gym:'訓練設施',ev:'事件・邀請',shop:'商店・交易',vend:'自動販賣機',bird:'巴多拉運輸',whale:'巨鯨船',curl:'冰壺',poo:'大便獸大王',frog:'怪蛙皇',ham:'改造的守衛獸'};
 const MAP_GYM={m5:'forest',j2:'junk',g9:'leo',ice:'ice',bkg:'kabu',bqg:'kuwa',gym:'green'};
 const MAP_TRADE={fz12:'毛人獸交換（左下）：萬能磁片→攻擊插件 S；中回復磁片→防禦插件 S；數碼雜魚→高速插件 S。（右下）：巨大肉→自動駕駛員；數碼黑鱸魚→再生磁片；高速插件 S→藥物。中回復磁片換防禦插件 S 可以賺取高額差價。',
@@ -1177,7 +1177,7 @@ const VEND_NOTE={
 const TILE_NOTE={
  gce:'劇情中有隱形橋的那一格，過了隱形橋就是偉大峽谷上層（1）（角龍獸商店、廁所）。熱帶雨林（4）往上走到這裏；超載幽谷往上走的右邊出口也到這裏。',
  g7:'下方接齒輪莽原（3）；往上可以進入工業之城（鐵架通道，與坐巨鯨船到達的碼頭不同）。',
- fcg:'由齒輪莽原進入工業之城的鐵架通道（與坐巨鯨船到達的工業之城（1）碼頭不同）。這裏沒有野生數碼精靈，唯一的出口通往工業之城（3）。',
+ fce:'由齒輪莽原進入工業之城的鐵架通道（與坐巨鯨船到達的工業之城（1）碼頭不同）。這裏沒有野生數碼精靈，唯一的出口通往工業之城（3）。',
  g3:'只有三個出口：左邊卡片市場、下面齒輪莽原（1）、上面往工業之城方向的一格。',
  dte:'由守望緩坡（2）穿過隧道到達這裏。往堅定森林（2），再經堅定森林（3）才可以到龍眼湖畔。',
  wsl:'上方接守望緩坡（1），左上通往齒輪莽原（1），右下是鑽頭隧道：可以選擇進入隧道，或者穿過隧道到達鑽頭隧道入口。',
