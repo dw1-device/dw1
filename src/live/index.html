@@ -1077,8 +1077,8 @@ const MAP_NODES=[
  ['m4','\u6726\u6727\u7fa4\u6a39\uff084\uff09',491,262,'mist','',['\u6726\u6727\u7fa4\u6a39']],['m7','\u6726\u6727\u7fa4\u6a39\uff087\uff09',660,168,'mist','',['\u6726\u6727\u7fa4\u6a39']],
  ['m1','\u6726\u6727\u7fa4\u6a39\uff081\uff09',408,335,'mist','',['\u6726\u6727\u7fa4\u6a39']],['m2','\u6726\u6727\u7fa4\u6a39\uff082\uff09',491,345,'mist','',['\u6726\u6727\u7fa4\u6a39']],
  ['m3','\u6726\u6727\u7fa4\u6a39\uff083\uff09',575,345,'mist','ev',['\u6726\u6727\u7fa4\u6a39']],
- ['kyo','\u5de8\u97f3\u9109',302,345,'frog','frog shop',[]],['f2','\u602a\u86d9\u6ebc\u5730\uff082\uff09',365,430,'frog','',['\u602a\u86d9\u6ebc\u5730']],['f1','\u602a\u86d9\u6ebc\u5730\uff081\uff09',365,512,'frog','',['\u602a\u86d9\u6ebc\u5730']],
- ['j2','\u5783\u573e\u5c71\uff082\uff09',225,455,'junk','poo gym ev',['\u5783\u573e\u5c71']],['j1','\u5783\u573e\u5c71\uff081\uff09',270,525,'junk','',['\u5783\u573e\u5c71']],
+ ['kyo','\u5de8\u97f3\u9109',302,345,'frog','frog shop',[]],['f2','\u602a\u86d9\u6ebc\u5730\uff082\uff09',385,430,'frog','',['\u602a\u86d9\u6ebc\u5730']],['f1','\u602a\u86d9\u6ebc\u5730\uff081\uff09',385,512,'frog','',['\u602a\u86d9\u6ebc\u5730']],
+ ['j2','\u5783\u573e\u5c71\uff082\uff09',285,455,'junk','poo gym ev',['\u5783\u573e\u5c71']],['j1','\u5783\u573e\u5c71\uff081\uff09',270,525,'junk','',['\u5783\u573e\u5c71']],
  ['g8','\u9f52\u8f2a\u83bd\u539f\uff088\uff09',312,600,'gear','wc',['\u9f52\u8f2a\u83bd\u539f']],['g6','\u9f52\u8f2a\u83bd\u539f\uff086\uff09',218,615,'gear','ev',['\u9f52\u8f2a\u83bd\u539f']],
  ['g4','\u9f52\u8f2a\u83bd\u539f\uff084\uff09',408,672,'gear','',['\u9f52\u8f2a\u83bd\u539f']],['g5','\u9f52\u8f2a\u83bd\u539f\uff085\uff09',150,688,'gear','ev',['\u9f52\u8f2a\u83bd\u539f']],
  ['g7','\u9f52\u8f2a\u83bd\u539f\uff087\uff09',240,698,'gear','ev',['\u9f52\u8f2a\u83bd\u539f']],['g9','\u9f52\u8f2a\u83bd\u539f\uff089\uff09',323,692,'gear','gym',['\u9f52\u8f2a\u83bd\u539f']],
@@ -1138,7 +1138,7 @@ const MAP_EDGES=('m5-m4 m4-m2 m6-m1 m1-m2 m2-m3 m3-m7 m7-m5 m1-f2 kyo-f2 f2-f1 f
  'fc1-fc2 fc2-fc3 fc3-fsw fc3-fc4 fc3-fc5 fc3-fc6 fc6-fc7 fc6-fc8 br-tr1 tr1-tr2 tr2-tr3 tr3-tr4 tr2-mg2 tr4-mg1 mg1-mg2 mg2-ami ami-rue rue-st1 st1-st2 st2-st3 st3-rp1 rp1-rp2 rp2-rp3 rp2-rp4 rp4-rp5 '+
  'tr3-ovd ovd-grv ovd-gce grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gbr-gc4 gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fzc fz9-fz11 fz9-fz12 fz9-fz13 fz8-m7 fz1-gc3 gc3-gcl gcl-ogg').split(' ').map(e=>e.split('-'));
 // \u9700\u8981\u8f49\u5f4e\u624d\u4e0d\u6703\u7a7f\u904e\u5176\u4ed6\u65b9\u683c\u7684\u9023\u63a5\u7dda\uff08\u4e2d\u9014\u9ede\uff09
-const MAP_BENDS={'g7-fce':[[265,652],[265,562],[170,562],[170,400]]};
+const MAP_BENDS={'g7-fce':[[265,652],[265,562],[215,562]]};
 const MAP_ICONS={save:'\u8a18\u9304\u9ede',wc:'\u5ec1\u6240',meat:'\u8089\u7530',gym:'\u8a13\u7df4\u8a2d\u65bd',ev:'\u4e8b\u4ef6\u30fb\u9080\u8acb',shop:'\u5546\u5e97\u30fb\u4ea4\u6613',vend:'\u81ea\u52d5\u8ca9\u8ce3\u6a5f',bird:'\u5df4\u591a\u62c9\u904b\u8f38',whale:'\u5de8\u9be8\u8239',curl:'\u51b0\u58fa',poo:'\u5927\u4fbf\u7378\u5927\u738b',frog:'\u602a\u86d9\u7687',ham:'\u6539\u9020\u7684\u5b88\u885b\u7378'};
 const MAP_GYM={m5:'forest',j2:'junk',g9:'leo',ice:'ice',bkg:'kabu',bqg:'kuwa',gym:'green'};
 const MAP_TRADE={fz12:'\u6bdb\u4eba\u7378\u4ea4\u63db\uff08\u5de6\u4e0b\uff09\uff1a\u842c\u80fd\u78c1\u7247\u2192\u653b\u64ca\u63d2\u4ef6 S\uff1b\u4e2d\u56de\u5fa9\u78c1\u7247\u2192\u9632\u79a6\u63d2\u4ef6 S\uff1b\u6578\u78bc\u96dc\u9b5a\u2192\u9ad8\u901f\u63d2\u4ef6 S\u3002\uff08\u53f3\u4e0b\uff09\uff1a\u5de8\u5927\u8089\u2192\u81ea\u52d5\u99d5\u99db\u54e1\uff1b\u6578\u78bc\u9ed1\u9c78\u9b5a\u2192\u518d\u751f\u78c1\u7247\uff1b\u9ad8\u901f\u63d2\u4ef6 S\u2192\u85e5\u7269\u3002\u4e2d\u56de\u5fa9\u78c1\u7247\u63db\u9632\u79a6\u63d2\u4ef6 S \u53ef\u4ee5\u8cfa\u53d6\u9ad8\u984d\u5dee\u50f9\u3002',

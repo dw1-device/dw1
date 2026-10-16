@@ -1068,8 +1068,8 @@ const MAP_NODES=[
  ['m4','朦朧群樹（4）',491,262,'mist','',['朦朧群樹']],['m7','朦朧群樹（7）',660,168,'mist','',['朦朧群樹']],
  ['m1','朦朧群樹（1）',408,335,'mist','',['朦朧群樹']],['m2','朦朧群樹（2）',491,345,'mist','',['朦朧群樹']],
  ['m3','朦朧群樹（3）',575,345,'mist','ev',['朦朧群樹']],
- ['kyo','巨音鄉',302,345,'frog','frog shop',[]],['f2','怪蛙溼地（2）',365,430,'frog','',['怪蛙溼地']],['f1','怪蛙溼地（1）',365,512,'frog','',['怪蛙溼地']],
- ['j2','垃圾山（2）',225,455,'junk','poo gym ev',['垃圾山']],['j1','垃圾山（1）',270,525,'junk','',['垃圾山']],
+ ['kyo','巨音鄉',302,345,'frog','frog shop',[]],['f2','怪蛙溼地（2）',385,430,'frog','',['怪蛙溼地']],['f1','怪蛙溼地（1）',385,512,'frog','',['怪蛙溼地']],
+ ['j2','垃圾山（2）',285,455,'junk','poo gym ev',['垃圾山']],['j1','垃圾山（1）',270,525,'junk','',['垃圾山']],
  ['g8','齒輪莽原（8）',312,600,'gear','wc',['齒輪莽原']],['g6','齒輪莽原（6）',218,615,'gear','ev',['齒輪莽原']],
  ['g4','齒輪莽原（4）',408,672,'gear','',['齒輪莽原']],['g5','齒輪莽原（5）',150,688,'gear','ev',['齒輪莽原']],
  ['g7','齒輪莽原（7）',240,698,'gear','ev',['齒輪莽原']],['g9','齒輪莽原（9）',323,692,'gear','gym',['齒輪莽原']],
@@ -1129,7 +1129,7 @@ const MAP_EDGES=('m5-m4 m4-m2 m6-m1 m1-m2 m2-m3 m3-m7 m7-m5 m1-f2 kyo-f2 f2-f1 f
  'fc1-fc2 fc2-fc3 fc3-fsw fc3-fc4 fc3-fc5 fc3-fc6 fc6-fc7 fc6-fc8 br-tr1 tr1-tr2 tr2-tr3 tr3-tr4 tr2-mg2 tr4-mg1 mg1-mg2 mg2-ami ami-rue rue-st1 st1-st2 st2-st3 st3-rp1 rp1-rp2 rp2-rp3 rp2-rp4 rp4-rp5 '+
  'tr3-ovd ovd-grv ovd-gce grv-mans tr4-gce gce-gc1 gc1-gc2 gc2-gc4 gc2-gc3 gc3-gct gbr-gc4 gbr-fz1 fz1-fz2 fz2-fz3 fz3-fz5 fz5-fz6 fz6-ice fz3-fz7 fz4-fz7 fz7-igl igl-fz8 fz4-fz9 fz9-fzc fz9-fz11 fz9-fz12 fz9-fz13 fz8-m7 fz1-gc3 gc3-gcl gcl-ogg').split(' ').map(e=>e.split('-'));
 // 需要轉彎才不會穿過其他方格的連接線（中途點）
-const MAP_BENDS={'g7-fce':[[265,652],[265,562],[170,562],[170,400]]};
+const MAP_BENDS={'g7-fce':[[265,652],[265,562],[215,562]]};
 const MAP_ICONS={save:'記錄點',wc:'廁所',meat:'肉田',gym:'訓練設施',ev:'事件・邀請',shop:'商店・交易',vend:'自動販賣機',bird:'巴多拉運輸',whale:'巨鯨船',curl:'冰壺',poo:'大便獸大王',frog:'怪蛙皇',ham:'改造的守衛獸'};
 const MAP_GYM={m5:'forest',j2:'junk',g9:'leo',ice:'ice',bkg:'kabu',bqg:'kuwa',gym:'green'};
 const MAP_TRADE={fz12:'毛人獸交換（左下）：萬能磁片→攻擊插件 S；中回復磁片→防禦插件 S；數碼雜魚→高速插件 S。（右下）：巨大肉→自動駕駛員；數碼黑鱸魚→再生磁片；高速插件 S→藥物。中回復磁片換防禦插件 S 可以賺取高額差價。',
