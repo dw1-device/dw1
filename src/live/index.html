@@ -205,6 +205,11 @@ h3.regh{margin:14px 0 6px;font-size:15px;border-bottom:1px solid var(--line);pad
 .goalbox{border:1px dashed var(--accent);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin:6px 0}
 ul.tips li{line-height:1.6}.cand.goal{box-shadow:inset 3px 0 0 var(--accent)}
 .note.ok-note{border-color:var(--good)}
+.skipbox{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0 10px}
+.skipbox p{margin:4px 0}
+.skipt tr.dim{opacity:.5}
+.skipt tr.sel td{background:color-mix(in srgb,var(--good) 12%,transparent)}
+.besttag{display:inline-block;font-size:.75em;padding:1px 6px;border-radius:8px;background:var(--good);color:#fff}
 .raisedgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px 10px;margin-top:6px;font-size:13px}
 </style>
 </head>
@@ -305,7 +310,7 @@ const BRAIN_TH = [150,250,350,450,550,650,750,800,850,900,950];
 
 /* ---------- state ---------- */
 const DEF = {tab:'save',cur:nid('\u4e9e\u53e4\u7378'),stats:{hp:800,mp:700,atk:60,def:50,spd:50,int:50},weight:20,mis:0,win:0,tech:0,hap:50,dis:50,fat:0,lives:3,age:24,battles:0,
-  learned:[], spec:'normal', gym:'green', manual:false, kuwa:false, kabu:false, itTen:false, food:'none', foe:'', foeUsed:{}, battlesN:10, brainN:20, log:[], target:nid('\u9cf3\u51f0\u7378'), sample:true, planTarget:nid('\u66b4\u9f8d\u7378'), planPath:0, planGyms:['green'], planRest:'hosp', planCap:80};
+  learned:[], spec:'normal', gym:'green', manual:false, kuwa:false, kabu:false, itTen:false, food:'none', foe:'', foeUsed:{}, battlesN:10, brainN:20, log:[], target:nid('\u9cf3\u51f0\u7378'), sample:true, planTarget:nid('\u66b4\u9f8d\u7378'), planPath:0, planGyms:['green'], planRest:'hosp', planCap:80, planSkip:{}};
 let S;
 try{ S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('dw1raise')||'{}')); }catch(e){ S = Object.assign({},DEF); }
 if(S.sample){ ['cur','stats','weight','mis','win','tech','hap','dis','fat','lives','age','battles','planTarget'].forEach(k=>S[k]=JSON.parse(JSON.stringify(DEF[k]))); S.learned=[]; } // \u820a\u7bc4\u4f8b\u8cc7\u6599\uff08\u5929\u4f7f\u7378\uff09\u63db\u6210\u4e9e\u53e4\u7378
@@ -717,8 +722,16 @@ function makePlan(path){
       PF=pf0;
       if(!best){ stages.push({from,to,note:'\u7528\u9078\u64c7\u7684\u8a13\u7df4\u5834\u5730\u7121\u6cd5\u8b93\u6307\u5b9a\u80fd\u529b\u6210\u70ba\u6700\u9ad8\u3002'}); continue; }
       const r=simulate(st,lv,s=>topOK(s,best.t),()=>best.t,cap);
-      stages.push({from,to,r,goalText:`\u8b93${SN[best.t]}\u6210\u70ba\u6700\u9ad8\u80fd\u529b\uff08HP\u3001MP \u5148 \u00f710\uff09\uff0c\u9ad4\u91cd\u4fdd\u6301 10\uff5e20g\u3002\u53ef\u9078\uff1a${g.top.map(k=>SN[k]).join('\u3001')}`});
-      st=r.st; continue;
+      const ev=D.evo[to]||{}; const bonusOK=ev.bonusDigi===from; const wTxt=`\u9ad4\u91cd ${g.w-5}\uff5e${g.w+5}g`;
+      const topTxt=`${SN[best.t]}\u6210\u70ba\u6700\u9ad8\u80fd\u529b\uff08HP\u3001MP \u5148 \u00f710\uff1b\u53ef\u9078\uff1a${g.top.map(k=>SN[k]).join('\u3001')}\uff09`;
+      const bTxt=`\u76ee\u524d\u662f${DG[ev.bonusDigi]?.name||'\uff1f'}`;
+      const opts=[{k:'none',label:bonusOK?'3 \u7d44\u5168\u90e8\u9054\u6210':'\u80fd\u529b\uff0b\u9ad4\u91cd',n:r.n,restH:r.restH,need:[topTxt,wTxt].concat(bonusOK?[bTxt+'\uff08\u9019\u689d\u8def\u7dda\u5df2\u7b26\u5408\uff09']:[]),ok:true},
+        {k:'stat',label:'\u653e\u68c4\u80fd\u529b\u7d44',n:0,restH:0,need:[wTxt,bTxt],ok:bonusOK,why:bonusOK?'':`\u984d\u5916\u52a0\u6210\u8981\u7531${DG[ev.bonusDigi]?.name||'\uff1f'}\u9032\u5316\uff0c\u9019\u689d\u8def\u7dda\u505a\u4e0d\u5230`},
+        {k:'w',label:'\u653e\u68c4\u9ad4\u91cd\u7d44',n:r.n,restH:r.restH,need:[topTxt,bTxt],ok:bonusOK,why:bonusOK?'':`\u984d\u5916\u52a0\u6210\u8981\u7531${DG[ev.bonusDigi]?.name||'\uff1f'}\u9032\u5316\uff0c\u9019\u689d\u8def\u7dda\u505a\u4e0d\u5230`}];
+      const sk=pickSkip(from,to,opts);
+      const rr= sk==='stat'? {st:{...st},steps:[],n:0,restH:0,fat:pf0,ok:true} : r; if(sk==='stat') PF=pf0;
+      stages.push({from,to,r:rr,opts,skip:sk,rookie:true,goalText:opts.find(o=>o.k===sk).need.join('\uff1b')+'\uff08\u5931\u8aa4\u7d44\u6c38\u9060\u7b26\u5408\uff09'});
+      st=rr.st; continue;
     }
     const req=g.stats;
     // \u8a66\u6240\u6709\u7df4\u7fd2\u9806\u5e8f\uff08\u4e00\u6b21\u7df4\u5b8c\u4e00\u9805\u518d\u63db\u4e0b\u4e00\u9805\uff09\uff0c\u53d6\u8a13\u7df4\u6b21\u6578\u6700\u5c11\u3001\u4f11\u606f\u6700\u5c11\u7684
@@ -727,12 +740,31 @@ function makePlan(path){
     perms(Object.keys(req)).forEach(ord=>{ PF=pf0; const t=simulate(st,lv,s=>Object.keys(req).every(k=>s[k]>=req[k]),s=>ord.find(k=>s[k]<req[k]),cap);
       if(!r||(t.ok&&!r.ok)||(t.ok===r.ok&&(t.n<r.n||(t.n===r.n&&t.restH<r.restH)))){ r=t; rpf=PF; } });
     PF=rpf;
-    const e=g.e; const bonus=e.bonus.map(b=>b.k==='prev'?'\u76ee\u524d\u662f'+DG[b.v].name+(b.v===from?'\uff08\u9019\u689d\u8def\u7dda\u5df2\u7b26\u5408\uff09':''):({hap:'\u5fc3\u60c5',dis:'\u6559\u990a',win:'\u6230\u52dd',tech:'\u6280\u80fd'}[b.k])+' '+b.v+(b.op==='le'?' \u4ee5\u4e0b':' \u4ee5\u4e0a')).join(' \u6216 ');
-    stages.push({from,to,r,goalText:`\u80fd\u529b\uff1a${Object.entries(req).map(([k,v])=>SN[k]+' '+v).join('\u3001')}\uff1b\u9ad4\u91cd ${e.w}g \u00b15\uff1b\u5931\u8aa4 ${e.mis[0]} \u6b21${e.mis[1]==='le'?'\u4ee5\u4e0b':'\u4ee5\u4e0a'}\uff1b\u52a0\u6210\uff08\u4efb\u4e00\uff09\uff1a${bonus}`});
-    st=r.st;
+    const e=g.e; const bonusArr=e.bonus.filter(b=>b.k!=='prev'||b.v===from); const bonus=e.bonus.map(b=>b.k==='prev'?'\u76ee\u524d\u662f'+DG[b.v].name+(b.v===from?'\uff08\u9019\u689d\u8def\u7dda\u5df2\u7b26\u5408\uff09':''):({hap:'\u5fc3\u60c5',dis:'\u6559\u990a',win:'\u6230\u52dd',tech:'\u6280\u80fd'}[b.k])+' '+b.v+(b.op==='le'?' \u4ee5\u4e0b':' \u4ee5\u4e0a')).join(' \u6216 ');
+    const T={stat:'\u80fd\u529b\uff1a'+Object.entries(req).map(([k,v])=>SN[k]+' '+v).join('\u3001'), w:`\u9ad4\u91cd ${e.w-5}\uff5e${e.w+5}g`, mis:`\u5931\u8aa4 ${e.mis[0]} \u6b21${e.mis[1]==='le'?'\u4ee5\u4e0b':'\u4ee5\u4e0a'}`, bonus:'\u52a0\u6210\uff08\u4efb\u4e00\uff09\uff1a'+bonus};
+    const G4=['stat','w','mis','bonus'], GN={stat:'\u80fd\u529b\u7d44',w:'\u9ad4\u91cd\u7d44',mis:'\u5931\u8aa4\u7d44',bonus:'\u984d\u5916\u52a0\u6210\u7d44'};
+    const opts=[{k:'none',label:'4 \u7d44\u5168\u90e8\u9054\u6210',n:r.n,restH:r.restH,need:G4.map(x=>T[x]),ok:r.ok}].concat(G4.map(x=>({k:x,label:'\u653e\u68c4'+GN[x],n:x==='stat'?0:r.n,restH:x==='stat'?0:r.restH,need:G4.filter(y=>y!==x).map(y=>T[y]),
+      ok: x==='bonus' || bonusArr.length>0, why: x!=='bonus'&&!bonusArr.length?'\u984d\u5916\u52a0\u6210\u53ea\u80fd\u7531\u5225\u7684\u7cbe\u9748\u9032\u5316\u53d6\u5f97\uff0c\u9019\u689d\u8def\u7dda\u505a\u4e0d\u5230':''})));
+    const sk=pickSkip(from,to,opts);
+    const rr= sk==='stat'? {st:{...st},steps:[],n:0,restH:0,fat:pf0,ok:true} : r; if(sk==='stat') PF=pf0;
+    stages.push({from,to,r:rr,opts,skip:sk,goalText:opts.find(o=>o.k===sk).need.join('\uff1b')});
+    st=rr.st;
   }
   return stages;
 }
+// 4 \u7d44\u689d\u4ef6\u53ea\u9700 3 \u7d44\uff1a\u73a9\u5bb6\u53ef\u4ee5\u70ba\u6bcf\u4e00\u6b65\u9078\u64c7\u653e\u68c4\u54ea\u4e00\u7d44\uff08\u9810\u8a2d 4 \u7d44\u5168\u505a\uff09
+function pickSkip(from,to,opts){ const k=(S.planSkip||{})[from+'>'+to]; const o=opts.find(x=>x.k===k&&x.ok); return o? o.k : 'none'; }
+// \u653e\u68c4\u4e00\u7d44\u6642\u7684\u6a21\u64ec\uff1a\u5176\u4ed6 3 \u7d44\u7167\u8981\u6c42\u505a\u5230\uff0c\u770b\u770b\u6703\u4e0d\u6703\u88ab\u5176\u4ed6\u5019\u9078\u6436\u5148
+function skipCheck(from,to,skip,st){
+  const e=D.evo[to]; if(!e) return null; const c={cur:from, stats:st};
+  if(e.rookie){ c.weight= skip==='w'? safeOff(e.w) : e.w; }
+  else { c.weight= skip==='w'? safeOff(e.w) : e.w; c.mis= skip==='mis'? (e.mis[1]==='le'?e.mis[0]+1:0) : (e.mis[1]==='le'?0:e.mis[0]);
+    if(skip!=='bonus'){ const b=e.bonus.find(b=>b.k!=='prev'); if(b) c[b.k]=b.v; } }
+  const p=predictEvo(c); const row=p.rows.find(r=>r.id===to);
+  const rivals=p.best!==to? p.rows.filter(r=>r.eff>=3 && r.id!==to) : [];
+  return {p,row,win:p.best===to,rivals};
+}
+function safeOff(w){ return w+6; }
 function vPlan(){
   const d=DG[S.cur];
   const targets=D.digis.filter(x=>x.level>d.level && x.level>=3 && forwardPaths(x.id).length);
@@ -754,16 +786,26 @@ function vPlan(){
       const need=STAGE_AGE[DG[sg.from].level];
       const rows=sg.r.steps.map((x,i)=>x.rest? `<tr><td class="num">${i+1}</td><td><b>${REST[S.planRest].name} ${x.h} \u5c0f\u6642</b></td><td class="hint">\u75b2\u52de\u6b78\u96f6</td><td></td></tr>`
         : `<tr><td class="num">${i+1}</td><td><b>${x.d.gym.name}\u30fb${x.d.n} \u00d7 ${x.n}</b><br><span class="hint">\u6bcf\u6b21 ${Object.entries(x.g).map(([k,v])=>SN[k]+'+'+v).join('\u3001')}</span></td><td class="hint">${STATKEYS.map(k=>SN[k]+' '+x.after[k]).join('\u3001')}</td><td class="num">${x.fat}</td></tr>`).join('');
-      let pv='';
-      if(DG[sg.to].level>=3 && D.evo[sg.from]?.to?.includes(sg.to)){
+      let pv='', ob='';
+      if(sg.opts){ const okO=sg.opts.filter(o=>o.ok); const minN=Math.min(...okO.map(o=>o.n)); const fullN=sg.opts[0].n;
+        const key=sg.from+'>'+sg.to;
+        ob=`<div class="skipbox"><p><b>${sg.rookie?'\u9032\u5316\u6210\u6210\u9577\u671f\u6642\u5931\u8aa4\u7d44\u6c38\u9060\u7b26\u5408\uff0c\u5176\u9918 3 \u7d44\u518d\u9054\u6210 2 \u7d44\u5c31\u53ef\u4ee5':'4 \u7d44\u689d\u4ef6\u53ea\u9700\u9054\u6210 3 \u7d44'}</b>\uff0c\u6240\u4ee5\u53ef\u4ee5\u653e\u68c4\u5176\u4e2d\u4e00\u7d44${minN<fullN?`\u3002<b>\u653e\u68c4\u80fd\u529b\u7d44\u53ef\u4ee5\u7531 ${fullN} \u6b21\u8a13\u7df4\u6e1b\u5230 ${minN} \u6b21</b>\uff0c\u7701\u4e0b\u7684\u6642\u9593\u53ef\u4ee5\u7df4\u5176\u4ed6\u80fd\u529b`:''}\uff1a</p>
+          <div class="tw"><table class="skipt"><thead><tr><th></th><th>\u505a\u6cd5</th><th>\u8981\u505a\u5230</th><th class="num">\u8a13\u7df4</th></tr></thead><tbody>${sg.opts.map(o=>`<tr class="${o.ok?'':'dim'}${o.k===sg.skip?' sel':''}"><td><input type="radio" name="pskip-${sg.from}-${sg.to}" data-pskip="${key}" value="${o.k}"${o.k===sg.skip?' checked':''}${o.ok?'':' disabled'}></td><td><b>${o.label}</b>${o.ok&&o.n===minN&&minN<fullN?' <span class="besttag">\u6700\u7701\u8a13\u7df4</span>':''}${o.why?`<br><span class="hint">${esc(o.why)}</span>`:''}</td><td class="hint">${o.need.map(esc).join('<br>')}</td><td class="num">${o.ok?o.n+' \u6b21':'\u2014'}</td></tr>`).join('')}</tbody></table></div>
+          ${sg.skip!=='none'?'<p class="hint">\u653e\u68c4\u4e00\u7d44\u5c31\u6c92\u6709\u5f8c\u5099\uff1a\u5176\u9918\u5e7e\u7d44\u4efb\u4f55\u4e00\u7d44\u505a\u4e0d\u5230\u90fd\u4e0d\u6703\u9032\u5316\u3002</p>':''}</div>`;
+        if(sg.skip!=='none' && D.evo[sg.from]?.to?.includes(sg.to)){ const K=skipCheck(sg.from,sg.to,sg.skip,sg.r.st);
+          if(K) pv= K.win? `<div class="note ok-note">\u7167\u300c${sg.opts.find(o=>o.k===sg.skip).label}\u300d\u505a\u5230\u5176\u9918\u689d\u4ef6\uff0c\u6703\u9032\u5316\u6210 <b>${DG[sg.to].name}</b>\u3002</div>`
+            : `<div class="note">\u7167\u300c${sg.opts.find(o=>o.k===sg.skip).label}\u300d\u505a\u5230\u5176\u9918\u689d\u4ef6\uff0c${K.p.best===-1?'\u4ecd\u7136\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c':`\u6703\u5148\u9032\u5316\u6210 <b>${DG[K.p.best].name}</b>`}\uff0c\u4e0d\u662f${DG[sg.to].name}\u3002${K.rivals.length?`<ul class="ml2 tips">${K.rivals.map(r=>{ const w=breakWays(r,sg.to); return `<li><b>${DG[r.id].name}</b>\u4e5f\u5408\u8cc7\u683c${w.length?'\uff0c\u4ee4\u5b83\u5c11\u65bc 3 \u7d44\uff1a'+w.join('\uff1b\u6216 '):''}</li>`; }).join('')}</ul>`:''}</div>`;
+        }
+      }
+      if(!pv && DG[sg.to].level>=3 && D.evo[sg.from]?.to?.includes(sg.to)){
         const ctx={cur:sg.from, stats:sg.r.st}; const A=evoAdvice(sg.to,ctx);
         pv = A.ok? `<div class="note ok-note">\u7df4\u5b8c\u5f8c\uff08\u9ad4\u91cd\u3001\u5931\u8aa4\u3001\u5fc3\u60c5\u3001\u6559\u990a\u7b49\u6cbf\u7528\u300c\u6211\u7684\u7cbe\u9748\u300d\u7684\u6578\u503c\uff09\u6703\u9032\u5316\u6210 <b>${DG[sg.to].name}</b>\u3002</div>`
           : `<div class="note">\u7df4\u5b8c\u5f8c\u6309\u73fe\u6642\u7684\u9ad4\u91cd\u3001\u5931\u8aa4\u3001\u5fc3\u60c5\u3001\u6559\u990a\u7b49\uff0c\u6703\u9032\u5316\u6210 <b>${A.p.best===-1?(A.p.lvl===3?'\uff08\u6c92\u6709\u5019\u9078\uff0c96 \u5c0f\u6642\u5f8c\u8b8a\u6210\u9f3b\u6d95\u7378\uff09':'\uff08\u6c92\u6709\u5019\u9078\uff09'):DG[A.p.best].name}</b>\uff0c\u4e0d\u662f${DG[sg.to].name}\u3002<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
       }
-      return head+`<p class="hint">\u76ee\u6a19\uff1a${esc(sg.goalText)}</p>${pv}
+      return head+ob+`<p class="hint">\u76ee\u6a19\uff1a${esc(sg.goalText)}</p>${pv}
         <div class="kpis"><div><span>\u8a13\u7df4\u6b21\u6578</span><b class="big">${sg.r.n}</b></div><div><span>\u4f11\u606f\u6642\u6578</span><b class="big">${sg.r.restH}</b></div>${need?`<div><span>\u6700\u65e9\u9032\u5316</span><b class="big">${need} \u5c0f\u6642</b></div>`:''}</div>
         ${sg.r.ok?'':'<div class="note">3000 \u6b21\u5167\u9054\u4e0d\u5230\u76ee\u6a19\uff0c\u8acb\u589e\u52a0\u8a13\u7df4\u5834\u5730\u6216\u6aa2\u67e5\u6578\u503c\u3002</div>'}
-        <div class="tw"><table><thead><tr><th class="num">#</th><th>\u505a\u4ec0\u9ebc</th><th>\u505a\u5b8c\u5f8c\u7684\u80fd\u529b</th><th class="num">\u75b2\u52de</th></tr></thead><tbody>${rows||'<tr><td colspan="4">\u5df2\u7d93\u9054\u5230\u9019\u4e00\u6b65\u7684\u80fd\u529b\u689d\u4ef6\u3002</td></tr>'}</tbody></table></div>`;
+        <div class="tw"><table><thead><tr><th class="num">#</th><th>\u505a\u4ec0\u9ebc</th><th>\u505a\u5b8c\u5f8c\u7684\u80fd\u529b</th><th class="num">\u75b2\u52de</th></tr></thead><tbody>${rows||`<tr><td colspan="4">${sg.skip==='stat'?'\u653e\u68c4\u80fd\u529b\u7d44\uff0c\u9019\u4e00\u6b65\u4e0d\u7528\u8a13\u7df4\uff1b\u53ea\u8981\u7167\u9867\u9ad4\u91cd\u3001\u5931\u8aa4\u548c\u52a0\u6210\uff0c\u7b49\u5e74\u9f61\u5920\u5c31\u6703\u5224\u5b9a\u3002':'\u5df2\u7d93\u9054\u5230\u9019\u4e00\u6b65\u7684\u80fd\u529b\u689d\u4ef6\u3002'}</td></tr>`}</tbody></table></div>`;
     }).join('');
     body=`<div class="kpis"><div><span>\u7e3d\u8a13\u7df4\u6b21\u6578</span><b class="big">${total}</b></div><div><span>\u7e3d\u4f11\u606f\u6642\u6578</span><b class="big">${restT}</b></div></div>`+body;
   }
@@ -2197,6 +2239,7 @@ document.addEventListener('change',e=>{
   if(t.id==='sel-foe'){ S.foe=t.value; render(); return; }
   if(t.id==='sel-ptarget'){ S.planTarget=+t.value; S.planPath=0; render(); return; }
   if(t.id==='sel-ppath'){ S.planPath=+t.value; render(); return; }
+  if(t.dataset.pskip){ S.planSkip={...(S.planSkip||{}),[t.dataset.pskip]:t.value}; render(); return; }
   if(t.id==='sel-prest'){ S.planRest=t.value; render(); return; }
   if(t.dataset.pgym){ const g=t.dataset.pgym; S.planGyms=S.planGyms.filter(x=>x!==g); if(t.checked) S.planGyms.push(g); render(); return; }
   if(t.id==='c-manual'){ S.manual=t.checked; render(); return; }
