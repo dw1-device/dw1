@@ -1,5 +1,6 @@
 @echo off
 chcp 65001 >nul
+REM DW1 暴龍機 實時版 啟動檔（Windows）：找出 Python 3，運行同一資料夾的 dw1_bridge.py。不會安裝或改動任何東西。
 cd /d "%~dp0"
 title DW1 暴龍機 實時版
 set "PY="
