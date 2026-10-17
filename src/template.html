@@ -213,6 +213,7 @@ ul.tips li{line-height:1.6}.cand.goal{box-shadow:inset 3px 0 0 var(--accent)}
 #view>.panel+.panel,#view>.panel+details.panel{margin-top:12px}
 .homelink{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit;margin-left:8px}
 .raisedgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px 10px;margin-top:6px;font-size:13px}
+.fishbait table{font-size:12px;min-width:0}.fishbait th,.fishbait td{padding:4px 5px}.fishbait td:first-child{white-space:nowrap}
 </style>
 
 <div class="wrap">
@@ -1527,6 +1528,19 @@ function recRegion(r){
   return 'other';
 }
 function recRegName(k){ const m=MAP_REGIONS.find(x=>x[0]===k)||REC_EXTRA.find(x=>x[0]===k); return m?m[1]:k; }
+// 釣魚魚餌上釣機率（FISH_REL 0x8007E2C0；按魚種 雜魚、鯽魚、鱒魚、黑鱸魚、鯰魚、斑魚，%）
+const FISH_NAMES=['數碼雜魚','數碼鯽魚','數碼鱒魚','數碼黑鱸魚','數碼鯰魚','數碼斑魚'];
+const FISH_BAIT=[['肉',[10,20,0,5,0,0]],['巨大肉',[10,20,0,10,0,0]],['極上肉',[10,20,0,15,5,0]],['挑戰胡蘿蔔',[50,5,15,0,0,0]],['櫻花鳥蘿蔔',[50,5,15,0,0,0]],['數碼香菇',[50,5,20,0,0,0]],['除雪香菇',[30,10,5,0,0,0]],['豪華香菇',[0,10,5,0,5,0]],['試手氣香菇',[80,10,10,0,0,0]],['其他果實',[20,10,5,0,0,0]],['數碼雜魚',[0,10,0,5,0,0]],['數碼鯽魚',[0,0,0,5,0,0]],['數碼鱒魚',[0,0,0,15,0,0]],['數碼黑鱸魚',[0,0,0,0,0,10]],['數碼鯰魚',[0,0,0,0,0,10]],['腐爛掉的肉',[10,20,0,0,20,0]],['鎖鏈蜜瓜',[0,0,0,0,30,0]]];
+const FISH_LURE={'數碼鱒魚':'試手氣香菇','數碼黑鱸魚':'數碼鱒魚','數碼鯰魚':'腐爛掉的肉','數碼斑魚':'數碼鯰魚'};
+function fishBaitHTML(){
+  const best=FISH_NAMES.map((_,j)=>Math.max(...FISH_BAIT.map(b=>b[1][j])));
+  return `<details class="fishbait" style="margin-top:6px"><summary>釣魚魚餌上釣機率（遊戲程式確認）</summary>
+    <p class="hint">浮標附近有魚時，每次判定按下表機率上釣（0＝不會上釣；粗體是該種魚最高的魚餌）。湖的主人（海龍獸）不看魚餌，固定 20%。「其他果實」包括數碼松果、藍蘋果、各種草之果實等。龍眼湖各種魚出現比重：雜魚 30、鯽魚 25、鱒魚 18、黑鱸魚 14、鯰魚 8、斑魚 5。</p>
+    <div class="tw"><table><thead><tr><th>魚餌</th>${FISH_NAMES.map(n=>`<th class="num">${n.replace('數碼','')}</th>`).join('')}</tr></thead><tbody>
+    ${FISH_BAIT.map(([n,v])=>`<tr><td>${esc(n)}</td>${v.map((x,j)=>`<td class="num">${x?(x===best[j]?`<b>${x}</b>`:x):'<span class="hint">0</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <p class="hint">遠距離吸引：用以下魚餌時，較遠的該種魚也會游向浮標——${Object.entries(FISH_LURE).map(([f,b])=>`${f} ← ${b}`).join('；')}。</p></details>`;
+}
+const REC_MORE={'海龍獸':fishBaitHTML};
 function vRecruit(){
   const got=new Set(S.recruited||[]); const f=S.recFilter||'all'; const sort=S.recSort||'order'; const reg=S.recReg||'';
   const ready=r=>r[3].every(x=>got.has(x));
@@ -1541,7 +1555,7 @@ function vRecruit(){
       <span class="sp"></span>${r[2]?`<button class="b" data-gomap="${esc(r[2])}">地圖</button>`:''}</header>
       <p class="loc">📍 ${esc(r[1])}</p>
       ${pre||r[4]?`<p class="pre">${pre}${r[4]?` <span class="hint">條件：${esc(r[4])}</span>`:''}</p>`:''}
-      <p>${esc(r[5])}</p><p class="hint">加入後：${esc(r[6])}</p></article>`; };
+      <p>${esc(r[5])}</p><p class="hint">加入後：${esc(r[6])}</p>${REC_MORE[r[0]]?REC_MORE[r[0]]():''}</article>`; };
   const p=prosNow(), mx=prosMax(); const nx=PROS_MILE.find(m=>m[0]>p);
   $('#view').innerHTML=`<section class="panel"><h2>開始之街繁榮度 <small>已加入 ${got.size} / ${RECRUITS.length} 隻</small></h2>
     <div class="kpis"><div><span>現時繁榮度</span><b class="big">${p}</b></div><div><span>全部加入</span><b class="big">${mx}</b></div><div><span>下一個關卡</span><b class="big">${nx?nx[0]:'—'}</b></div></div>
