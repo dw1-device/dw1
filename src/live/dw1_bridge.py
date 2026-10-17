@@ -6,7 +6,7 @@ DW1 暴龍機 實時連線小程式（RetroArch → 網頁）
 
 用法：
   1. RetroArch：設定 → 網絡 → 網絡指令 開啟（連接埠 55355）。開始遊戲。
-  2. 終端機： python3 dw1_bridge.py
+  2. 終端機： python3 dw1_bridge.py（Windows：雙擊「Windows 啟動」.bat，或在命令提示字元打 py dw1_bridge.py）
   3. 瀏覽器開 http://127.0.0.1:55356/ （同一資料夾內的 index.html 會在這裏顯示），網頁會自動連線。
   加 --lan：同一個 Wi-Fi 的 iPad／手機也可以開，位址會顯示在終端機。
 只用 Python 內建模組，不會連接互聯網。只讀取遊戲記憶體，不會改動遊戲。
@@ -186,6 +186,10 @@ def lan_ips():
     return [ip for ip in ips if not ip.startswith("127.")]
 
 def main():
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
     ap = argparse.ArgumentParser(description="DW1 暴龍機 RetroArch 實時連線")
     ap.add_argument("--ra-host", default="127.0.0.1"); ap.add_argument("--ra-port", type=int, default=55355)
     ap.add_argument("--port", type=int, default=55356, help="網頁連線用的連接埠")
@@ -210,8 +214,12 @@ def main():
         if ips:
             for ip in ips: print(f"iPad／手機（同一個 Wi-Fi）：用 Safari 開  http://{ip}:{a.port}/")
         else:
-            print("找不到這部電腦的區域網絡位址：請到「系統設定 → Wi-Fi → 詳細資料」查看 IP 位址，在 iPad 開 http://該位址:%d/" % a.port)
-        print("（如果 Mac 詢問是否允許 Python 接受連入的網絡連線，請按「允許」）")
+            where = "命令提示字元輸入 ipconfig，看「IPv4 位址」" if sys.platform.startswith("win") else "到「系統設定 → Wi-Fi → 詳細資料」查看 IP 位址"
+            print("找不到這部電腦的區域網絡位址：請%s，在 iPad／手機開 http://該位址:%d/" % (where, a.port))
+        if sys.platform.startswith("win"):
+            print("（如果 Windows 防火牆詢問是否允許 Python 存取網絡，請勾選「私人網絡」並按「允許存取」）")
+        else:
+            print("（如果 Mac 詢問是否允許 Python 接受連入的網絡連線，請按「允許」）")
     print("按 Ctrl+C 結束。")
     try: srv.serve_forever()
     except KeyboardInterrupt: print("\n已結束。")

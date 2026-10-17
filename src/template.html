@@ -1956,7 +1956,7 @@ function livePanel(){
     <div class="row"><button class="b p" id="liveBtn">${LIVE.on?'中斷連線':'實時連線'}</button><span id="liveStat">${liveStatText()}</span></div>
     <label class="f">小程式位址<input id="f-liveurl" value="${esc(liveUrl())}"></label>
     <ol class="ml2 tips"><li>RetroArch：設定 → 網絡 → 開啟「網絡指令」（連接埠 55355），用 Beetle PSX 或 SwanStation 核心開始遊戲（日版 Rev 1）。</li>
-      <li>在終端機運行 <code>python3 dw1_bridge.py</code>（和 index.html 放在同一個資料夾）。</li>
+      <li>開啟小程式（和 index.html 放在同一個資料夾）：Mac 雙擊「Mac 啟動」.command；Windows 雙擊「Windows 啟動」.bat（要先安裝 Python 3）；或在終端機運行 <code>python3 dw1_bridge.py</code>。</li>
       <li>瀏覽器開 <code>http://127.0.0.1:55356/</code>，網頁會自動連線；之後每秒更新，訓練、戰鬥、吃東西都不用存檔。</li></ol>
     <p class="hint">小程式只讀取遊戲記憶體，不會改動遊戲，也不會連接互聯網。</p>${para}${raw}</section>`;
 }
