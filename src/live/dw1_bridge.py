@@ -62,19 +62,32 @@ class RA:
             return self._raw(self.mode, addr, n)
         except Exception:
             self.mode = None; raise
+    def version(self):
+        """RetroArch 開了網絡指令就會回覆版本號（不需要載入遊戲）"""
+        try:
+            return self._cmd("VERSION") or None
+        except Exception:
+            return None
     def detect(self):
-        last = None
+        last = None; code = None
         for m in ("mem80", "mem00", "ram"):
             try:
                 sp = struct.unpack("<I", self._raw(m, A_SPECIES, 4))[0]
                 if 1 <= sp <= 65:
                     self.mode = m; return m
-                last = f"{m}: 種類 {sp} 不合理（遊戲可能未開始）"
+                last = f"讀到的種類編號 {sp} 不合理：遊戲可能還在標題畫面或讀取中（進入遊戲後會自動連上）；如果一直這樣，請確認遊戲是日版 Rev 1（SLPS-01797）"
+                code = "not_started"
             except socket.timeout:
-                last = "RetroArch 沒有回應：請確認已開啟「網絡指令」、連接埠 55355，並已開始遊戲"
+                if code is None:
+                    code = "ra_off"
+                    last = "RetroArch 沒有回應：RetroArch 未開啟，或未開啟「網絡指令」（每部電腦都要各自在 設定 → 網絡 開啟一次，連接埠 55355）"
             except Exception as e:
-                last = f"{m}: {e}"
-        raise IOError(last or "讀取失敗")
+                if code in (None, "ra_off"):
+                    code = "no_game"; last = f"已連上 RetroArch，但讀不到遊戲記憶體：請確認已載入遊戲，而核心是 Beetle PSX 或 SwanStation（{e}）"
+        if code == "ra_off" and self.version():
+            code = "no_game"; last = "已連上 RetroArch（網絡指令正常），但讀不到遊戲記憶體：請先載入遊戲，核心要用 Beetle PSX 或 SwanStation"
+        err = IOError(last or "讀取失敗"); err.code = code or "unknown"
+        raise err
 
 def snapshot(ra):
     i16 = lambda b, o: struct.unpack_from("<h", b, o)[0]
@@ -157,7 +170,11 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     c["data"] = snapshot(Handler.ra)
                 except Exception as e:
-                    c["data"] = {"ok": False, "error": str(e)}
+                    code = getattr(e, "code", None)
+                    msg = str(e)
+                    if code is None and isinstance(e, socket.timeout):
+                        code, msg = "ra_off", "RetroArch 沒有回應（遊戲可能剛關閉、暫停在選單，或 RetroArch 已結束）"
+                    c["data"] = {"ok": False, "error": msg, "code": code or "unknown"}
                 c["t"] = now
             body = json.dumps(c["data"], ensure_ascii=False).encode()
             self.send_response(200); self._cors()
@@ -202,7 +219,7 @@ def main():
         print(f"已連接 RetroArch（讀取方式 {s['mode']}）：種類 {s['cur']}，攻 {s['stats']['atk']}，"
               f"年齡 {s['days']} 歲，時間 {s['hh']:02d}:{s['mm']:02d}")
     except Exception as e:
-        print("暫時讀不到遊戲：", e, "\n（小程式會繼續運行，遊戲開始後網頁會自動連上）")
+        print("暫時讀不到遊戲：", e, "\n（小程式會繼續運行；照上面的提示處理好後，網頁會自動連上，不用重新開啟小程式）")
     if a.test: return
     try:
         srv = ThreadingHTTPServer(("0.0.0.0" if a.lan else "127.0.0.1", a.port), Handler)
