@@ -2205,7 +2205,7 @@ function vTech(){
     const srcHTML = src.notes.map(n=>`<span class="pill">${esc(n)}</span>`).join('') + src.list.map(s=>`<span class="pill${s.once?' once':''}">${s.once?'★':''}${esc(s.enemy)}・${esc(s.time)}${esc(s.loc)}</span>`).join('');
     return `<tr><td><input type="checkbox" data-learn="${tid}" ${L.has(tid)?'checked':''} aria-label="已學會${t.name}"></td>
       <td><b>${t.name}</b> <span class="tno">${techNo(tid)}</span>${onlyOnce?'<br><span class="pill once">只能從一次性對手學</span>':''}</td><td>${schoolTag(t.school)}<br><span class="hint">${si===null?'不在屬性內':'第 '+(si+1)+' 屬性'}</span></td>
-      <td class="num">${t.power}</td><td class="num">${t.mp}</td><td class="num">${pct(battleP(d,tid),0)}</td><td class="num">${bp===null?'—':bp+'%'}<br><span class="hint">順序 ${ord+1}</span></td><td class="src">${srcHTML||'—'}</td></tr>`;
+      <td class="num">${t.power}</td><td class="num">${t.mp}</td><td class="num">${pct(battleP(d,tid),0)}</td><td class="num">${bp===null?'—':bp+'%'}<br><span class="hint">智力學招順序 ${ord+1}</span></td><td class="src">${srcHTML||'—'}</td></tr>`;
   }).join('');
   $('#view').innerHTML=`<section class="panel"><h2>${d.name} 可以學的招式 <small>屬性：${d.slots.map((s,i)=>`第 ${i+1} ${s===null?'—':SCH[s]}`).join('、')}</small></h2>
     <label class="f">數碼精靈<select id="sel-cur">${digiOptions(S.cur)}</select></label>
@@ -2226,6 +2226,7 @@ const RULES={
   '<b>同一招只登記一次</b>：對手用 1 次和用 10 次，戰鬥結束時都只擲骰一次。出招次數不影響機率，只要出過一次就有機會。',
   '戰鬥結束時，清單上每一招依序檢查：已學會、系統不是自己的第 1～3 屬性、不在可學清單，都會跳過；其餘各擲一次 0～99，小於表上機率就成為候選。',
   '候選中<b>隨機學 1 招</b>。同場能學的招式越多，想要的那招被抽中的機會越低。',
+  '<b>不受智力學招順序影響</b>：清單上任何一招只要符合條件就會擲骰，不用先學會同系統前面的招式。所以智力學招卡在 0% 的那一招，可以靠戰鬥學會來解開。',
   '<b>智力完全不參與</b>計算。智力只解鎖戰鬥指令；「保持距離」「防禦」能讓戰鬥拖長、對手用出更多不同招式，但不會提高單一招式的機率。',
   '<b>讀檔不會固定結果</b>：亂數沒有存進記憶卡，讀檔後每一場都重新擲骰。讀檔重打同一場，和打完再找同一種敵人，機率完全相同。',
   '同一種敵人在不同地區會的招式可以不同，例如野人獸在堅定森林和偉大峽谷的招式表不一樣。',
@@ -2302,7 +2303,7 @@ function vBrain(){
   const next = I>=999? null : BRAIN_TH.find(t=>t>I);
   const slotRows=pk.slots.map(s=>{ if(s.done) return `<tr><td>第 ${s.si+1} 屬性</td><td>${schoolTag(s.sc)}</td><td colspan="3" class="hint">這個系統能學的都學會了</td></tr>`;
     const t=TK[s.t]; const stuck = s.p===0;
-    return `<tr><td>第 ${s.si+1} 屬性</td><td>${schoolTag(s.sc)}</td><td><b>${t.name}</b> <span class="tno">${techNo(s.t)}</span><br><span class="hint">智力順序 ${s.pos+1}</span></td><td class="num">${pct(s.p,0)}</td><td>${stuck?`<span class="pill no">卡住</span> <span class="hint">要先在戰鬥中學會${t.name}，這個系統才會往下學。可以向：${sourcesOf(s.t).list.slice(0,4).map(x=>(x.once?'★':'')+x.enemy+'・'+x.loc).join('、')||sourcesOf(s.t).notes.join('、')}</span>`:(pk.best&&pk.best.si===s.si?'<span class="pill ok">會被選中</span>':'')}</td></tr>`; }).join('');
+    return `<tr><td>第 ${s.si+1} 屬性</td><td>${schoolTag(s.sc)}</td><td><b>${t.name}</b> <span class="tno">${techNo(s.t)}</span><br><span class="hint">智力學招順序 ${s.pos+1}</span></td><td class="num">${pct(s.p,0)}</td><td>${stuck?`<span class="pill no">卡住</span> <span class="hint">要先在戰鬥中學會${t.name}，這個系統才會往下學。可以向：${sourcesOf(s.t).list.slice(0,4).map(x=>(x.once?'★':'')+x.enemy+'・'+x.loc).join('、')||sourcesOf(s.t).notes.join('、')}</span>`:(pk.best&&pk.best.si===s.si?'<span class="pill ok">會被選中</span>':'')}</td></tr>`; }).join('');
   const p=pk.best?pk.best.p:0;
   const remain = BRAIN_TH.filter(t=>t>I).length;
   $('#view').innerHTML=`<div class="grid">
