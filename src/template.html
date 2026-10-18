@@ -471,7 +471,7 @@ function predictEvo(ctx){
   const c=ctx||{}; const cur=c.cur??S.cur; const raised=new Set(c.raised||S.raised||[]); const st=c.stats||S.stats;
   const lvl=DG[cur].level; const avgMode = lvl>=3;
   const list=(D.evo[cur]?.to||[]).filter(i=>D.evo[i] && !D.evo[i].special);
-  let best=-1, bestN=0, bestAvg=0, cS=0, cN=0; const rows=[];
+  let best=-1, bestN=0, bestAvg=0, cS=0, cN=0, cFrom=[]; const rows=[];
   list.forEach((id,idx)=>{ const r=critOf(id,c); if(!r) return; let n=r.met, adj='';
     if(n>=3 && best!==-1){ const a=raised.has(id), b=raised.has(best);
       if(a&&!b){ n=0; adj=`以前養過，而目前領先的${DG[best].name}沒養過 → 作廢`; }
@@ -479,8 +479,8 @@ function predictEvo(ctx){
     const row={...r, order:idx+1, eff:n, adj, raised:raised.has(id)};
     if(n>=3){
       if(avgMode){ const q=reqSum(id,st); const own=q.n?Math.trunc(q.s/q.n):0; const tot=cN+q.n; const avg=tot?Math.trunc((cS+q.s)/tot):0;
-        row.own=own; row.avg=avg; row.carry=cN?{s:cS,n:cN}:null; row.beat=bestAvg; row.prevBest=best;
-        if(avg>bestAvg){ best=id; bestAvg=avg; cS=0; cN=0; row.win=true; } else { cS=avg; cN=tot; }
+        row.own=own; row.avg=avg; row.carry=cN?{s:cS,n:cN,from:cFrom.slice()}:null; row.beat=bestAvg; row.prevBest=best;
+        if(avg>bestAvg){ best=id; bestAvg=avg; cS=0; cN=0; cFrom=[]; row.win=true; } else { cS=avg; cN=tot; cFrom.push(id); }
       } else if(n>bestN){ best=id; bestN=n; row.win=true; }
     }
     rows.push(row); });
@@ -489,18 +489,37 @@ function predictEvo(ctx){
 }
 // 怎樣令一個候選少於 3 組（只列玩家做得到的：能力、戰勝、技能不會下降）
 function breakWays(r, goal){
+  // 只列玩家做得到的方法：能力、技能數不會下降，失誤不會減少；額外加成要所有已符合的選項都失去才算失去
   const e=D.evo[r.id]; const ge=goal!==undefined&&goal!==NUMEMON? (D.evo[goal]||{}) : {}; const ways=[];
   r.groups.filter(g=>g.ok).forEach(g=>{
-    if(g.k==='stat' && e.stats && goal!==NUMEMON){ Object.keys(e.stats).forEach(k=>{ const need=ge.stats&&ge.stats[k]; if(!need||need<e.stats[k]) ways.push(`${SN[k]}不要練到 ${e.stats[k]}`+(need?`（${DG[goal].name}只需 ${need}）`:'')); }); }
     if(g.k==='w' && (ge.w===undefined || Math.abs(ge.w-e.w)>0)) ways.push(`體重避開 ${e.w-5}～${e.w+5}g`+(ge.w!==undefined?`（${DG[goal].name}要 ${ge.w-5}～${ge.w+5}g）`:''));
     if(g.k==='mis' && e.mis && e.mis[1]==='le' && (!ge.mis || JSON.stringify(ge.mis)!==JSON.stringify(e.mis))) ways.push(`失誤多於 ${e.mis[0]} 次`+(ge.mis&&ge.mis[1]==='le'&&ge.mis[0]<=e.mis[0]?`（${DG[goal].name}的失誤組也會失去）`:''));
-    if(g.k==='bonus') (g.bon||[]).filter(b=>b.ok && b.b.k!=='prev').forEach(b=>{
-      if(b.b.k==='dis' && b.b.op!=='le') ways.push(`教養降到 ${b.b.v} 以下（稱讚會降教養）`);
-      else if(b.b.k==='hap' && b.b.op!=='le') ways.push(`心情降到 ${b.b.v} 以下（責罵會降心情）`);
-      else if(b.b.op==='le') ways.push({win:'戰勝次數',tech:'技能數',hap:'心情',dis:'教養'}[b.b.k]+'高於 '+b.b.v);
-    });
+    if(g.k==='bonus'){
+      const ok=(g.bon||[]).filter(b=>b.ok); const parts=[];
+      const can=ok.every(b=>{ const k=b.b.k, op=b.b.op, v=b.b.v;
+        if(k==='dis') { parts.push(op==='le'?`教養升到 ${v+1} 或以上（責罵會升教養）`:`教養降到 ${v-1} 或以下（稱讚會降教養）`); return true; }
+        if(k==='hap') { parts.push(op==='le'?`心情升到 ${v+1} 或以上（稱讚會升心情）`:`心情降到 ${v-1} 或以下（責罵會降心情）`); return true; }
+        if(op==='le' && (k==='win'||k==='tech')) { parts.push(`${k==='win'?'戰勝次數':'技能數'}多於 ${v}`); return true; }
+        return false; });
+      if(ok.length && can) ways.push(parts.join('，並且'));
+    }
   });
   return ways;
+}
+// 令目標勝出：只練目標要求的其中一項能力，試算最少要練幾次（用深綠健身房的增長，連同副加的能力一起計算）
+function raiseWays(to, fin){
+  const e=D.evo[to]; if(!e||!e.stats) return [];
+  const green=GYMS.find(g=>g.id==='green'); const lv=DG[fin.cur].level; const out=[];
+  Object.keys(e.stats).forEach(k=>{
+    const it=green.items.find(x=>x[2]===k); if(!it) return;
+    const g=trainGain(green,it[1],lv,false,k); const st={...fin.stats};
+    for(let n=1;n<=60;n++){
+      for(const s in g){ st[s]=Math.min(s==='hp'||s==='mp'?9999:999,st[s]+g[s]); }
+      if(predictEvo({...fin,stats:st}).best===to){
+        out.push({k,n,item:it[0],from:fin.stats[k],to:st[k],side:Object.keys(g).filter(s=>s!==k).map(s=>SN[s]+' +'+g[s]*n).join('、'),fat:FATIGUE[k]*n}); break; }
+    }
+  });
+  return out.sort((a,b)=>a.n-b.n);
 }
 // 找一個不在任何候選體重範圍內、最接近目前的體重
 function safeWeight(rows, w){
@@ -833,9 +852,19 @@ function evoHelper(cur,to){
   if(nPick>=3 && !badPick.length){
     if(P.best===to) result=`<div class="nstat g">✓ 照勾選的條件做到，會進化成 <b>${DG[to].name}</b>。</div>`;
     else { const riv=P.rows.filter(r=>r.eff>=3 && r.id!==to);
-      result=`<div class="nstat r">✗ 照勾選的條件做到，${P.best===-1?(row&&row.adj?`${DG[to].name}${row.adj}`:'仍然沒有候選合資格'):`會進化成 <b>${DG[P.best].name}</b>，不是${DG[to].name}`}。</div>`
-        + (riv.length?`<ul class="ml2 tips">${riv.map(r=>{ const w=breakWays(r,to); return `<li><b>${DG[r.id].name}</b>（第 ${r.order} 位）也合資格${P.avgMode&&r.avg!==undefined?`，能力平均 ${r.avg}`:''}${w.length?'。令它少於 3 組：'+w.join('；或 '):''}</li>`; }).join('')}</ul>`:'')
-        + (P.avgMode&&riv.length?'<p class="hint">完全體的判定：幾隻候選同時合資格時，比較各自要求能力的平均值，高者勝。放棄能力組時能力偏低，較易輸給其他候選。</p>':''); }
+      // 目標本身的平均與被帶入拉低的說明
+      let why='';
+      if(P.avgMode && row && row.eff>=3 && row.avg!==undefined){
+        const winRow=P.rows.find(r=>r.id===P.best);
+        why = row.carry? `<p class="hint">${DG[to].name}本身要求能力的平均是 ${row.own}；但排在前面、合資格而未勝出的${row.carry.from.map(i=>DG[i].name).join('、')}，它的平均 ${row.carry.s}（算作 ${row.carry.n} 項）會被帶入一起計算（遊戲程式的特性），合計平均變成 ${row.avg}，${row.avg>row.beat?'':'未能超過'}${row.prevBest>0?DG[row.prevBest].name+'的 '+row.beat:''}。</p>`
+          : `<p class="hint">${DG[to].name}要求能力的平均是 ${row.avg}，${winRow&&winRow.avg!==undefined?`低於${DG[P.best].name}的 ${winRow.avg}`:''}${row.order<(winRow?winRow.order:0)?'（排在後面的候選平均嚴格較高才會取代）':''}。</p>`;
+      }
+      const up = P.avgMode && row && row.eff>=3 ? raiseWays(to, fin) : [];
+      const upHTML = up.length? `<li><b>提高${DG[to].name}的平均（最直接）</b>：${up.slice(0,3).map(u=>`${u.item}再練 ${u.n} 次（${SN[u.k]} ${u.from}→${u.to}${u.side?'，另 '+u.side:''}；疲勞共 +${u.fat}）`).join('；或 ')}，就會進化成${DG[to].name}。<span class="hint">按深綠健身房計算，已包括副加能力對其他候選的影響。</span></li>` : '';
+      const rivHTML = riv.map(r=>{ const w=breakWays(r,to); return `<li><b>${DG[r.id].name}</b>（第 ${r.order} 位）也合資格${P.avgMode&&r.avg!==undefined?`，能力平均 ${r.avg}`:''}。${w.length?'令它少於 3 組：'+w.join('；或 '):'<span class="hint">它已達成的條件（能力、技能等）不會倒退，沒有可行方法令它失去資格。</span>'}</li>`; }).join('');
+      result=`<div class="nstat r">✗ 照勾選的條件做到，${P.best===-1?(row&&row.adj?`${DG[to].name}${row.adj}`:'仍然沒有候選合資格'):`會進化成 <b>${DG[P.best].name}</b>，不是${DG[to].name}`}。</div>${why}`
+        + (upHTML||rivHTML?`<ul class="ml2 tips">${upHTML}${rivHTML}</ul>`:'')
+        + (P.avgMode&&riv.length?`<p class="hint">${lv===3?'成熟期':'完全體'}的判定：合資格（3 組或以上）的候選之中，比較各自要求能力的平均值（HP、MP 先 ÷10），由排名第 1 位起逐一比較，平均嚴格較高才取代。未勝出的候選，它的平均會帶入下一個合資格候選一起平均。</p>`:''); }
   }
   // ③ 進化前要做的事
   const todo=[];

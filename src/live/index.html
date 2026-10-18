@@ -480,7 +480,7 @@ function predictEvo(ctx){
   const c=ctx||{}; const cur=c.cur??S.cur; const raised=new Set(c.raised||S.raised||[]); const st=c.stats||S.stats;
   const lvl=DG[cur].level; const avgMode = lvl>=3;
   const list=(D.evo[cur]?.to||[]).filter(i=>D.evo[i] && !D.evo[i].special);
-  let best=-1, bestN=0, bestAvg=0, cS=0, cN=0; const rows=[];
+  let best=-1, bestN=0, bestAvg=0, cS=0, cN=0, cFrom=[]; const rows=[];
   list.forEach((id,idx)=>{ const r=critOf(id,c); if(!r) return; let n=r.met, adj='';
     if(n>=3 && best!==-1){ const a=raised.has(id), b=raised.has(best);
       if(a&&!b){ n=0; adj=`\u4ee5\u524d\u990a\u904e\uff0c\u800c\u76ee\u524d\u9818\u5148\u7684${DG[best].name}\u6c92\u990a\u904e \u2192 \u4f5c\u5ee2`; }
@@ -488,8 +488,8 @@ function predictEvo(ctx){
     const row={...r, order:idx+1, eff:n, adj, raised:raised.has(id)};
     if(n>=3){
       if(avgMode){ const q=reqSum(id,st); const own=q.n?Math.trunc(q.s/q.n):0; const tot=cN+q.n; const avg=tot?Math.trunc((cS+q.s)/tot):0;
-        row.own=own; row.avg=avg; row.carry=cN?{s:cS,n:cN}:null; row.beat=bestAvg; row.prevBest=best;
-        if(avg>bestAvg){ best=id; bestAvg=avg; cS=0; cN=0; row.win=true; } else { cS=avg; cN=tot; }
+        row.own=own; row.avg=avg; row.carry=cN?{s:cS,n:cN,from:cFrom.slice()}:null; row.beat=bestAvg; row.prevBest=best;
+        if(avg>bestAvg){ best=id; bestAvg=avg; cS=0; cN=0; cFrom=[]; row.win=true; } else { cS=avg; cN=tot; cFrom.push(id); }
       } else if(n>bestN){ best=id; bestN=n; row.win=true; }
     }
     rows.push(row); });
@@ -498,18 +498,37 @@ function predictEvo(ctx){
 }
 // \u600e\u6a23\u4ee4\u4e00\u500b\u5019\u9078\u5c11\u65bc 3 \u7d44\uff08\u53ea\u5217\u73a9\u5bb6\u505a\u5f97\u5230\u7684\uff1a\u80fd\u529b\u3001\u6230\u52dd\u3001\u6280\u80fd\u4e0d\u6703\u4e0b\u964d\uff09
 function breakWays(r, goal){
+  // \u53ea\u5217\u73a9\u5bb6\u505a\u5f97\u5230\u7684\u65b9\u6cd5\uff1a\u80fd\u529b\u3001\u6280\u80fd\u6578\u4e0d\u6703\u4e0b\u964d\uff0c\u5931\u8aa4\u4e0d\u6703\u6e1b\u5c11\uff1b\u984d\u5916\u52a0\u6210\u8981\u6240\u6709\u5df2\u7b26\u5408\u7684\u9078\u9805\u90fd\u5931\u53bb\u624d\u7b97\u5931\u53bb
   const e=D.evo[r.id]; const ge=goal!==undefined&&goal!==NUMEMON? (D.evo[goal]||{}) : {}; const ways=[];
   r.groups.filter(g=>g.ok).forEach(g=>{
-    if(g.k==='stat' && e.stats && goal!==NUMEMON){ Object.keys(e.stats).forEach(k=>{ const need=ge.stats&&ge.stats[k]; if(!need||need<e.stats[k]) ways.push(`${SN[k]}\u4e0d\u8981\u7df4\u5230 ${e.stats[k]}`+(need?`\uff08${DG[goal].name}\u53ea\u9700 ${need}\uff09`:'')); }); }
     if(g.k==='w' && (ge.w===undefined || Math.abs(ge.w-e.w)>0)) ways.push(`\u9ad4\u91cd\u907f\u958b ${e.w-5}\uff5e${e.w+5}g`+(ge.w!==undefined?`\uff08${DG[goal].name}\u8981 ${ge.w-5}\uff5e${ge.w+5}g\uff09`:''));
     if(g.k==='mis' && e.mis && e.mis[1]==='le' && (!ge.mis || JSON.stringify(ge.mis)!==JSON.stringify(e.mis))) ways.push(`\u5931\u8aa4\u591a\u65bc ${e.mis[0]} \u6b21`+(ge.mis&&ge.mis[1]==='le'&&ge.mis[0]<=e.mis[0]?`\uff08${DG[goal].name}\u7684\u5931\u8aa4\u7d44\u4e5f\u6703\u5931\u53bb\uff09`:''));
-    if(g.k==='bonus') (g.bon||[]).filter(b=>b.ok && b.b.k!=='prev').forEach(b=>{
-      if(b.b.k==='dis' && b.b.op!=='le') ways.push(`\u6559\u990a\u964d\u5230 ${b.b.v} \u4ee5\u4e0b\uff08\u7a31\u8b9a\u6703\u964d\u6559\u990a\uff09`);
-      else if(b.b.k==='hap' && b.b.op!=='le') ways.push(`\u5fc3\u60c5\u964d\u5230 ${b.b.v} \u4ee5\u4e0b\uff08\u8cac\u7f75\u6703\u964d\u5fc3\u60c5\uff09`);
-      else if(b.b.op==='le') ways.push({win:'\u6230\u52dd\u6b21\u6578',tech:'\u6280\u80fd\u6578',hap:'\u5fc3\u60c5',dis:'\u6559\u990a'}[b.b.k]+'\u9ad8\u65bc '+b.b.v);
-    });
+    if(g.k==='bonus'){
+      const ok=(g.bon||[]).filter(b=>b.ok); const parts=[];
+      const can=ok.every(b=>{ const k=b.b.k, op=b.b.op, v=b.b.v;
+        if(k==='dis') { parts.push(op==='le'?`\u6559\u990a\u5347\u5230 ${v+1} \u6216\u4ee5\u4e0a\uff08\u8cac\u7f75\u6703\u5347\u6559\u990a\uff09`:`\u6559\u990a\u964d\u5230 ${v-1} \u6216\u4ee5\u4e0b\uff08\u7a31\u8b9a\u6703\u964d\u6559\u990a\uff09`); return true; }
+        if(k==='hap') { parts.push(op==='le'?`\u5fc3\u60c5\u5347\u5230 ${v+1} \u6216\u4ee5\u4e0a\uff08\u7a31\u8b9a\u6703\u5347\u5fc3\u60c5\uff09`:`\u5fc3\u60c5\u964d\u5230 ${v-1} \u6216\u4ee5\u4e0b\uff08\u8cac\u7f75\u6703\u964d\u5fc3\u60c5\uff09`); return true; }
+        if(op==='le' && (k==='win'||k==='tech')) { parts.push(`${k==='win'?'\u6230\u52dd\u6b21\u6578':'\u6280\u80fd\u6578'}\u591a\u65bc ${v}`); return true; }
+        return false; });
+      if(ok.length && can) ways.push(parts.join('\uff0c\u4e26\u4e14'));
+    }
   });
   return ways;
+}
+// \u4ee4\u76ee\u6a19\u52dd\u51fa\uff1a\u53ea\u7df4\u76ee\u6a19\u8981\u6c42\u7684\u5176\u4e2d\u4e00\u9805\u80fd\u529b\uff0c\u8a66\u7b97\u6700\u5c11\u8981\u7df4\u5e7e\u6b21\uff08\u7528\u6df1\u7da0\u5065\u8eab\u623f\u7684\u589e\u9577\uff0c\u9023\u540c\u526f\u52a0\u7684\u80fd\u529b\u4e00\u8d77\u8a08\u7b97\uff09
+function raiseWays(to, fin){
+  const e=D.evo[to]; if(!e||!e.stats) return [];
+  const green=GYMS.find(g=>g.id==='green'); const lv=DG[fin.cur].level; const out=[];
+  Object.keys(e.stats).forEach(k=>{
+    const it=green.items.find(x=>x[2]===k); if(!it) return;
+    const g=trainGain(green,it[1],lv,false,k); const st={...fin.stats};
+    for(let n=1;n<=60;n++){
+      for(const s in g){ st[s]=Math.min(s==='hp'||s==='mp'?9999:999,st[s]+g[s]); }
+      if(predictEvo({...fin,stats:st}).best===to){
+        out.push({k,n,item:it[0],from:fin.stats[k],to:st[k],side:Object.keys(g).filter(s=>s!==k).map(s=>SN[s]+' +'+g[s]*n).join('\u3001'),fat:FATIGUE[k]*n}); break; }
+    }
+  });
+  return out.sort((a,b)=>a.n-b.n);
 }
 // \u627e\u4e00\u500b\u4e0d\u5728\u4efb\u4f55\u5019\u9078\u9ad4\u91cd\u7bc4\u570d\u5167\u3001\u6700\u63a5\u8fd1\u76ee\u524d\u7684\u9ad4\u91cd
 function safeWeight(rows, w){
@@ -842,9 +861,19 @@ function evoHelper(cur,to){
   if(nPick>=3 && !badPick.length){
     if(P.best===to) result=`<div class="nstat g">\u2713 \u7167\u52fe\u9078\u7684\u689d\u4ef6\u505a\u5230\uff0c\u6703\u9032\u5316\u6210 <b>${DG[to].name}</b>\u3002</div>`;
     else { const riv=P.rows.filter(r=>r.eff>=3 && r.id!==to);
-      result=`<div class="nstat r">\u2717 \u7167\u52fe\u9078\u7684\u689d\u4ef6\u505a\u5230\uff0c${P.best===-1?(row&&row.adj?`${DG[to].name}${row.adj}`:'\u4ecd\u7136\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c'):`\u6703\u9032\u5316\u6210 <b>${DG[P.best].name}</b>\uff0c\u4e0d\u662f${DG[to].name}`}\u3002</div>`
-        + (riv.length?`<ul class="ml2 tips">${riv.map(r=>{ const w=breakWays(r,to); return `<li><b>${DG[r.id].name}</b>\uff08\u7b2c ${r.order} \u4f4d\uff09\u4e5f\u5408\u8cc7\u683c${P.avgMode&&r.avg!==undefined?`\uff0c\u80fd\u529b\u5e73\u5747 ${r.avg}`:''}${w.length?'\u3002\u4ee4\u5b83\u5c11\u65bc 3 \u7d44\uff1a'+w.join('\uff1b\u6216 '):''}</li>`; }).join('')}</ul>`:'')
-        + (P.avgMode&&riv.length?'<p class="hint">\u5b8c\u5168\u9ad4\u7684\u5224\u5b9a\uff1a\u5e7e\u96bb\u5019\u9078\u540c\u6642\u5408\u8cc7\u683c\u6642\uff0c\u6bd4\u8f03\u5404\u81ea\u8981\u6c42\u80fd\u529b\u7684\u5e73\u5747\u503c\uff0c\u9ad8\u8005\u52dd\u3002\u653e\u68c4\u80fd\u529b\u7d44\u6642\u80fd\u529b\u504f\u4f4e\uff0c\u8f03\u6613\u8f38\u7d66\u5176\u4ed6\u5019\u9078\u3002</p>':''); }
+      // \u76ee\u6a19\u672c\u8eab\u7684\u5e73\u5747\u8207\u88ab\u5e36\u5165\u62c9\u4f4e\u7684\u8aaa\u660e
+      let why='';
+      if(P.avgMode && row && row.eff>=3 && row.avg!==undefined){
+        const winRow=P.rows.find(r=>r.id===P.best);
+        why = row.carry? `<p class="hint">${DG[to].name}\u672c\u8eab\u8981\u6c42\u80fd\u529b\u7684\u5e73\u5747\u662f ${row.own}\uff1b\u4f46\u6392\u5728\u524d\u9762\u3001\u5408\u8cc7\u683c\u800c\u672a\u52dd\u51fa\u7684${row.carry.from.map(i=>DG[i].name).join('\u3001')}\uff0c\u5b83\u7684\u5e73\u5747 ${row.carry.s}\uff08\u7b97\u4f5c ${row.carry.n} \u9805\uff09\u6703\u88ab\u5e36\u5165\u4e00\u8d77\u8a08\u7b97\uff08\u904a\u6232\u7a0b\u5f0f\u7684\u7279\u6027\uff09\uff0c\u5408\u8a08\u5e73\u5747\u8b8a\u6210 ${row.avg}\uff0c${row.avg>row.beat?'':'\u672a\u80fd\u8d85\u904e'}${row.prevBest>0?DG[row.prevBest].name+'\u7684 '+row.beat:''}\u3002</p>`
+          : `<p class="hint">${DG[to].name}\u8981\u6c42\u80fd\u529b\u7684\u5e73\u5747\u662f ${row.avg}\uff0c${winRow&&winRow.avg!==undefined?`\u4f4e\u65bc${DG[P.best].name}\u7684 ${winRow.avg}`:''}${row.order<(winRow?winRow.order:0)?'\uff08\u6392\u5728\u5f8c\u9762\u7684\u5019\u9078\u5e73\u5747\u56b4\u683c\u8f03\u9ad8\u624d\u6703\u53d6\u4ee3\uff09':''}\u3002</p>`;
+      }
+      const up = P.avgMode && row && row.eff>=3 ? raiseWays(to, fin) : [];
+      const upHTML = up.length? `<li><b>\u63d0\u9ad8${DG[to].name}\u7684\u5e73\u5747\uff08\u6700\u76f4\u63a5\uff09</b>\uff1a${up.slice(0,3).map(u=>`${u.item}\u518d\u7df4 ${u.n} \u6b21\uff08${SN[u.k]} ${u.from}\u2192${u.to}${u.side?'\uff0c\u53e6 '+u.side:''}\uff1b\u75b2\u52de\u5171 +${u.fat}\uff09`).join('\uff1b\u6216 ')}\uff0c\u5c31\u6703\u9032\u5316\u6210${DG[to].name}\u3002<span class="hint">\u6309\u6df1\u7da0\u5065\u8eab\u623f\u8a08\u7b97\uff0c\u5df2\u5305\u62ec\u526f\u52a0\u80fd\u529b\u5c0d\u5176\u4ed6\u5019\u9078\u7684\u5f71\u97ff\u3002</span></li>` : '';
+      const rivHTML = riv.map(r=>{ const w=breakWays(r,to); return `<li><b>${DG[r.id].name}</b>\uff08\u7b2c ${r.order} \u4f4d\uff09\u4e5f\u5408\u8cc7\u683c${P.avgMode&&r.avg!==undefined?`\uff0c\u80fd\u529b\u5e73\u5747 ${r.avg}`:''}\u3002${w.length?'\u4ee4\u5b83\u5c11\u65bc 3 \u7d44\uff1a'+w.join('\uff1b\u6216 '):'<span class="hint">\u5b83\u5df2\u9054\u6210\u7684\u689d\u4ef6\uff08\u80fd\u529b\u3001\u6280\u80fd\u7b49\uff09\u4e0d\u6703\u5012\u9000\uff0c\u6c92\u6709\u53ef\u884c\u65b9\u6cd5\u4ee4\u5b83\u5931\u53bb\u8cc7\u683c\u3002</span>'}</li>`; }).join('');
+      result=`<div class="nstat r">\u2717 \u7167\u52fe\u9078\u7684\u689d\u4ef6\u505a\u5230\uff0c${P.best===-1?(row&&row.adj?`${DG[to].name}${row.adj}`:'\u4ecd\u7136\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c'):`\u6703\u9032\u5316\u6210 <b>${DG[P.best].name}</b>\uff0c\u4e0d\u662f${DG[to].name}`}\u3002</div>${why}`
+        + (upHTML||rivHTML?`<ul class="ml2 tips">${upHTML}${rivHTML}</ul>`:'')
+        + (P.avgMode&&riv.length?`<p class="hint">${lv===3?'\u6210\u719f\u671f':'\u5b8c\u5168\u9ad4'}\u7684\u5224\u5b9a\uff1a\u5408\u8cc7\u683c\uff083 \u7d44\u6216\u4ee5\u4e0a\uff09\u7684\u5019\u9078\u4e4b\u4e2d\uff0c\u6bd4\u8f03\u5404\u81ea\u8981\u6c42\u80fd\u529b\u7684\u5e73\u5747\u503c\uff08HP\u3001MP \u5148 \u00f710\uff09\uff0c\u7531\u6392\u540d\u7b2c 1 \u4f4d\u8d77\u9010\u4e00\u6bd4\u8f03\uff0c\u5e73\u5747\u56b4\u683c\u8f03\u9ad8\u624d\u53d6\u4ee3\u3002\u672a\u52dd\u51fa\u7684\u5019\u9078\uff0c\u5b83\u7684\u5e73\u5747\u6703\u5e36\u5165\u4e0b\u4e00\u500b\u5408\u8cc7\u683c\u5019\u9078\u4e00\u8d77\u5e73\u5747\u3002</p>`:''); }
   }
   // \u2462 \u9032\u5316\u524d\u8981\u505a\u7684\u4e8b
   const todo=[];
