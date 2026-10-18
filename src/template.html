@@ -116,6 +116,7 @@ td.num,th.num{text-align:right}
 .lcd .call.on i{filter:none;opacity:1}.lcd .call.on .cn{opacity:1;font-weight:700}
 .lcd .call.warn{border-color:#e0533a;background:#ffd2c4;box-shadow:0 0 0 2px #e0533a66,0 0 14px 3px #e0533aaa}
 .lcd .call b.warn{color:#b3261e}
+.lcd .call.on.soft{animation:none;box-shadow:0 0 0 1px #f2b13455,0 0 6px 1px #f2b13466;background:#fff3cf}
 @keyframes callGlow{50%{box-shadow:0 0 0 2px #f2b13422,0 0 4px 0 #f2b13444}}
 @media (prefers-reduced-motion:reduce){.lcd .call.on{animation:none}}
 @media (max-width:600px){.lcd .call{min-width:0;padding:2px 5px}.lcd .call i{font-size:15px}.lcd .call b{font-size:13px}.lcd .call span,.lcd .call .cn{font-size:10px}}
@@ -1983,7 +1984,9 @@ function liveCallList(){
   if(f&1){ let left=null; if(hm!=null){ left=(p[4]*60+p[5])-hm; if(left<0) left+=1440; }
     L.push({k:'slp',ic:'😪',n:'想睡',on:1,left,tot:null,sub:`${hhmm(p[4],p[5])} 前要睡`,tip:'想睡呼叫：撐到起床時間仍未睡就算 1 次失誤。'});
   } else L.push({k:'slp',ic:'😪',n:'想睡',on:0,at:hhmm(p[2],p[3]),tip:'想睡時間（遊戲內時鐘）'});
-  if(f&2) L.push({k:'tir',ic:'😓',n:'疲倦',on:1,tip:'疲倦（疲勞 ≥ 80）：不算失誤，但繼續訓練容易生病，可休息或睡覺。'});
+  const fat=S.fat??0;
+  if((f&2)||fat>=80) L.push({k:'tir',ic:'😓',n:'疲倦',on:1,sub:`疲勞 ${fat}`,tip:'疲倦（疲勞 ≥ 80）：不算失誤，但每次訓練心情 −4、教養 −3，也容易生病。請休息或睡覺。'});
+  else if(fat>=70) L.push({k:'tir',ic:'😓',n:'快疲倦',on:1,soft:1,sub:`疲勞 ${fat}／80`,tip:`疲勞 ${fat}：到 80 就會疲倦（每次訓練心情 −4、教養 −3）。一般訓練每次疲勞約 +10，可以先休息。`});
   if(f&0x20) L.push({k:'sik',ic:'🤒',n:'生病',on:1,tip:'生病：不算失誤，請用藥或去醫院。'});
   if(f&0x40) L.push({k:'inj',ic:'🩹',n:'受傷',on:1,tip:'受傷：不算失誤，請用繃帶或去醫院。'});
   return L;
@@ -1999,7 +2002,7 @@ function liveCallsHTML(){
     else if(c.at) t=`<span>${c.at}</span>`;
     else if(c.left!=null) t=`<span>${c.left>0?'約 '+callMin(c.left)+'後':'快了'}</span>`;
     const tip=c.tip+(c.on&&c.left!=null?`　剩 ${callMin(c.left)}（遊戲時間）${real(c.left)}`:'');
-    return `<div class="call${c.on?' on':''}${c.warn?' warn':''}" title="${esc(tip)}"><i aria-hidden="true">${c.ic}</i><div><span class="cn">${c.n}${c.on?'！':''}</span>${t}</div></div>`;
+    return `<div class="call${c.on?' on':''}${c.soft?' soft':''}${c.warn?' warn':''}" title="${esc(tip)}"><i aria-hidden="true">${c.ic}</i><div><span class="cn">${c.n}${c.on?'！':''}</span>${t}</div></div>`;
   }).join('');
 }
 function liveCallsPaint(){ const el=$('#lcdCalls'); if(!el) return; const h=liveCallsHTML(); if(el.innerHTML!==h) el.innerHTML=h; }

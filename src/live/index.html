@@ -122,6 +122,7 @@ td.num,th.num{text-align:right}
 .lcd .call.on i{filter:none;opacity:1}.lcd .call.on .cn{opacity:1;font-weight:700}
 .lcd .call.warn{border-color:#e0533a;background:#ffd2c4;box-shadow:0 0 0 2px #e0533a66,0 0 14px 3px #e0533aaa}
 .lcd .call b.warn{color:#b3261e}
+.lcd .call.on.soft{animation:none;box-shadow:0 0 0 1px #f2b13455,0 0 6px 1px #f2b13466;background:#fff3cf}
 @keyframes callGlow{50%{box-shadow:0 0 0 2px #f2b13422,0 0 4px 0 #f2b13444}}
 @media (prefers-reduced-motion:reduce){.lcd .call.on{animation:none}}
 @media (max-width:600px){.lcd .call{min-width:0;padding:2px 5px}.lcd .call i{font-size:15px}.lcd .call b{font-size:13px}.lcd .call span,.lcd .call .cn{font-size:10px}}
@@ -1992,7 +1993,9 @@ function liveCallList(){
   if(f&1){ let left=null; if(hm!=null){ left=(p[4]*60+p[5])-hm; if(left<0) left+=1440; }
     L.push({k:'slp',ic:'\ud83d\ude2a',n:'\u60f3\u7761',on:1,left,tot:null,sub:`${hhmm(p[4],p[5])} \u524d\u8981\u7761`,tip:'\u60f3\u7761\u547c\u53eb\uff1a\u6490\u5230\u8d77\u5e8a\u6642\u9593\u4ecd\u672a\u7761\u5c31\u7b97 1 \u6b21\u5931\u8aa4\u3002'});
   } else L.push({k:'slp',ic:'\ud83d\ude2a',n:'\u60f3\u7761',on:0,at:hhmm(p[2],p[3]),tip:'\u60f3\u7761\u6642\u9593\uff08\u904a\u6232\u5167\u6642\u9418\uff09'});
-  if(f&2) L.push({k:'tir',ic:'\ud83d\ude13',n:'\u75b2\u5026',on:1,tip:'\u75b2\u5026\uff08\u75b2\u52de \u2265 80\uff09\uff1a\u4e0d\u7b97\u5931\u8aa4\uff0c\u4f46\u7e7c\u7e8c\u8a13\u7df4\u5bb9\u6613\u751f\u75c5\uff0c\u53ef\u4f11\u606f\u6216\u7761\u89ba\u3002'});
+  const fat=S.fat??0;
+  if((f&2)||fat>=80) L.push({k:'tir',ic:'\ud83d\ude13',n:'\u75b2\u5026',on:1,sub:`\u75b2\u52de ${fat}`,tip:'\u75b2\u5026\uff08\u75b2\u52de \u2265 80\uff09\uff1a\u4e0d\u7b97\u5931\u8aa4\uff0c\u4f46\u6bcf\u6b21\u8a13\u7df4\u5fc3\u60c5 \u22124\u3001\u6559\u990a \u22123\uff0c\u4e5f\u5bb9\u6613\u751f\u75c5\u3002\u8acb\u4f11\u606f\u6216\u7761\u89ba\u3002'});
+  else if(fat>=70) L.push({k:'tir',ic:'\ud83d\ude13',n:'\u5feb\u75b2\u5026',on:1,soft:1,sub:`\u75b2\u52de ${fat}\uff0f80`,tip:`\u75b2\u52de ${fat}\uff1a\u5230 80 \u5c31\u6703\u75b2\u5026\uff08\u6bcf\u6b21\u8a13\u7df4\u5fc3\u60c5 \u22124\u3001\u6559\u990a \u22123\uff09\u3002\u4e00\u822c\u8a13\u7df4\u6bcf\u6b21\u75b2\u52de\u7d04 +10\uff0c\u53ef\u4ee5\u5148\u4f11\u606f\u3002`});
   if(f&0x20) L.push({k:'sik',ic:'\ud83e\udd12',n:'\u751f\u75c5',on:1,tip:'\u751f\u75c5\uff1a\u4e0d\u7b97\u5931\u8aa4\uff0c\u8acb\u7528\u85e5\u6216\u53bb\u91ab\u9662\u3002'});
   if(f&0x40) L.push({k:'inj',ic:'\ud83e\ude79',n:'\u53d7\u50b7',on:1,tip:'\u53d7\u50b7\uff1a\u4e0d\u7b97\u5931\u8aa4\uff0c\u8acb\u7528\u7e43\u5e36\u6216\u53bb\u91ab\u9662\u3002'});
   return L;
@@ -2008,7 +2011,7 @@ function liveCallsHTML(){
     else if(c.at) t=`<span>${c.at}</span>`;
     else if(c.left!=null) t=`<span>${c.left>0?'\u7d04 '+callMin(c.left)+'\u5f8c':'\u5feb\u4e86'}</span>`;
     const tip=c.tip+(c.on&&c.left!=null?`\u3000\u5269 ${callMin(c.left)}\uff08\u904a\u6232\u6642\u9593\uff09${real(c.left)}`:'');
-    return `<div class="call${c.on?' on':''}${c.warn?' warn':''}" title="${esc(tip)}"><i aria-hidden="true">${c.ic}</i><div><span class="cn">${c.n}${c.on?'\uff01':''}</span>${t}</div></div>`;
+    return `<div class="call${c.on?' on':''}${c.soft?' soft':''}${c.warn?' warn':''}" title="${esc(tip)}"><i aria-hidden="true">${c.ic}</i><div><span class="cn">${c.n}${c.on?'\uff01':''}</span>${t}</div></div>`;
   }).join('');
 }
 function liveCallsPaint(){ const el=$('#lcdCalls'); if(!el) return; const h=liveCallsHTML(); if(el.innerHTML!==h) el.innerHTML=h; }
