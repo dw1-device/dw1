@@ -758,7 +758,7 @@ function trainGain(gym, base, lv, noFood, main){
 
 
 /* ---------- training planner ---------- */
-const REST = {hosp:{name:'人馬醫院休息',per:20},chair:{name:'布尼獸椅子休息',per:10}};
+const REST = {hosp:{name:'人馬醫院休息',per:20},chair:{name:'布尼獸椅子休息',per:10},kuga:{name:'甲蟲島古加獸休息',per:5}};
 function drills(){ const out=[]; GYMS.filter(g=>S.planGyms.includes(g.id)).forEach(g=>g.items.forEach(([n,base,main])=>out.push({gym:g,n,base,main}))); return out; }
 function forwardPaths(target){
   const cur=S.cur; const seen=new Set(); return pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur))).filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
@@ -2205,6 +2205,7 @@ function vRaise(){
     <div class="row">
       <button class="b" data-rest="-20">人馬醫院休息 1 小時（−20）</button>
       <button class="b" data-rest="-10">布尼獸椅子 1 小時（−10）</button>
+      <button class="b" data-rest="-5">甲蟲島古加獸 1 小時（−5）</button>
       <button class="b" data-rest="sleep">睡一晚（約 −${hasPillow()?'108，有安眠枕頭':'90'}）</button>
       <button class="b" data-rest="-5" data-food="1">吃極上肉（−5）</button>
       <button class="b" data-rest="5">戰鬥一場（+5）</button>

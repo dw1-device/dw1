@@ -767,7 +767,7 @@ function trainGain(gym, base, lv, noFood, main){
 
 
 /* ---------- training planner ---------- */
-const REST = {hosp:{name:'\u4eba\u99ac\u91ab\u9662\u4f11\u606f',per:20},chair:{name:'\u5e03\u5c3c\u7378\u6905\u5b50\u4f11\u606f',per:10}};
+const REST = {hosp:{name:'\u4eba\u99ac\u91ab\u9662\u4f11\u606f',per:20},chair:{name:'\u5e03\u5c3c\u7378\u6905\u5b50\u4f11\u606f',per:10},kuga:{name:'\u7532\u87f2\u5cf6\u53e4\u52a0\u7378\u4f11\u606f',per:5}};
 function drills(){ const out=[]; GYMS.filter(g=>S.planGyms.includes(g.id)).forEach(g=>g.items.forEach(([n,base,main])=>out.push({gym:g,n,base,main}))); return out; }
 function forwardPaths(target){
   const cur=S.cur; const seen=new Set(); return pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur))).filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
@@ -2214,6 +2214,7 @@ function vRaise(){
     <div class="row">
       <button class="b" data-rest="-20">\u4eba\u99ac\u91ab\u9662\u4f11\u606f 1 \u5c0f\u6642\uff08\u221220\uff09</button>
       <button class="b" data-rest="-10">\u5e03\u5c3c\u7378\u6905\u5b50 1 \u5c0f\u6642\uff08\u221210\uff09</button>
+      <button class="b" data-rest="-5">\u7532\u87f2\u5cf6\u53e4\u52a0\u7378 1 \u5c0f\u6642\uff08\u22125\uff09</button>
       <button class="b" data-rest="sleep">\u7761\u4e00\u665a\uff08\u7d04 \u2212${hasPillow()?'108\uff0c\u6709\u5b89\u7720\u6795\u982d':'90'}\uff09</button>
       <button class="b" data-rest="-5" data-food="1">\u5403\u6975\u4e0a\u8089\uff08\u22125\uff09</button>
       <button class="b" data-rest="5">\u6230\u9b25\u4e00\u5834\uff08+5\uff09</button>
