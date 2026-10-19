@@ -794,7 +794,11 @@ function trainGain(gym, base, lv, noFood, main){
 const REST = {hosp:{name:'人馬醫院休息',per:20},chair:{name:'布尼獸椅子休息',per:10},kuga:{name:'甲蟲島古加獸休息',per:5}};
 function drills(){ const out=[]; GYMS.filter(g=>S.planGyms.includes(g.id)).forEach(g=>g.items.forEach(([n,base,main])=>out.push({gym:g,n,base,main}))); return out; }
 function forwardPaths(target){
-  const cur=S.cur; const seen=new Set(); return pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur))).filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
+  const cur=S.cur; const seen=new Set();
+  // 由目前的精靈沿一般進化（D.evo[].to）往下找；特殊進化得來的精靈（例如大便獸）不在由蛋開始的路線裏，也要找得到
+  const direct=[]; const walk=(x,p)=>{ if(p.length>6) return; if(x===target){ direct.push(p); return; } (D.evo[x]?.to||[]).forEach(n=>{ if(D.evo[n] && !D.evo[n].special && !p.includes(n)) walk(n,[...p,n]); }); };
+  if(target!==cur) walk(cur,[cur]);
+  return [...pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur))), ...direct].filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
 }
 let PF=0;
 function simulate(st0, lv, goalFn, pickStat, cap){
@@ -948,7 +952,7 @@ function evoHelper(cur,to){
   const P0=predictEvo(base); let stat;
   if(P0.best===to) stat=`<div class="nstat g">✓ 按目前數值${age!=null&&age<start?`，滿 ${start} 小時時`:''}會進化成 <b>${DG[to].name}</b>。</div>`;
   else if(P0.best!==-1) stat=`<div class="nstat r">✗ 按目前數值${age!=null&&age<start?`，滿 ${start} 小時時`:''}會進化成 <b>${DG[P0.best].name}</b>。</div>`;
-  else { const r0=P0.rows.find(r=>r.id===to); stat=`<div class="nstat y">目前${DG[to].name}符合 ${r0?r0.met:0}／4 組，還未合資格${lv===3?'；到 96 小時仍沒有候選合資格會變成鼻涕獸':''}。</div>`; }
+  else { const r0=P0.rows.find(r=>r.id===to); stat=`<div class="nstat y">目前${DG[to].name}符合 ${r0?r0.met:0}／4 組，還未合資格${lv===3?'；到 96 小時仍沒有候選合資格會變成鼻涕獸':''}。</div>`+(lv===4?guardHTML(guardList(base,-1),-1):''); }
   return `<div class="ehelp">${stat}${evoItemNote(cur)}
     <h3>① 選擇要達成的條件 <small class="hint">已勾選 ${nPick}／4（最少要滿足 3 項）</small></h3>
     <div class="ecards">${cards}</div>${warn}
@@ -969,7 +973,8 @@ function vPlan(){
   const d=DG[S.cur], rookie=d.level===3;
   const spSame=x=>x.level>=d.level && x.level>=3 && SPECIAL.filter(z=>z.to===x.name && ((z.from&&z.from.includes(d.name))||(z.stage&&z.stage===d.level)||(z.stageMin&&d.level>=z.stageMin))).length>0 && x.id!==d.id;
   const reach=x=>(x.level>d.level && x.level>=3 && forwardPaths(x.id).length>0) || spSame(x);
-  if(S.planTarget==null || !DG[S.planTarget]){ const t=D.digis.filter(reach); S.planTarget=(t.find(x=>x.level===5)||t[0]||{}).id ?? nid('暴龍獸'); }
+  if(S.planTarget==null || !DG[S.planTarget] || (S.planFor!==S.cur && !reach(DG[S.planTarget]) && S.planTarget!==NUMEMON)){ const t=D.digis.filter(reach); const pb=predictEvo().best; S.planTarget=(pb>=0&&DG[pb]?pb:null) ?? ((D.evo[S.cur]?.to||[]).map(i=>DG[i]).find(x=>x&&reach(x))||t.find(x=>x.level===d.level+1)||t.find(x=>x.level===5)||t[0]||{}).id ?? S.planTarget ?? nid('暴龍獸'); }
+  S.planFor=S.cur;
   const tgt=S.planTarget;
   const numOk=rookie && !(BUILD!=='live' && NOSAVE());
   // 全部精靈都可以選（選蛋前也可以查閱）；目前精靈走得到的加上 ★

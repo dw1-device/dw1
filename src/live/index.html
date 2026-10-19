@@ -803,7 +803,11 @@ function trainGain(gym, base, lv, noFood, main){
 const REST = {hosp:{name:'\u4eba\u99ac\u91ab\u9662\u4f11\u606f',per:20},chair:{name:'\u5e03\u5c3c\u7378\u6905\u5b50\u4f11\u606f',per:10},kuga:{name:'\u7532\u87f2\u5cf6\u53e4\u52a0\u7378\u4f11\u606f',per:5}};
 function drills(){ const out=[]; GYMS.filter(g=>S.planGyms.includes(g.id)).forEach(g=>g.items.forEach(([n,base,main])=>out.push({gym:g,n,base,main}))); return out; }
 function forwardPaths(target){
-  const cur=S.cur; const seen=new Set(); return pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur))).filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
+  const cur=S.cur; const seen=new Set();
+  // \u7531\u76ee\u524d\u7684\u7cbe\u9748\u6cbf\u4e00\u822c\u9032\u5316\uff08D.evo[].to\uff09\u5f80\u4e0b\u627e\uff1b\u7279\u6b8a\u9032\u5316\u5f97\u4f86\u7684\u7cbe\u9748\uff08\u4f8b\u5982\u5927\u4fbf\u7378\uff09\u4e0d\u5728\u7531\u86cb\u958b\u59cb\u7684\u8def\u7dda\u88cf\uff0c\u4e5f\u8981\u627e\u5f97\u5230
+  const direct=[]; const walk=(x,p)=>{ if(p.length>6) return; if(x===target){ direct.push(p); return; } (D.evo[x]?.to||[]).forEach(n=>{ if(D.evo[n] && !D.evo[n].special && !p.includes(n)) walk(n,[...p,n]); }); };
+  if(target!==cur) walk(cur,[cur]);
+  return [...pathsTo(target).filter(p=>p.includes(cur)).map(p=>p.slice(p.indexOf(cur))), ...direct].filter(p=>{ const k=p.join(','); if(seen.has(k)) return false; seen.add(k); return true; });
 }
 let PF=0;
 function simulate(st0, lv, goalFn, pickStat, cap){
@@ -957,7 +961,7 @@ function evoHelper(cur,to){
   const P0=predictEvo(base); let stat;
   if(P0.best===to) stat=`<div class="nstat g">\u2713 \u6309\u76ee\u524d\u6578\u503c${age!=null&&age<start?`\uff0c\u6eff ${start} \u5c0f\u6642\u6642`:''}\u6703\u9032\u5316\u6210 <b>${DG[to].name}</b>\u3002</div>`;
   else if(P0.best!==-1) stat=`<div class="nstat r">\u2717 \u6309\u76ee\u524d\u6578\u503c${age!=null&&age<start?`\uff0c\u6eff ${start} \u5c0f\u6642\u6642`:''}\u6703\u9032\u5316\u6210 <b>${DG[P0.best].name}</b>\u3002</div>`;
-  else { const r0=P0.rows.find(r=>r.id===to); stat=`<div class="nstat y">\u76ee\u524d${DG[to].name}\u7b26\u5408 ${r0?r0.met:0}\uff0f4 \u7d44\uff0c\u9084\u672a\u5408\u8cc7\u683c${lv===3?'\uff1b\u5230 96 \u5c0f\u6642\u4ecd\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\u6703\u8b8a\u6210\u9f3b\u6d95\u7378':''}\u3002</div>`; }
+  else { const r0=P0.rows.find(r=>r.id===to); stat=`<div class="nstat y">\u76ee\u524d${DG[to].name}\u7b26\u5408 ${r0?r0.met:0}\uff0f4 \u7d44\uff0c\u9084\u672a\u5408\u8cc7\u683c${lv===3?'\uff1b\u5230 96 \u5c0f\u6642\u4ecd\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\u6703\u8b8a\u6210\u9f3b\u6d95\u7378':''}\u3002</div>`+(lv===4?guardHTML(guardList(base,-1),-1):''); }
   return `<div class="ehelp">${stat}${evoItemNote(cur)}
     <h3>\u2460 \u9078\u64c7\u8981\u9054\u6210\u7684\u689d\u4ef6 <small class="hint">\u5df2\u52fe\u9078 ${nPick}\uff0f4\uff08\u6700\u5c11\u8981\u6eff\u8db3 3 \u9805\uff09</small></h3>
     <div class="ecards">${cards}</div>${warn}
@@ -978,7 +982,8 @@ function vPlan(){
   const d=DG[S.cur], rookie=d.level===3;
   const spSame=x=>x.level>=d.level && x.level>=3 && SPECIAL.filter(z=>z.to===x.name && ((z.from&&z.from.includes(d.name))||(z.stage&&z.stage===d.level)||(z.stageMin&&d.level>=z.stageMin))).length>0 && x.id!==d.id;
   const reach=x=>(x.level>d.level && x.level>=3 && forwardPaths(x.id).length>0) || spSame(x);
-  if(S.planTarget==null || !DG[S.planTarget]){ const t=D.digis.filter(reach); S.planTarget=(t.find(x=>x.level===5)||t[0]||{}).id ?? nid('\u66b4\u9f8d\u7378'); }
+  if(S.planTarget==null || !DG[S.planTarget] || (S.planFor!==S.cur && !reach(DG[S.planTarget]) && S.planTarget!==NUMEMON)){ const t=D.digis.filter(reach); const pb=predictEvo().best; S.planTarget=(pb>=0&&DG[pb]?pb:null) ?? ((D.evo[S.cur]?.to||[]).map(i=>DG[i]).find(x=>x&&reach(x))||t.find(x=>x.level===d.level+1)||t.find(x=>x.level===5)||t[0]||{}).id ?? S.planTarget ?? nid('\u66b4\u9f8d\u7378'); }
+  S.planFor=S.cur;
   const tgt=S.planTarget;
   const numOk=rookie && !(BUILD!=='live' && NOSAVE());
   // \u5168\u90e8\u7cbe\u9748\u90fd\u53ef\u4ee5\u9078\uff08\u9078\u86cb\u524d\u4e5f\u53ef\u4ee5\u67e5\u95b1\uff09\uff1b\u76ee\u524d\u7cbe\u9748\u8d70\u5f97\u5230\u7684\u52a0\u4e0a \u2605
