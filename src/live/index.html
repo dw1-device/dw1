@@ -764,6 +764,16 @@ const ITEM_ALIAS={'\u30da\u30f3\u30da\u30f3\u30da\u30f3\u8349':'\u30da\u30f3\u30
 const ITEM_NORM=t=>String(t||'').normalize('NFKC');
 function itemRow(id){ const jp=ITEM_NORM(ITEM_ALIAS[ITEM_JP[id]]||ITEM_JP[id]); return ITEMS.find(r=>ITEM_NORM(r[2])===jp)||null; }
 function itemName(id){ const r=itemRow(id); return r? r[1] : (ITEM_JP[id]||('\u9053\u5177 '+id)); }
+/* \u9032\u5316\u9053\u5177\uff08\u4e3b\u7a0b\u5f0f 0x800ccdd0\uff1b\u9053\u5177 71\uff5e114 \u5c0d\u7167\u8868 0x801348CC\uff0c125\uff0f126\uff0f127 \u2192 64\uff0f63\uff0f65\uff09\uff1a
+   \u53ea\u9650\u300c\u76ee\u524d\u7b49\u7d1a\uff1d\u76ee\u6a19\u7b49\u7d1a \u22121\u300d\u624d\u53ef\u4ee5\u7528\uff0c\u7528\u4e86\u7acb\u5373\u9032\u5316\uff0c\u4e0d\u770b\u4efb\u4f55\u689d\u4ef6\u3001\u4e0d\u7528\u7b49\u6642\u9593\u3002 */
+const EVO_ITEM={71:5,72:9,73:21,74:36,75:47,76:38,77:8,78:6,79:34,80:48,81:20,82:37,84:7,85:50,86:33,87:19,88:51,89:25,90:58,91:10,92:24,93:35,94:49,95:22,96:23,97:52,98:53,99:12,100:26,101:40,102:54,103:13,104:27,105:41,106:55,107:14,108:28,109:42,110:56,111:59,112:60,113:61,114:62,125:64,126:63,127:65};
+function evoItemsFor(cur){ const lv=DG[cur]?.level; const out=[];
+  const add=(list,where)=>(list||[]).forEach(([id,n])=>{ const to=EVO_ITEM[id]; if(n>0 && to!==undefined && DG[to] && DG[to].level===lv+1 && to!==cur && !out.some(x=>x.id===id)) out.push({id,to,where}); });
+  add(S.bag,'bag'); add(S.storage,'storage'); return out; }
+function evoItemNote(cur){ const L=evoItemsFor(cur); if(!L.length) return '';
+  const bag=L.filter(x=>x.where==='bag'), st=L.filter(x=>x.where==='storage');
+  return (bag.length?`<div class="note"><b>\u26a0 \u80cc\u5305\u88cf\u6709\u9032\u5316\u9053\u5177</b>\uff1a${bag.map(x=>`${esc(itemName(x.id))} \u2192 <b>${DG[x.to].name}</b>`).join('\u3001')}\u3002\u7d66\u7260\u5403\uff08\u4f7f\u7528\uff09\u6703<b>\u7acb\u5373\u9032\u5316</b>\uff0c\u4e0d\u770b\u4efb\u4f55\u689d\u4ef6\uff0c\u4e5f\u4e0d\u7528\u7b49\u9032\u5316\u6642\u9593\u3002\u60f3\u4fdd\u6301\u76ee\u524d\u8def\u7dda\u7684\u8a71\uff0c\u9935\u98df\u6642\u5c0f\u5fc3\u4e0d\u8981\u9078\u4e2d\u3002</div>`:'')
+    +(st.length?`<p class="hint">\u5009\u5eab\u88cf\u4e5f\u6709\u53ef\u4ee5\u4ee4${DG[cur].name}\u7acb\u5373\u9032\u5316\u7684\u9053\u5177\uff1a${st.map(x=>`${esc(itemName(x.id))} \u2192 ${DG[x.to].name}`).join('\u3001')}\uff08\u8981\u5148\u53d6\u51fa\u653e\u9032\u80cc\u5305\u624d\u53ef\u4ee5\u7528\uff09\u3002</p>`:''); }
 function hasItem(id){ return !!(S.bag && S.bag.some(x=>x[0]===id && x[1]>0)); }
 function bonusState(){
   const rec=new Set(S.recruited||[]);
@@ -948,7 +958,7 @@ function evoHelper(cur,to){
   if(P0.best===to) stat=`<div class="nstat g">\u2713 \u6309\u76ee\u524d\u6578\u503c${age!=null&&age<start?`\uff0c\u6eff ${start} \u5c0f\u6642\u6642`:''}\u6703\u9032\u5316\u6210 <b>${DG[to].name}</b>\u3002</div>`;
   else if(P0.best!==-1) stat=`<div class="nstat r">\u2717 \u6309\u76ee\u524d\u6578\u503c${age!=null&&age<start?`\uff0c\u6eff ${start} \u5c0f\u6642\u6642`:''}\u6703\u9032\u5316\u6210 <b>${DG[P0.best].name}</b>\u3002</div>`;
   else { const r0=P0.rows.find(r=>r.id===to); stat=`<div class="nstat y">\u76ee\u524d${DG[to].name}\u7b26\u5408 ${r0?r0.met:0}\uff0f4 \u7d44\uff0c\u9084\u672a\u5408\u8cc7\u683c${lv===3?'\uff1b\u5230 96 \u5c0f\u6642\u4ecd\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\u6703\u8b8a\u6210\u9f3b\u6d95\u7378':''}\u3002</div>`; }
-  return `<div class="ehelp">${stat}
+  return `<div class="ehelp">${stat}${evoItemNote(cur)}
     <h3>\u2460 \u9078\u64c7\u8981\u9054\u6210\u7684\u689d\u4ef6 <small class="hint">\u5df2\u52fe\u9078 ${nPick}\uff0f4\uff08\u6700\u5c11\u8981\u6eff\u8db3 3 \u9805\uff09</small></h3>
     <div class="ecards">${cards}</div>${warn}
     ${result?`<h3>\u2461 \u7d50\u679c\u9810\u6e2c</h3>${result}`:''}
@@ -2190,6 +2200,7 @@ function vRaise(){
     if(!P.rows.length) evoHTML+='<p class="hint">\u9019\u96bb\u6578\u78bc\u7cbe\u9748\u6c92\u6709\u4e00\u822c\u9032\u5316\uff0c\u53ea\u80fd\u7d93\u7279\u6b8a\u65b9\u5f0f\u9032\u5316\u3002</p>';
     else evoHTML+= P.best===-1? '<div class="note">\u6309\u76ee\u524d\u6578\u503c\uff0c\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\uff083 \u7d44\uff09\uff0c\u4e0d\u6703\u9032\u5316'+(d.level===3?'\uff1b\u6210\u9577\u671f\u6eff 96 \u5c0f\u6642\u4ecd\u662f\u9019\u6a23\u5c31\u6703\u8b8a\u6210\u9f3b\u6d95\u7378':'')+'\u3002</div>'
       : `<div class="note ok-note">\u6309\u76ee\u524d\u6578\u503c\u6703\u9032\u5316\u6210 <b>${DG[P.best].name}</b>\u3002</div>`;
+    evoHTML+=evoItemNote(S.cur);
     if(NOSAVE() && !(S.raised||[]).length && P.rows.filter(r=>r.met>=3).length>=2) evoHTML+='<div class="note info">\u6709\u5e7e\u500b\u5019\u9078\u540c\u6642\u5408\u8cc7\u683c\uff0c\u7d50\u679c\u6703\u53d7\u300c\u4ee5\u524d\u990a\u904e\u7684\u6578\u78bc\u7cbe\u9748\u300d\u5f71\u97ff\u3002\u8a18\u5f97\u5728\u4e0b\u9762\u52fe\u9078\u4ee5\u524d\u990a\u904e\u7684\u7cbe\u9748\uff08\u8001\u723a\u723a\u5bb6\u7684\u9032\u5316\u5716\u9451\u53ef\u4ee5\u67e5\u770b\uff09\uff0c\u9810\u6e2c\u624d\u6e96\u78ba\u3002</div>';
     const goals=P.rows.map(r=>r.id); if(d.level===3) goals.push(NUMEMON);
     if(!goals.includes(S.evoGoal)) S.evoGoal=goals[0];
