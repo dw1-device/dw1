@@ -378,7 +378,7 @@ if(S.sample){ ['cur','stats','weight','mis','win','tech','hap','dis','fat','live
 S.tab='save'; // 每次開啟網頁先顯示上載存檔／實時連線
 /* 網頁版「解除連結」：清除存檔帶入的資料，回到預設值；保留訓練場地、休息方式、疲勞上限等偏好 */
 const UNLINK={armed:false,timer:null};
-const SV_KEYS=['svList','poop','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
+const SV_KEYS=['svList','poop','planFor','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
   'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
 function svUnlink(){
   SV_KEYS.forEach(k=>{ if(k in DEF) S[k]=JSON.parse(JSON.stringify(DEF[k])); else delete S[k]; });
