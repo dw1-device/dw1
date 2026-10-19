@@ -556,7 +556,7 @@ function guardList(ctx, to){
   });
   return out;
 }
-function guardHTML(G, to){ if(!G.length) return ''; return `<div class="note"><b>要避免</b>（做了任何一項，就不會進化成${DG[to].name}）：<ul class="ml2">${G.map(g=>`<li>${esc(g.t)} → ${g.to===-1?'沒有候選合資格，不會進化':`會變成 <b>${DG[g.to].name}</b>`}${g.why?`<span class="hint">（${esc(g.why)}）</span>`:''}</li>`).join('')}</ul></div>`; }
+function guardHTML(G, to){ if(!G.length) return ''; if(to===-1) return `<div class="note"><b>差一步就會進化</b>（目前沒有候選合資格；以下任何一項改變，下一個整點判定就會進化，吃東西也會改變體重和能力）：<ul class="ml2">${G.map(g=>`<li>${esc(g.t.replace('不要',''))} → 會進化成 <b>${DG[g.to].name}</b></li>`).join('')}</ul></div>`; return `<div class="note"><b>要避免</b>（做了任何一項，就不會進化成${DG[to].name}）：<ul class="ml2">${G.map(g=>`<li>${esc(g.t)} → ${g.to===-1?'沒有候選合資格，不會進化':`會變成 <b>${DG[g.to].name}</b>`}${g.why?`<span class="hint">（${esc(g.why)}）</span>`:''}</li>`).join('')}</ul></div>`; }
 // 找一個不在任何候選體重範圍內、最接近目前的體重
 function safeWeight(rows, w){
   const wins=rows.map(r=>D.evo[r.id]).filter(e=>e&&e.w!==undefined).map(e=>[e.w-5,e.w+5]);
@@ -2192,6 +2192,7 @@ function vRaise(){
     else evoHTML+= P.best===-1? '<div class="note">按目前數值，沒有候選合資格（3 組），不會進化'+(d.level===3?'；成長期滿 96 小時仍是這樣就會變成鼻涕獸':'')+'。</div>'
       : `<div class="note ok-note">按目前數值會進化成 <b>${DG[P.best].name}</b>。</div>`;
     evoHTML+=evoItemNote(S.cur);
+    if(P.rows.length && P.best===-1 && d.level===4 && known('age')) evoHTML+=guardHTML(guardList(null,-1),-1);
     if(NOSAVE() && !(S.raised||[]).length && P.rows.filter(r=>r.met>=3).length>=2) evoHTML+='<div class="note info">有幾個候選同時合資格，結果會受「以前養過的數碼精靈」影響。記得在下面勾選以前養過的精靈（老爺爺家的進化圖鑑可以查看），預測才準確。</div>';
     const goals=P.rows.map(r=>r.id); if(d.level===3) goals.push(NUMEMON);
     if(!goals.includes(S.evoGoal)) S.evoGoal=goals[0];

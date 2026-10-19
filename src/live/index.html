@@ -565,7 +565,7 @@ function guardList(ctx, to){
   });
   return out;
 }
-function guardHTML(G, to){ if(!G.length) return ''; return `<div class="note"><b>\u8981\u907f\u514d</b>\uff08\u505a\u4e86\u4efb\u4f55\u4e00\u9805\uff0c\u5c31\u4e0d\u6703\u9032\u5316\u6210${DG[to].name}\uff09\uff1a<ul class="ml2">${G.map(g=>`<li>${esc(g.t)} \u2192 ${g.to===-1?'\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\uff0c\u4e0d\u6703\u9032\u5316':`\u6703\u8b8a\u6210 <b>${DG[g.to].name}</b>`}${g.why?`<span class="hint">\uff08${esc(g.why)}\uff09</span>`:''}</li>`).join('')}</ul></div>`; }
+function guardHTML(G, to){ if(!G.length) return ''; if(to===-1) return `<div class="note"><b>\u5dee\u4e00\u6b65\u5c31\u6703\u9032\u5316</b>\uff08\u76ee\u524d\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\uff1b\u4ee5\u4e0b\u4efb\u4f55\u4e00\u9805\u6539\u8b8a\uff0c\u4e0b\u4e00\u500b\u6574\u9ede\u5224\u5b9a\u5c31\u6703\u9032\u5316\uff0c\u5403\u6771\u897f\u4e5f\u6703\u6539\u8b8a\u9ad4\u91cd\u548c\u80fd\u529b\uff09\uff1a<ul class="ml2">${G.map(g=>`<li>${esc(g.t.replace('\u4e0d\u8981',''))} \u2192 \u6703\u9032\u5316\u6210 <b>${DG[g.to].name}</b></li>`).join('')}</ul></div>`; return `<div class="note"><b>\u8981\u907f\u514d</b>\uff08\u505a\u4e86\u4efb\u4f55\u4e00\u9805\uff0c\u5c31\u4e0d\u6703\u9032\u5316\u6210${DG[to].name}\uff09\uff1a<ul class="ml2">${G.map(g=>`<li>${esc(g.t)} \u2192 ${g.to===-1?'\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\uff0c\u4e0d\u6703\u9032\u5316':`\u6703\u8b8a\u6210 <b>${DG[g.to].name}</b>`}${g.why?`<span class="hint">\uff08${esc(g.why)}\uff09</span>`:''}</li>`).join('')}</ul></div>`; }
 // \u627e\u4e00\u500b\u4e0d\u5728\u4efb\u4f55\u5019\u9078\u9ad4\u91cd\u7bc4\u570d\u5167\u3001\u6700\u63a5\u8fd1\u76ee\u524d\u7684\u9ad4\u91cd
 function safeWeight(rows, w){
   const wins=rows.map(r=>D.evo[r.id]).filter(e=>e&&e.w!==undefined).map(e=>[e.w-5,e.w+5]);
@@ -2201,6 +2201,7 @@ function vRaise(){
     else evoHTML+= P.best===-1? '<div class="note">\u6309\u76ee\u524d\u6578\u503c\uff0c\u6c92\u6709\u5019\u9078\u5408\u8cc7\u683c\uff083 \u7d44\uff09\uff0c\u4e0d\u6703\u9032\u5316'+(d.level===3?'\uff1b\u6210\u9577\u671f\u6eff 96 \u5c0f\u6642\u4ecd\u662f\u9019\u6a23\u5c31\u6703\u8b8a\u6210\u9f3b\u6d95\u7378':'')+'\u3002</div>'
       : `<div class="note ok-note">\u6309\u76ee\u524d\u6578\u503c\u6703\u9032\u5316\u6210 <b>${DG[P.best].name}</b>\u3002</div>`;
     evoHTML+=evoItemNote(S.cur);
+    if(P.rows.length && P.best===-1 && d.level===4 && known('age')) evoHTML+=guardHTML(guardList(null,-1),-1);
     if(NOSAVE() && !(S.raised||[]).length && P.rows.filter(r=>r.met>=3).length>=2) evoHTML+='<div class="note info">\u6709\u5e7e\u500b\u5019\u9078\u540c\u6642\u5408\u8cc7\u683c\uff0c\u7d50\u679c\u6703\u53d7\u300c\u4ee5\u524d\u990a\u904e\u7684\u6578\u78bc\u7cbe\u9748\u300d\u5f71\u97ff\u3002\u8a18\u5f97\u5728\u4e0b\u9762\u52fe\u9078\u4ee5\u524d\u990a\u904e\u7684\u7cbe\u9748\uff08\u8001\u723a\u723a\u5bb6\u7684\u9032\u5316\u5716\u9451\u53ef\u4ee5\u67e5\u770b\uff09\uff0c\u9810\u6e2c\u624d\u6e96\u78ba\u3002</div>';
     const goals=P.rows.map(r=>r.id); if(d.level===3) goals.push(NUMEMON);
     if(!goals.includes(S.evoGoal)) S.evoGoal=goals[0];
