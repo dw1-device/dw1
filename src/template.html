@@ -535,6 +535,28 @@ function raiseWays(to, fin){
   });
   return out.sort((a,b)=>a.n-b.n);
 }
+// 目前會進化成 to 時，列出「哪一個數值改變會令其他候選搶先」（只列做了會改變結果的）
+function guardList(ctx, to){
+  const c={cur:S.cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win??0, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised, ...(ctx||{})};
+  const P=predictEvo(c); if(P.best!==to) return [];
+  const lab={hap:'心情',dis:'教養',win:'戰勝',tech:'技能數'}; const out=[], seen=new Set();
+  P.rows.forEach(r=>{ if(r.id===to || r.eff>=3) return; const e=D.evo[r.id]; if(!e||!e.stats) return;
+    const tries=[];
+    r.groups.forEach(g=>{ if(g.ok) return;
+      if(g.k==='stat'){ const miss=g.miss||[]; if(miss.length && miss.length<=2) tries.push({t:miss.length===1?`${SN[miss[0]]}不要練到 ${e.stats[miss[0]]}（目前 ${c.stats[miss[0]]}）`:`${miss.map(k=>`${SN[k]} ${e.stats[k]}`).join('、')}不要同時練到`, c:{stats:{...c.stats,...Object.fromEntries(miss.map(k=>[k,e.stats[k]]))}}}); }
+      if(g.k==='mis' && e.mis && e.mis[1]==='ge') tries.push({t:`失誤不要到 ${e.mis[0]} 次（目前 ${c.mis} 次，最多再犯 ${Math.max(0,e.mis[0]-1-c.mis)} 次）`, c:{mis:e.mis[0]}});
+      if(g.k==='w' && e.w!==undefined){ const lo=e.w-5, hi=e.w+5; tries.push(c.weight<lo? {t:`體重不要升到 ${lo}g（目前 ${c.weight}g）`, c:{weight:lo}} : {t:`體重不要降到 ${hi}g（目前 ${c.weight}g）`, c:{weight:hi}}); }
+      if(g.k==='bonus') (g.bon||[]).forEach(b=>{ const k=b.b.k; if(!lab[k]) return; tries.push({t: b.b.op==='le'? `${lab[k]}不要降到 ${b.b.v}（目前 ${c[k]}）` : `${lab[k]}不要升到 ${b.b.v}（目前 ${c[k]}）`, c:{[k]:b.b.v}}); });
+    });
+    tries.forEach(x=>{ const q=predictEvo({...c,...x.c}); if(q.best===to || seen.has(x.t)) return; seen.add(x.t);
+      const w=q.rows.find(z=>z.id===q.best), tg=q.rows.find(z=>z.id===to);
+      let why=''; if(q.best===r.id && w && tg && w.avg!==undefined && tg.avg===w.avg) why=`${DG[r.id].name}要求的能力和${DG[to].name}一樣，平均相同時排前面的${DG[r.id].name}勝出`;
+      else if(q.best===r.id && w && tg && w.avg!==undefined && tg.eff>=3 && tg.avg<=w.avg) why=`${DG[r.id].name}排在前面，平均 ${w.avg} 不低於${DG[to].name}`;
+      out.push({id:r.id, to:q.best, t:x.t, why}); });
+  });
+  return out;
+}
+function guardHTML(G, to){ if(!G.length) return ''; return `<div class="note"><b>要避免</b>（做了任何一項，就不會進化成${DG[to].name}）：<ul class="ml2">${G.map(g=>`<li>${esc(g.t)} → ${g.to===-1?'沒有候選合資格，不會進化':`會變成 <b>${DG[g.to].name}</b>`}${g.why?`<span class="hint">（${esc(g.why)}）</span>`:''}</li>`).join('')}</ul></div>`; }
 // 找一個不在任何候選體重範圍內、最接近目前的體重
 function safeWeight(rows, w){
   const wins=rows.map(r=>D.evo[r.id]).filter(e=>e&&e.w!==undefined).map(e=>[e.w-5,e.w+5]);
@@ -853,7 +875,7 @@ function evoHelper(cur,to){
   let warn='';
   if(nPick<3) warn+=`<div class="nstat r">⚠ 最少要滿足 3 項才會進化，目前只勾選了 ${nPick} 項${e.rookie?'（成長期的失誤組永遠符合，已自動計算）':''}。</div>`;
   if(badPick.length) warn+=`<div class="nstat r">⚠ ${badPick.map(k=>GRP_NAME[k]).join('、')}按目前情況做不到，請改勾其他條件。</div>`;
-  if(nPick===4 && !e.rookie) warn+=`<div class="hint">4 項全勾最穩陣：其中一項失手仍然有 3 項。</div>`;
+  if(nPick===4 && !e.rookie) warn+=`<div class="hint">4 項全勾可以有後備（其中一項失手仍然有 3 項），但要看下面的結果預測：多做的條件有時會令其他候選也合資格。</div>`;
   else if(nPick===3 && !badPick.length) warn+=`<div class="hint">只勾 3 項就沒有後備，3 項都要做到。</div>`;
   // ② 照勾選做到後的結果
   const tr=info.stat.tr; const fin={...base};
@@ -871,12 +893,14 @@ function evoHelper(cur,to){
       if(P.avgMode && row && row.eff>=3 && row.avg!==undefined){
         const winRow=P.rows.find(r=>r.id===P.best);
         why = row.carry? `<p class="hint">${DG[to].name}本身要求能力的平均是 ${row.own}；但排在前面、合資格而未勝出的${row.carry.from.map(i=>DG[i].name).join('、')}，它的平均 ${row.carry.s}（算作 ${row.carry.n} 項）會被帶入一起計算（遊戲程式的特性），合計平均變成 ${row.avg}，${row.avg>row.beat?'':'未能超過'}${row.prevBest>0?DG[row.prevBest].name+'的 '+row.beat:''}。</p>`
-          : `<p class="hint">${DG[to].name}要求能力的平均是 ${row.avg}，${winRow&&winRow.avg!==undefined?`低於${DG[P.best].name}的 ${winRow.avg}`:''}${row.order<(winRow?winRow.order:0)?'（排在後面的候選平均嚴格較高才會取代）':''}。</p>`;
+          : `<p class="hint">${DG[to].name}要求能力的平均是 ${row.avg}，${winRow&&winRow.avg!==undefined?(winRow.avg===row.avg?`和${DG[P.best].name}相同（${winRow.avg}）。${DG[P.best].name}排在前面，平均相同時由它勝出`:`低於${DG[P.best].name}的 ${winRow.avg}`):''}${winRow&&row.order>winRow.order&&winRow.avg!==row.avg?'（排在後面的候選平均要嚴格較高才會取代）':''}。</p>`;
       }
       const up = P.avgMode && row && row.eff>=3 ? raiseWays(to, fin) : [];
       const upHTML = up.length? `<li><b>提高${DG[to].name}的平均（最直接）</b>：${up.slice(0,3).map(u=>`${u.item}再練 ${u.n} 次（${SN[u.k]} ${u.from}→${u.to}${u.side?'，另 '+u.side:''}；疲勞共 +${u.fat}）`).join('；或 ')}，就會進化成${DG[to].name}。<span class="hint">按深綠健身房計算，已包括副加能力對其他候選的影響。</span></li>` : '';
-      const rivHTML = riv.map(r=>{ const w=breakWays(r,to); return `<li><b>${DG[r.id].name}</b>（第 ${r.order} 位）也合資格${P.avgMode&&r.avg!==undefined?`，能力平均 ${r.avg}`:''}。${w.length?'令它少於 3 組：'+w.join('；或 '):'<span class="hint">它已達成的條件（能力、技能等）不會倒退，沒有可行方法令它失去資格。</span>'}</li>`; }).join('');
-      result=`<div class="nstat r">✗ 照勾選的條件做到，${P.best===-1?(row&&row.adj?`${DG[to].name}${row.adj}`:'仍然沒有候選合資格'):`會進化成 <b>${DG[P.best].name}</b>，不是${DG[to].name}`}。</div>${why}`
+      const drop=picks.filter(k=>!info[k].ok && !info[k].auto && picks.length>3).filter(k=>{ const f2={...fin}; if(k==='stat') f2.stats={...base.stats}; if(k==='w') f2.weight=base.weight; if(k==='mis') f2.mis=base.mis; if(k==='bonus'&&bb&&bb.b) f2[bb.b.k]=base[bb.b.k]; return predictEvo(f2).best===to; });
+      const rivHTML = riv.map(r=>{ const w=breakWays(r,to); return `<li><b>${DG[r.id].name}</b>（第 ${r.order} 位）也合資格${P.avgMode&&r.avg!==undefined?`，能力平均 ${r.avg}`:''}。${(()=>{ const rb=predictEvo(base).rows.find(z=>z.id===r.id); if(rb&&rb.eff<3) return `<span class="hint">它目前只有 ${rb.met}／4 組，是做了勾選的條件後才合資格${drop.length?'（見上面 💡）':''}。</span>`; return w.length?'令它少於 3 組：'+w.join('；或 '):'<span class="hint">它已達成的條件（能力、技能等）不會倒退，沒有可行方法令它失去資格。</span>'; })()}</li>`; }).join('');
+      const dropHTML=drop.length?`<div class="nstat y">💡 不要勾「${drop.map(k=>GRP_NAME[k]).join('」或「')}」：做到它反而會令其他候選合資格。只做其餘 ${picks.length-1} 項就會進化成 <b>${DG[to].name}</b>${drop.includes('mis')?(()=>{ const lim=Math.min(...P.rows.filter(z=>z.id!==to&&D.evo[z.id]?.mis?.[1]==='ge').map(z=>D.evo[z.id].mis[0])); return isFinite(lim)?`，而且失誤要保持在 ${lim-1} 次或以下（目前 ${base.mis} 次）`:''; })():''}。</div>`:'';
+      result=dropHTML+`<div class="nstat r">✗ 照勾選的條件做到，${P.best===-1?(row&&row.adj?`${DG[to].name}${row.adj}`:'仍然沒有候選合資格'):`會進化成 <b>${DG[P.best].name}</b>，不是${DG[to].name}`}。</div>${why}`
         + (upHTML||rivHTML?`<ul class="ml2 tips">${upHTML}${rivHTML}</ul>`:'')
         + (P.avgMode&&riv.length?`<p class="hint">${lv===3?'成熟期':'完全體'}的判定：合資格（3 組或以上）的候選之中，比較各自要求能力的平均值（HP、MP 先 ÷10），由排名第 1 位起逐一比較，平均嚴格較高才取代。未勝出的候選，它的平均會帶入下一個合資格候選一起平均。</p>`:''); }
   }
@@ -905,6 +929,7 @@ function evoHelper(cur,to){
   if(lv===3) tm+= age!=null&&age+hrs>96? ` <b>注意：會超過 96 小時，屆時沒有候選合資格就會變成鼻涕獸。</b>` : ' 滿 96 小時仍未合資格就會變成鼻涕獸。';
   if(lv===4) tm+= age!=null&&age+hrs>=240? ` <b>注意：會超過 240 小時，之後稱讚或責罵有 50% 機會變成宇宙腦魔，剛好 360 小時時也有 50% 機會變成宇宙腦魔。</b>` : ' 成熟期滿 240 小時後，稱讚或責罵有機會變成宇宙腦魔。';
   todo.push(`<li><b>時間</b>：${tm}</li>`);
+  { const G=guardList(fin,to); if(G.length && predictEvo(fin).best===to) todo.push(`<li class="badt"><b>要避免</b>：${G.map(g=>`${esc(g.t)}（${g.to===-1?'沒有候選合資格，不會進化':'會變成'+DG[g.to].name}${g.why?'：'+esc(g.why):''}）`).join('；')}。</li>`); }
   // 訓練途中會否被搶先（判定期間每小時判定）
   if(age!=null && hrs){ let h=age, hit=null;
     for(const s of tr.steps){ h+= s.rest? s.h : s.n; if(s.rest||h<start) continue; const q=predictEvo({...base,stats:s.after}); if(q.best!==-1 && q.best!==to){ hit={to:q.best,h}; break; } }
@@ -2165,7 +2190,7 @@ function vRaise(){
         <p class="hint">遊戲這一步沒有隨機成分：年齡 72～95 小時每過一小時判定一次，只要有候選合資格就會立即進化；到 96 小時仍沒有，就一定變成鼻涕獸。所以「機會」只會是 0% 或 100%，關鍵是在 96 小時前數值會不會改變。</p></div>`; }
     if(goals.length){ const A=evoAdvice(S.evoGoal);
       evoHTML+=`<div class="goalbox"><label class="f">我想進化成<select id="sel-evogoal">${goals.map(id=>`<option value="${id}"${id===S.evoGoal?' selected':''}>${DG[id].name}${id===NUMEMON?'（成長期期滿未進化）':''}</option>`).join('')}</select></label>
-        ${A.ok?`<p><span class="pill ok">目前路線正確</span> ${S.evoGoal===NUMEMON?'沒有任何候選合資格。':'保持現況到進化時間即可。'}</p>${A.tips.length?`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:'<p class="hint">留意之後的訓練、體重和失誤不要令其他候選追上。</p>'}`:`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`}</div>`; }
+        ${A.ok?`<p><span class="pill ok">目前路線正確</span> ${S.evoGoal===NUMEMON?'沒有任何候選合資格。':'保持現況到進化時間即可。'}</p>${A.tips.length?`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}${S.evoGoal!==NUMEMON&&P.best===S.evoGoal? (guardHTML(guardList(null,S.evoGoal),S.evoGoal)||'<p class="hint">其他候選差 2 組或以上，單一數值改變不會令它們搶先。</p>') : (A.tips.length?'':'<p class="hint">留意之後的訓練、體重和失誤不要令其他候選追上。</p>')}`:`<ul class="ml2 tips">${A.tips.map(t=>`<li>${t}</li>`).join('')}</ul>`}</div>`; }
     evoHTML += P.rows.map(t=>`<div class="cand${P.best===t.id?' best':''}${S.evoGoal===t.id?' goal':''}">
       <header><b>${t.order}. ${DG[t.id].name}</b><span>${P.best===t.id?'<span class="pill ok">預計進化</span> ':''}${t.raised?'<span class="pill">養過</span> ':''}${P.avgMode&&t.avg!==undefined?`<span class="pill">平均 ${t.avg}</span> `:''}<span class="pill ${t.eff>=3?'ok':t.met===2?'w':'no'}">${t.met}／4 組${t.eff!==t.met?' → '+t.eff:''}</span></span></header>
       <div class="groups">${t.groups.map(g=>`<div><span class="mark ${g.ok?'y':'n'}">${g.ok?'○':'×'}</span><span><b>${g.name}</b> ${esc(g.detail)}</span></div>`).join('')}</div>${t.adj?`<p class="hint">${esc(t.adj)}</p>`:''}${P.avgMode&&t.avg!==undefined?`<p class="hint">比較分數：要求能力的平均 ${t.own}${t.carry?`；前面落敗候選的累計（平均 ${t.carry.s}、${t.carry.n} 項）一併計入 → ${t.avg}`:''}。${t.win?(t.prevBest!==-1?`高於當時領先的 ${t.beat}，取代領先。`:'第一個合資格，暫時領先。'):`沒有高於當時領先的 ${t.beat}。`}</p>`:''}</div>`).join('');
