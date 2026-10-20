@@ -46,7 +46,7 @@ DW1 暴龍機 — 實時版　首次使用完整教學
 --------------------------------------------------
   1. 電腦：Mac 或 Windows（Linux 亦可，用終端機手動運行）
   2. RetroArch（免費模擬器）：https://www.retroarch.com/
-  3. PS1 核心「Beetle PSX」（或「SwanStation」），在 RetroArch 裏下載
+  3. PS1 核心「Beetle PSX」（或「SwanStation」、「PCSX ReARMed」），在 RetroArch 裏下載
   4. PS1 日版 BIOS（例如 scph5500.bin），放在 RetroArch 的 system 資料夾
   5. 遊戲：數碼暴龍世界 日版 Rev 1（SLPS-01797）。其他版本記憶體位置不同，讀不到。
   6. Python 3（見第四、五節）
@@ -157,7 +157,7 @@ DW1 暴龍機 — 實時版　首次使用完整教學
 
 ▶「已連上 RetroArch，但讀不到遊戲記憶體」
   ・網絡指令正常，但未載入遊戲，或用了不支援的核心
-  ・請用 Beetle PSX 或 SwanStation 核心載入遊戲
+  ・請用 Beetle PSX、SwanStation 或 PCSX ReARMed 核心載入遊戲
 
 ▶「種類編號不合理」
   ・遊戲還在標題畫面或讀取中：進入遊戲畫面後會自動恢復

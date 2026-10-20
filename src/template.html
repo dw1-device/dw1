@@ -2075,7 +2075,7 @@ document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if
 const LIVE_HELP={
   bridge:['小程式沒有運行，或網頁連不上它',['Mac：雙擊「Mac 啟動（只限這部電腦）.command」；Windows：雙擊「Windows 啟動（只限這部電腦）.bat」。啟動後的視窗要一直開著。','瀏覽器要開 <code>http://127.0.0.1:55356/</code>（http，不是 https），不要直接雙擊 index.html。','雙擊後沒有反應：Mac 到「系統設定 → 私隱與安全性」按「仍要打開」；Windows 如顯示「找不到 Python 3」，到 python.org 安裝並勾選「Add python.exe to PATH」。','視窗顯示「連接埠 55356 已被使用」：小程式已在另一個視窗運行，關掉多出來的即可。']],
   ra_off:['小程式運行中，但 RetroArch 沒有回應',['RetroArch 要開著，並已載入遊戲。','最常見：這部電腦的 RetroArch 未開啟「網絡指令」。設定 → 網絡 → 開啟「網絡指令」，連接埠 55355。換了電腦或重裝 RetroArch 都要再開一次（雲端同步不會同步這個設定）。','找不到「網絡」：先到 設定 → 使用者介面 → 開啟「顯示進階設定」。','RetroArch 停在選單時有時不回應，回到遊戲畫面就好。']],
-  no_game:['已連上 RetroArch，但讀不到遊戲',['請先載入遊戲並進入遊戲畫面。','核心要用 Beetle PSX 或 SwanStation（主選單 → 線上更新 → 核心下載器）。']],
+  no_game:['已連上 RetroArch，但讀不到遊戲',['請先載入遊戲並進入遊戲畫面。','核心要用 Beetle PSX、SwanStation 或 PCSX ReARMed（主選單 → 線上更新 → 核心下載器）。']],
   not_started:['遊戲未開始',['遊戲在標題畫面或讀取中：從記憶卡讀檔、進入遊戲畫面後會自動連上。','一直這樣：只支援日版 Rev 1（SLPS-01797），其他版本記憶體位置不同。']]};
 function liveHelpHTML(){
   if(!LIVE.on || LIVE.stat==='ok' || !LIVE.stat) return '';
@@ -2089,7 +2089,7 @@ function livePanel(){
   return `<section class="panel"><h2>RetroArch 實時連線 <small>電腦版</small></h2>
     <div class="row"><button class="b p" id="liveBtn">${LIVE.on?'中斷連線':'實時連線'}</button><span id="liveStat">${liveStatText()}</span></div><div id="liveHelp">${liveHelpHTML()}</div>
     <label class="f">小程式位址<input id="f-liveurl" value="${esc(liveUrl())}"></label>
-    <ol class="ml2 tips"><li>RetroArch：設定 → 網絡 → 開啟「網絡指令」（連接埠 55355），用 Beetle PSX 或 SwanStation 核心開始遊戲（日版 Rev 1）。</li>
+    <ol class="ml2 tips"><li>RetroArch：設定 → 網絡 → 開啟「網絡指令」（連接埠 55355），用 Beetle PSX、SwanStation 或 PCSX ReARMed 核心開始遊戲（日版 Rev 1）。</li>
       <li>開啟小程式（和 index.html 放在同一個資料夾）：Mac 雙擊「Mac 啟動」.command；Windows 雙擊「Windows 啟動」.bat（要先安裝 Python 3）；或在終端機運行 <code>python3 dw1_bridge.py</code>。</li>
       <li>瀏覽器開 <code>http://127.0.0.1:55356/</code>，網頁會自動連線；之後每秒更新，訓練、戰鬥、吃東西都不用存檔。</li></ol>
     <p class="hint">小程式只讀取遊戲記憶體，不會改動遊戲，也不會連接互聯網。</p>${LIVE_SAFE}${para}${raw}</section>`;

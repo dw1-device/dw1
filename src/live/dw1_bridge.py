@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 DW1 暴龍機 實時連線小程式（RetroArch → 網頁）
-適用：數碼暴龍世界（PS1 日版 Rev 1，SLPS-01797），RetroArch + Beetle PSX / SwanStation 核心。
+適用：數碼暴龍世界（PS1 日版 Rev 1，SLPS-01797），RetroArch + Beetle PSX / SwanStation / PCSX ReARMed 核心。
 
 用法：
   1. RetroArch：設定 → 網絡 → 網絡指令 開啟（連接埠 55355）。開始遊戲。
@@ -83,9 +83,9 @@ class RA:
                     last = "RetroArch 沒有回應：RetroArch 未開啟，或未開啟「網絡指令」（每部電腦都要各自在 設定 → 網絡 開啟一次，連接埠 55355）"
             except Exception as e:
                 if code in (None, "ra_off"):
-                    code = "no_game"; last = f"已連上 RetroArch，但讀不到遊戲記憶體：請確認已載入遊戲，而核心是 Beetle PSX 或 SwanStation（{e}）"
+                    code = "no_game"; last = f"已連上 RetroArch，但讀不到遊戲記憶體：請確認已載入遊戲，而核心是 Beetle PSX、SwanStation 或 PCSX ReARMed（{e}）"
         if code == "ra_off" and self.version():
-            code = "no_game"; last = "已連上 RetroArch（網絡指令正常），但讀不到遊戲記憶體：請先載入遊戲，核心要用 Beetle PSX 或 SwanStation"
+            code = "no_game"; last = "已連上 RetroArch（網絡指令正常），但讀不到遊戲記憶體：請先載入遊戲，核心要用 Beetle PSX、SwanStation 或 PCSX ReARMed"
         err = IOError(last or "讀取失敗"); err.code = code or "unknown"
         raise err
 

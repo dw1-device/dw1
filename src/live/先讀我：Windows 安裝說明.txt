@@ -115,7 +115,7 @@ DW1 暴龍機 實時版　Windows 安裝說明（測試版）
   → RetroArch 停在選單時有時不回應，回到遊戲畫面即可。
 
 ▶「已連上 RetroArch，但讀不到遊戲記憶體」
-  → 請用 Beetle PSX 核心載入遊戲。
+  → 請用 Beetle PSX、SwanStation 或 PCSX ReARMed 核心載入遊戲。
 
 ▶「種類編號不合理」
   → 遊戲還在標題畫面或讀取中，進入遊戲畫面後會自動恢復。
