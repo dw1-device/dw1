@@ -2005,7 +2005,7 @@ const LIVE={on:false,timer:null,last:'',err:'',stat:'',t:0,pending:false,para:nu
 function liveUrl(){ if(S.liveUrl) return S.liveUrl; return (location.protocol.startsWith('http')&&location.port==='55356')? location.origin : 'http://127.0.0.1:55356'; }
 function liveToV(j){
   const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d && j.recruitedIds.includes(d.id); });
-  return {n:1,title:'RetroArch 實時',cur:j.cur,stats:j.stats,dis:j.dis,hap:j.hap,days:j.days,weight:j.weight,life:j.life,mis:j.mis,win:j.win,age:j.age,poop:j.poop,fat:j.fat,lives:j.lives,
+  return {n:1,title:(j.emu||'RetroArch')+' 實時',cur:j.cur,stats:j.stats,dis:j.dis,hap:j.hap,days:j.days,weight:j.weight,life:j.life,mis:j.mis,win:j.win,age:j.age,poop:j.poop,fat:j.fat,lives:j.lives,
     tech:j.learned.length,learned:j.learned.filter(x=>x!==48&&x!==57),raised:j.raisedIds.filter(i=>DG[i]),recruited,day:j.day,year:Number.isInteger(j.year)&&j.year>=0&&j.year<100?j.year:null,hh:j.hh,mm:j.mm,live:true,
     bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, cards: Array.isArray(j.cards)? j.cards : undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined, sleep: j.para? j.para.slice(2,6):undefined};
 }
@@ -2023,11 +2023,11 @@ async function liveTick(){
     if(!j.ok){ LIVE.stat='wait'; LIVE.err=j.error||'讀不到遊戲'; LIVE.code=j.code||''; }
     else if(!DG[j.cur]){ LIVE.stat='wait'; LIVE.err='讀到的種類編號 '+j.cur+' 不正確（遊戲可能在標題畫面）'; LIVE.code='not_started'; }
     else {
-      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para; liveDetectVer(); LIVE.clkRaw=j.clkRaw||null; liveClockFeed(j);
+      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para; if(j.emu&&LIVE.emu!==j.emu){ LIVE.emu=j.emu; LIVE.verChecked=false; } liveDetectVer(); LIVE.clkRaw=j.clkRaw||null; liveClockFeed(j);
       const v=liveToV(j); const key=JSON.stringify(v);
       if(key!==LIVE.last){
-        const first=!LIVE.last; LIVE.last=key; S.svList=[v]; S.svSel=0; S.svFile='RetroArch 實時'; S.svErr=''; svApply();
-        if(first) S.log.push(`RetroArch 實時連線：${DG[v.cur].name}`);
+        const first=!LIVE.last; LIVE.last=key; S.svList=[v]; S.svSel=0; S.svFile=(j.emu||'RetroArch')+' 實時'; S.svErr=''; svApply();
+        if(first) S.log.push(`${j.emu||'RetroArch'} 實時連線：${DG[v.cur].name}`);
         if(liveBusyInput()){ LIVE.pending=true; renderLCD(); save(); } else render();
       }
     }
@@ -2096,7 +2096,7 @@ function liveCallsPaint(){ const el=$('#lcdCalls'); if(!el) return; const h=live
 function liveBadge(){ const el=$('#liveStat'); if(el) el.innerHTML=liveStatText(); const hp=$('#liveHelp'); if(hp){ const h=liveHelpHTML(); if(hp.innerHTML!==h) hp.innerHTML=h; } const b=$('#lcdLive'); if(b) b.className='livedot '+(LIVE.on?LIVE.stat:''); }
 function liveStatText(){
   if(!LIVE.on) return '<span class="hint">未連線</span>';
-  if(LIVE.stat==='ok') return `<span class="pill ok">● 實時中</span> <span class="hint">最後更新 ${new Date(LIVE.t).toLocaleTimeString()}</span>`;
+  if(LIVE.stat==='ok') return `<span class="pill ok">● 實時中</span>${LIVE.emu?` <span class="pill">${esc(LIVE.emu)}</span>`:''} <span class="hint">最後更新 ${new Date(LIVE.t).toLocaleTimeString()}</span>`;
   if(LIVE.stat==='wait') return `<span class="pill w">等待遊戲</span> <span class="hint">${esc(LIVE.err)}</span>`;
   if(LIVE.stat==='err') return `<span class="pill no">未連上</span> <span class="hint">${esc(LIVE.err)}。${location.protocol==='https:'?'在 claude.ai 開啟時瀏覽器可能會擋，請改開 http://127.0.0.1:55356/ 。':'請確認小程式正在運行。'}</span>`;
   return '<span class="hint">連線中…</span>';
@@ -2121,22 +2121,24 @@ document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if
 // 連線失敗時按原因顯示處理步驟（同 live/使用說明.txt 第七節）
 const LIVE_HELP={
   bridge:['小程式沒有運行，或網頁連不上它',['Mac：雙擊「Mac 啟動（只限這部電腦）.command」；Windows：雙擊「Windows 啟動（只限這部電腦）.bat」。啟動後的視窗要一直開著。','瀏覽器要開 <code>http://127.0.0.1:55356/</code>（http，不是 https），不要直接雙擊 index.html。','雙擊後沒有反應：Mac 到「系統設定 → 私隱與安全性」按「仍要打開」；Windows 如顯示「找不到 Python 3」，到 python.org 安裝並勾選「Add python.exe to PATH」。','視窗顯示「連接埠 55356 已被使用」：小程式已在另一個視窗運行，關掉多出來的即可。']],
+  emu_off:['小程式運行中，但 RetroArch 和 DuckStation 都沒有回應',['請開啟其中一個模擬器並載入遊戲。','RetroArch：設定 → 網絡 → 開啟「網絡指令」，連接埠 55355。換了電腦或重裝 RetroArch 都要再開一次。','DuckStation：設定 → 進階（Advanced）勾選「Show Debug Menu」，再到新出現的「Debugging」頁開啟「Enable GDB Server」，連接埠 2345。','RetroArch 停在選單時有時不回應，回到遊戲畫面就好。']],
+  ds_off:['小程式運行中，但 DuckStation 沒有回應',['DuckStation 要開著，並已載入遊戲（GDB 伺服器只在遊戲運行時開啟）。','設定 → 進階（Advanced）勾選「Show Debug Menu」，再到新出現的「Debugging」頁開啟「Enable GDB Server」，連接埠保持 2345（簡體中文介面：高级 → 显示调试菜单；调试 → 启用GDB服务器）。','設定立即生效；仍然連不上就重新載入遊戲一次。','剛關閉或重新載入遊戲：等一兩秒會自動重新連上。']],
   ra_off:['小程式運行中，但 RetroArch 沒有回應',['RetroArch 要開著，並已載入遊戲。','最常見：這部電腦的 RetroArch 未開啟「網絡指令」。設定 → 網絡 → 開啟「網絡指令」，連接埠 55355。換了電腦或重裝 RetroArch 都要再開一次（雲端同步不會同步這個設定）。','找不到「網絡」：先到 設定 → 使用者介面 → 開啟「顯示進階設定」。','RetroArch 停在選單時有時不回應，回到遊戲畫面就好。']],
-  no_game:['已連上 RetroArch，但讀不到遊戲',['請先載入遊戲並進入遊戲畫面。','核心要用 Beetle PSX、SwanStation 或 PCSX ReARMed（主選單 → 線上更新 → 核心下載器）。']],
+  no_game:['已連上模擬器，但讀不到遊戲',['請先載入遊戲並進入遊戲畫面。','RetroArch 的核心要用 Beetle PSX、SwanStation 或 PCSX ReARMed（主選單 → 線上更新 → 核心下載器）。']],
   not_started:['遊戲未開始',['遊戲在標題畫面或讀取中：從記憶卡讀檔、進入遊戲畫面後會自動連上。','一直這樣：只支援日版 Rev 1（SLPS-01797），其他版本記憶體位置不同。']]};
 function liveHelpHTML(){
   if(!LIVE.on || LIVE.stat==='ok' || !LIVE.stat) return '';
-  const h=LIVE_HELP[LIVE.code]||LIVE_HELP[LIVE.stat==='err'?'bridge':'ra_off'];
+  const h=LIVE_HELP[LIVE.code]||LIVE_HELP[LIVE.stat==='err'?'bridge':'emu_off'];
   return `<div class="note info"><b>${h[0]}</b><ol class="ml2">${h[1].map(x=>`<li>${x}</li>`).join('')}</ol><p class="hint">處理好後網頁會自動連上，不用重新開啟小程式。完整教學見實時版資料夾內的「使用說明.txt」。</p></div>`;
 }
-const LIVE_SAFE='<details><summary>安全說明</summary><ul class="ml2"><li>實時版資料夾裏全部是純文字檔（網頁、Python 原始碼、啟動檔），可以用文字編輯器或記事本打開檢查，沒有 .exe／.app 執行檔。</li><li>不需要互聯網：小程式只和這部電腦上的 RetroArch 溝通（127.0.0.1），網頁也不會自動連接任何網站。</li><li>只讀不寫：只讀取遊戲記憶體，不會改動遊戲、存檔或任何檔案，不會安裝東西、不需要管理員權限。刪除資料夾即完全移除。</li><li>唯一要另外安裝的是 Python 3，請只從官方網站 python.org 下載（Mac 也可用 Apple 提供的命令列開發者工具）。</li></ul></details>';
+const LIVE_SAFE='<details><summary>安全說明</summary><ul class="ml2"><li>實時版資料夾裏全部是純文字檔（網頁、Python 原始碼、啟動檔），可以用文字編輯器或記事本打開檢查，沒有 .exe／.app 執行檔。</li><li>不需要互聯網：小程式只和這部電腦上的 模擬器（RetroArch 或 DuckStation）溝通（127.0.0.1），網頁也不會自動連接任何網站。</li><li>只讀不寫：只讀取遊戲記憶體，不會改動遊戲、存檔或任何檔案，不會安裝東西、不需要管理員權限。刪除資料夾即完全移除。</li><li>唯一要另外安裝的是 Python 3，請只從官方網站 python.org 下載（Mac 也可用 Apple 提供的命令列開發者工具）。</li></ul></details>';
 function livePanel(){
   const para=LIVE.para? `<details><summary>原始育成數值（用來找出其他欄位）</summary><div class="paragrid">${LIVE.para.map((x,i)=>`<span><b>+${i*2}</b> ${x}</span>`).join('')}</div></details>`:'';
   const raw=LIVE.clkRaw? `<details><summary>原始時鐘區記憶體（0x8013EC00 起，用來核對年月日）</summary><pre class="hint" style="white-space:pre-wrap">${LIVE.clkRaw.match(/.{1,32}/g).map((r,i)=>(0x8013EC00+i*16).toString(16)+'  '+r.match(/../g).join(' ')).join('\n')}</pre></details>`:'';
-  return `<section class="panel"><h2>RetroArch 實時連線 <small>電腦版</small></h2>
+  return `<section class="panel"><h2>實時連線 <small>電腦版・RetroArch／DuckStation</small></h2>
     <div class="row"><button class="b p" id="liveBtn">${LIVE.on?'中斷連線':'實時連線'}</button><span id="liveStat">${liveStatText()}</span></div><div id="liveHelp">${liveHelpHTML()}</div>
     <label class="f">小程式位址<input id="f-liveurl" value="${esc(liveUrl())}"></label>
-    <ol class="ml2 tips"><li>RetroArch：設定 → 網絡 → 開啟「網絡指令」（連接埠 55355），用 Beetle PSX、SwanStation 或 PCSX ReARMed 核心開始遊戲（日版 Rev 1）。</li>
+    <ol class="ml2 tips"><li>模擬器（擇一，小程式會自動偵測）：<br>・RetroArch：設定 → 網絡 → 開啟「網絡指令」（連接埠 55355），用 Beetle PSX、SwanStation 或 PCSX ReARMed 核心開始遊戲。<br>・DuckStation：設定 → 進階勾選「Show Debug Menu」，再到「Debugging」頁開啟「Enable GDB Server」（連接埠 2345），然後開始遊戲。<br>遊戲要用日版 Rev 1 或其繁體中文漢化版。</li>
       <li>開啟小程式（和 index.html 放在同一個資料夾）：Mac 雙擊「Mac 啟動」.command；Windows 雙擊「Windows 啟動」.bat（要先安裝 Python 3）；或在終端機運行 <code>python3 dw1_bridge.py</code>。</li>
       <li>瀏覽器開 <code>http://127.0.0.1:55356/</code>，網頁會自動連線；之後每秒更新，訓練、戰鬥、吃東西都不用存檔。</li></ol>
     <p class="hint">小程式只讀取遊戲記憶體，不會改動遊戲，也不會連接互聯網。</p>${LIVE_SAFE}${para}${raw}</section>`;

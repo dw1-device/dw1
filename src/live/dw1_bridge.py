@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DW1 暴龍機 實時連線小程式（RetroArch → 網頁）
-適用：數碼暴龍世界（PS1 日版 Rev 1，SLPS-01797），RetroArch + Beetle PSX / SwanStation / PCSX ReARMed 核心。
+DW1 暴龍機 實時連線小程式（RetroArch／DuckStation → 網頁）
+適用：數碼暴龍世界（PS1 日版 Rev 1，SLPS-01797，或其繁體中文漢化版）。
+  ・RetroArch + Beetle PSX / SwanStation / PCSX ReARMed 核心（網絡指令，UDP 55355）
+  ・DuckStation（除錯用的 GDB 伺服器，TCP 2345）
+  預設自動偵測：先試 RetroArch，再試 DuckStation。可用 --emu retroarch／duckstation 指定。
 
 用法：
   1. RetroArch：設定 → 網絡 → 網絡指令 開啟（連接埠 55355）。開始遊戲。
+     DuckStation：設定 → 進階勾選 Show Debug Menu，再到 Debugging 頁開啟「Enable GDB Server」（連接埠 2345）。開始遊戲。
   2. 終端機： python3 dw1_bridge.py（Windows：雙擊「Windows 啟動」.bat，或在命令提示字元打 py dw1_bridge.py）
   3. 瀏覽器開 http://127.0.0.1:55356/ （同一資料夾內的 index.html 會在這裏顯示），網頁會自動連線。
   加 --lan：同一個 Wi-Fi 的 iPad／手機也可以開，位址會顯示在終端機。
@@ -28,6 +32,7 @@ A_BAG     = 0x80147760   # 背包：+0 道具編號×30、+30 數量×30、+90 �
 
 class RA:
     """RetroArch 網絡指令（UDP）"""
+    name = "RetroArch"
     def __init__(self, host, port, timeout=0.4):
         self.addr = (host, port); self.timeout = timeout; self.mode = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); self.sock.settimeout(timeout)
@@ -89,6 +94,110 @@ class RA:
         err = IOError(last or "讀取失敗"); err.code = code or "unknown"
         raise err
 
+class DS:
+    """DuckStation 的 GDB 伺服器（TCP）。連上時 DuckStation 會暫停遊戲，所以連上後立即送出「繼續」。
+    之後只用「m 位址,長度」讀取記憶體；DuckStation 在遊戲運行中也會回覆。斷線時 DuckStation 自動恢復運行。"""
+    name = "DuckStation"
+    def __init__(self, host, port, timeout=1.0):
+        self.addr = (host, port); self.timeout = timeout; self.sock = None; self.buf = b""; self.mode = None
+        self.lock = threading.Lock()
+    def close(self):
+        try:
+            if self.sock: self.sock.close()
+        except OSError:
+            pass
+        self.sock = None; self.buf = b""; self.mode = None
+    def _send(self, payload):
+        cs = sum(payload.encode()) & 0xFF
+        self.sock.sendall(("$%s#%02x" % (payload, cs)).encode())
+    def _packet(self):
+        """讀下一個 $...#xx 封包（略過 + / - 確認），回覆 + 後傳回內容"""
+        while True:
+            i = self.buf.find(b"$")
+            if i >= 0:
+                j = self.buf.find(b"#", i)
+                if j >= 0 and len(self.buf) >= j + 3:
+                    body = self.buf[i + 1:j].decode("latin-1"); self.buf = self.buf[j + 3:]
+                    self.sock.sendall(b"+"); return body
+            elif self.buf.strip(b"+-") == b"":
+                self.buf = b""
+            d = self.sock.recv(65536)
+            if not d: raise ConnectionError("DuckStation 已中斷連線")
+            self.buf += d
+    def _connect(self):
+        self.close()
+        s = socket.create_connection(self.addr, timeout=0.5); s.settimeout(self.timeout)
+        self.sock = s; self.buf = b""
+        self._send("c")       # 連上時被暫停了，讓遊戲繼續運行（「c」只回覆確認，不回覆封包）
+        self.mode = "gdb"
+    def _cmd(self, payload):
+        self._send(payload)
+        while True:
+            r = self._packet()
+            if r[:1] in ("S", "T") and len(r) % 2 == 1: continue   # 暫停／繼續的通知，不是我們要的回覆
+            return r
+    def _raw(self, addr, n):
+        out = bytearray(); off = 0
+        while off < n:
+            k = min(4096, n - off)
+            r = self._cmd("m%x,%x" % (addr + off, k))
+            if r.startswith("E") or len(r) != 2 * k: raise IOError("DuckStation 讀不到記憶體（%s）" % (r[:8] or "沒有回覆"))
+            out += bytes.fromhex(r); off += k
+        return bytes(out)
+    def read(self, addr, n):
+        with self.lock:
+            try:
+                if not self.sock: self._connect()
+                return self._raw(addr, n)
+            except Exception:
+                self.close(); raise
+    def version(self):
+        return None
+    def detect(self):
+        try:
+            sp = struct.unpack("<I", self.read(A_SPECIES, 4))[0]
+        except (ConnectionError, TimeoutError, socket.timeout):
+            err = IOError("DuckStation 沒有回應：DuckStation 未開啟、未載入遊戲，或未開啟 GDB 伺服器（設定 → 進階勾選 Show Debug Menu → Debugging 頁開啟 Enable GDB Server，連接埠 2345）"); err.code = "ds_off"; raise err
+        except OSError as e:
+            err = IOError(f"已連上 DuckStation，但讀不到遊戲記憶體：請先載入遊戲（{e}）"); err.code = "no_game"; raise err
+        if 1 <= sp <= 65: return self.mode
+        err = IOError(f"讀到的種類編號 {sp} 不合理：遊戲可能還在標題畫面或讀取中（進入遊戲後會自動連上）"); err.code = "not_started"; raise err
+
+class EMU:
+    """自動選擇模擬器：先試 RetroArch，再試 DuckStation；連上後一直用同一個，斷線才重新偵測"""
+    def __init__(self, backends):
+        self.backends = backends; self.cur = None
+    @property
+    def mode(self):
+        return f"{self.cur.name}／{self.cur.mode}" if self.cur else None
+    @property
+    def name(self):
+        return self.cur.name if self.cur else None
+    def detect(self):
+        errs = []
+        for b in self.backends:
+            try:
+                b.detect(); self.cur = b; return self.mode
+            except Exception as e:
+                errs.append(e)
+        # 有回應的模擬器（例如遊戲未開始）比沒有回應的更有參考價值
+        rank = {"not_started": 0, "no_game": 1}
+        e = min(errs, key=lambda x: rank.get(getattr(x, "code", ""), 9))
+        if all(getattr(x, "code", "") in ("ra_off", "ds_off") for x in errs) and len(errs) > 1:
+            e = IOError("RetroArch 和 DuckStation 都沒有回應：請開啟其中一個模擬器並載入遊戲（RetroArch 要開「網絡指令」；DuckStation 要開「GDB 伺服器」）"); e.code = "emu_off"
+        raise e
+    def read(self, addr, n):
+        if self.cur is None: self.detect()
+        try:
+            return self.cur.read(addr, n)
+        except Exception as e:
+            b = self.cur; self.cur = None
+            if getattr(e, "code", None) is None and isinstance(b, DS):
+                err = IOError("DuckStation 連線中斷（遊戲可能已關閉或 DuckStation 已結束）"); err.code = "ds_off"; raise err
+            raise
+    def version(self):
+        return None
+
 def snapshot(ra):
     i16 = lambda b, o: struct.unpack_from("<h", b, o)[0]
     sp = struct.unpack("<I", ra.read(A_SPECIES, 4))[0]
@@ -111,7 +220,7 @@ def snapshot(ra):
     B = ra.read(A_BAG, 91)
     bag = [[B[i], B[30 + i]] for i in range(30) if B[30 + i] > 0]
     return {
-        "ok": True, "mode": ra.mode, "t": time.time(), "cur": sp,
+        "ok": True, "mode": ra.mode, "emu": getattr(ra, "name", "RetroArch"), "t": time.time(), "cur": sp,
         "stats": {"atk": i16(st, 0), "def": i16(st, 2), "spd": i16(st, 4), "int": i16(st, 6),
                   "hp": i16(st, 16), "mp": i16(st, 18)},
         "hpNow": i16(st, 20), "mpNow": i16(st, 22),
@@ -207,16 +316,19 @@ def main():
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     except Exception:
         pass
-    ap = argparse.ArgumentParser(description="DW1 暴龍機 RetroArch 實時連線")
+    ap = argparse.ArgumentParser(description="DW1 暴龍機 實時連線（RetroArch／DuckStation）")
+    ap.add_argument("--emu", choices=["auto", "retroarch", "duckstation"], default="auto", help="模擬器（預設自動偵測）")
     ap.add_argument("--ra-host", default="127.0.0.1"); ap.add_argument("--ra-port", type=int, default=55355)
+    ap.add_argument("--ds-host", default="127.0.0.1"); ap.add_argument("--ds-port", type=int, default=2345, help="DuckStation GDB 伺服器連接埠")
     ap.add_argument("--port", type=int, default=55356, help="網頁連線用的連接埠")
     ap.add_argument("--test", action="store_true", help="只讀一次並顯示結果")
     ap.add_argument("--lan", action="store_true", help="容許同一個 Wi-Fi 的其他裝置（iPad、手機）開啟網頁")
     a = ap.parse_args()
-    Handler.ra = RA(a.ra_host, a.ra_port)
+    ra, ds = RA(a.ra_host, a.ra_port), DS(a.ds_host, a.ds_port)
+    Handler.ra = EMU({"auto": [ra, ds], "retroarch": [ra], "duckstation": [ds]}[a.emu])
     try:
         s = snapshot(Handler.ra)
-        print(f"已連接 RetroArch（讀取方式 {s['mode']}）：種類 {s['cur']}，攻 {s['stats']['atk']}，"
+        print(f"已連接 {s['emu']}（讀取方式 {s['mode']}）：種類 {s['cur']}，攻 {s['stats']['atk']}，"
               f"年齡 {s['days']} 歲，時間 {s['hh']:02d}:{s['mm']:02d}")
     except Exception as e:
         print("暫時讀不到遊戲：", e, "\n（小程式會繼續運行；照上面的提示處理好後，網頁會自動連上，不用重新開啟小程式）")

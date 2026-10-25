@@ -2,11 +2,11 @@ DW1 暴龍機 — 實時版　首次使用完整教學
 ==================================================
 
 實時版是甚麼？
-  你在電腦上用 RetroArch 玩《數碼暴龍世界》（PS1 日版 Rev 1，或其繁體中文漢化版）時，
+  你在電腦上用 RetroArch 或 DuckStation 玩《數碼暴龍世界》（PS1 日版 Rev 1，或其繁體中文漢化版）時，
   實時版會即時讀出遊戲裏的數值（能力、疲勞、失誤、壽命、背包等），
   在網頁上自動更新：訓練、戰鬥、吃東西後不用存檔，進化預測就會跟著變。
 
-  沒有用 RetroArch？手機、平板或其他模擬器，請用「網頁版」：
+  用手機、平板或其他模擬器？請用「網頁版」：
   https://dw1-device.github.io/dw1/ （上載記憶卡存檔即可，不用安裝任何東西）
 
 
@@ -25,7 +25,7 @@ DW1 暴龍機 — 實時版　首次使用完整教學
 保證：
   ✔ 不是執行檔（.exe／.app），沒有隱藏的程式碼。每個檔案都可以用
     「文字編輯」（Mac）或「記事本」（Windows）打開，看到全部內容。
-  ✔ 不需要互聯網。小程式只和你自己電腦上的 RetroArch 溝通
+  ✔ 不需要互聯網。小程式只和你自己電腦上的模擬器（RetroArch 或 DuckStation）溝通
     （位址 127.0.0.1，即「這部電腦」）。網頁也不會自動連接任何網站；
     網頁上的 GitHub 等連結，只有你親手按下才會開。
   ✔ 只讀不寫。小程式只「讀取」遊戲記憶體，不會改動遊戲、存檔或任何檔案，
@@ -46,18 +46,21 @@ DW1 暴龍機 — 實時版　首次使用完整教學
 二、需要準備
 --------------------------------------------------
   1. 電腦：Mac 或 Windows（Linux 亦可，用終端機手動運行）
-  2. RetroArch（免費模擬器）：https://www.retroarch.com/
-  3. PS1 核心「Beetle PSX」（或「SwanStation」、「PCSX ReARMed」），在 RetroArch 裏下載
-  4. PS1 日版 BIOS（例如 scph5500.bin），放在 RetroArch 的 system 資料夾
-  5. 遊戲：數碼暴龍世界 日版 Rev 1（SLPS-01797），或用它製作的繁體中文漢化版（漢化 1.0.0）。
+  2. 模擬器（擇一）：
+     ・RetroArch（免費）：https://www.retroarch.com/
+       PS1 核心「Beetle PSX」（或「SwanStation」、「PCSX ReARMed」），在 RetroArch 裏下載
+     ・DuckStation（免費）：https://www.duckstation.org/
+  3. PS1 日版 BIOS（例如 scph5500.bin），放在模擬器的 BIOS／system 資料夾
+  4. 遊戲：數碼暴龍世界 日版 Rev 1（SLPS-01797），或用它製作的繁體中文漢化版（漢化 1.0.0）。
      其他版本（美版、日版初版等）記憶體位置不同，讀不到。
      用漢化版時，網頁頂部「遊戲版本」選「自動偵測」或「繁體中文漢化版」，用字就會和遊戲一樣。
-  6. Python 3（見第四、五節）
+  5. Python 3（見第四、五節）
 
 
 --------------------------------------------------
-三、設定 RetroArch（★每部電腦都要各自做一次★）
+三、設定模擬器（★每部電腦都要各自做一次★）
 --------------------------------------------------
+  ── 用 RetroArch 的話 ──
   1. 主選單 → 線上更新 → 核心下載器 → 下載「Sony - PlayStation (Beetle PSX)」
   2. 主選單 → 設定 → 網絡 → 把「網絡指令」（Network Commands）開啟
      連接埠保持 55355（不要改）
@@ -68,6 +71,18 @@ DW1 暴龍機 — 實時版　首次使用完整教學
   注意：RetroArch 的雲端同步（iCloud 等）不會同步「網絡指令」這個設定。
         換一部電腦玩，記得在那部電腦再開啟一次，否則實時版會顯示
         「RetroArch 沒有回應」。
+
+
+  ── 用 DuckStation 的話（取代上面的 RetroArch 設定） ──
+  1. DuckStation → 設定（Settings）→ 進階（Advanced），勾選「Show Debug Menu」
+     （簡體中文介面：设置 → 高级 → 显示调试菜单）
+  2. 設定視窗左邊多了「Debugging」（调试）一頁：開啟「Enable GDB Server」
+     （启用GDB服务器），「GDB Server Port」保持 2345
+  3. 設定立即生效；GDB 伺服器只在遊戲運行時開啟。連不上時重新載入遊戲一次
+  4. 小程式會自動偵測 RetroArch 或 DuckStation，不用另外設定
+     （想指定：終端機運行 python3 dw1_bridge.py --emu duckstation）
+  ・小程式連上 DuckStation 的一瞬間，遊戲會暫停並立即自動繼續，這是正常的。
+  ・如果你本來暫停了 DuckStation，小程式連上時會令遊戲繼續運行。
 
 
 --------------------------------------------------
@@ -91,9 +106,9 @@ DW1 暴龍機 — 實時版　首次使用完整教學
     拖進終端機視窗，按 Enter，就會一次解除這個資料夾所有檔案的警告）
 
 【每次使用】
-  1. 開 RetroArch，載入遊戲，進入遊戲畫面
+  1. 開 RetroArch 或 DuckStation，載入遊戲，進入遊戲畫面
   2. 雙擊「Mac 啟動（只限這部電腦）.command」，會開一個終端機視窗
-     看到「已連接 RetroArch」＝成功（終端機視窗要一直開著）
+     看到「已連接 RetroArch」或「已連接 DuckStation」＝成功（終端機視窗要一直開著）
   3. 用瀏覽器（Safari／Chrome 都可以）開 http://127.0.0.1:55356/
      網頁左上角資料欄出現綠點＝實時中
   4. 玩完：在終端機視窗按 Control＋C，或直接關閉該視窗
@@ -117,9 +132,9 @@ DW1 暴龍機 — 實時版　首次使用完整教學
     再運行同一資料夾的 dw1_bridge.py）
 
 【每次使用】
-  1. 開 RetroArch，載入遊戲，進入遊戲畫面
+  1. 開 RetroArch 或 DuckStation，載入遊戲，進入遊戲畫面
   2. 雙擊「Windows 啟動（只限這部電腦）.bat」，會開一個黑色視窗
-     看到「已連接 RetroArch」＝成功（黑色視窗要一直開著）
+     看到「已連接 RetroArch」或「已連接 DuckStation」＝成功（黑色視窗要一直開著）
   3. 用瀏覽器（Edge／Chrome 都可以）開 http://127.0.0.1:55356/
   4. 玩完：在黑色視窗按 Ctrl＋C，或直接關閉該視窗
 
@@ -158,7 +173,12 @@ DW1 暴龍機 — 實時版　首次使用完整教學
   ・連接埠是不是 55355？
   ・RetroArch 停在選單時有時不回應，回到遊戲畫面就好
 
-▶「已連上 RetroArch，但讀不到遊戲記憶體」
+▶「DuckStation 沒有回應」／「RetroArch 和 DuckStation 都沒有回應」
+  ・模擬器有沒有開著？遊戲有沒有載入？
+  ・DuckStation：未開啟「Enable GDB Server」（見第三節），或開啟後重新載入遊戲一次
+  ・剛關閉或重新載入遊戲：等一兩秒會自動重新連上
+
+▶「已連上 RetroArch（或 DuckStation），但讀不到遊戲記憶體」
   ・網絡指令正常，但未載入遊戲，或用了不支援的核心
   ・請用 Beetle PSX、SwanStation 或 PCSX ReARMed 核心載入遊戲
 
