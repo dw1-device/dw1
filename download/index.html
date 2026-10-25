@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>下載 DW1 暴龍機 實時版</title>
+<meta name="description" content="《數碼暴龍世界》（PS1）實時監測器：用 RetroArch 玩時即時顯示能力、疲勞、失誤、精靈呼叫和進化預測。免費下載 Mac 版或 Windows 版。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DW1 暴龍機 實時版：免費下載（Mac／Windows）">
+<meta property="og:description" content="用 RetroArch 玩《數碼暴龍世界》時，即時顯示能力、疲勞、失誤、精靈呼叫和進化預測。支援日版 Rev 1 及繁體中文漢化版。">
+<meta property="og:url" content="https://dw1-device.github.io/dw1/download/">
+<meta property="og:locale" content="zh_HK">
+<style>
+:root{--bg:#e9e8df;--panel:#f6f5ee;--ink:#22261f;--muted:#5d6457;--line:#cfd2c3;--lcd:#c5d39f;--lcd-ink:#1f2a12;--acc:#2f6f88;--acc-ink:#fff;--ok:#3c7d2a}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1d18;--panel:#24271f;--ink:#e8eadf;--muted:#a7ad9c;--line:#3a3e33;--lcd:#55623a;--lcd-ink:#eef5d8;--acc:#6fb3cf;--acc-ink:#0d1a20;--ok:#8fd07a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:clamp(24px,5vw,34px);line-height:1.25;margin:0 0 6px;letter-spacing:.02em}
+.sub{color:var(--muted);margin:0 0 22px}
+.lcd{background:var(--lcd);color:var(--lcd-ink);border-radius:12px;padding:14px 18px;margin:0 0 26px;font-variant-numeric:tabular-nums}
+.lcd b{font-size:18px}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:0 0 10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.card.mine{border-color:var(--acc);box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 35%,transparent)}
+.card h2{margin:0;font-size:21px;display:flex;align-items:center;gap:10px}
+.card .tag{font-size:12px;font-weight:600;color:var(--acc);border:1px solid var(--acc);border-radius:99px;padding:0 8px;display:none}
+.card.mine .tag{display:inline-block}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.btn{display:inline-block;text-align:center;background:var(--acc);color:var(--acc-ink);text-decoration:none;font-weight:700;border-radius:10px;padding:12px 16px;font-size:17px}
+.btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.note{font-size:14px;color:var(--muted);margin:6px 0 30px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:0 0 16px}
+section h3{margin:0 0 8px;font-size:18px}
+ol,ul{margin:0;padding-left:1.4em}
+li{margin:3px 0}
+a{color:var(--acc)}
+.ok{color:var(--ok);font-weight:700}
+footer{color:var(--muted);font-size:13px;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DW1 暴龍機 實時版</h1>
+  <p class="sub">《數碼暴龍世界》（PS1）實時監測器・免費下載</p>
+
+  <div class="lcd"><b>用 RetroArch 玩時，網頁即時顯示精靈的一切</b><br>能力、疲勞、失誤、壽命、背包、精靈呼叫倒數（肚餓、大便、想睡），以及會進化成甚麼。訓練、吃東西、戰鬥後不用存檔，數值就會更新。</div>
+
+  <div class="dl">
+    <div class="card" id="mac">
+      <h2>Mac 版 <span class="tag">你的電腦</span></h2>
+      <p>macOS 適用。內含啟動檔（.command）與安裝說明。</p>
+      <a class="btn" href="https://github.com/dw1-device/dw1/releases/latest/download/DW1-Monitor-Mac.zip">下載 Mac 版（.zip）</a>
+    </div>
+    <div class="card" id="win">
+      <h2>Windows 版 <span class="tag">你的電腦</span></h2>
+      <p>Windows 10／11 適用。內含啟動檔（.bat）與安裝說明。</p>
+      <a class="btn" href="https://github.com/dw1-device/dw1/releases/latest/download/DW1-Monitor-Windows.zip">下載 Windows 版（.zip）</a>
+    </div>
+  </div>
+  <p class="note">下載後解壓縮，先打開「先讀我」安裝說明，照步驟做約 15 分鐘。用手機或平板玩、或者不用 RetroArch？請用<a href="https://dw1-device.github.io/dw1/">網頁版</a>（上載記憶卡存檔即可，不用安裝）。</p>
+
+  <section>
+    <h3>需要甚麼</h3>
+    <ul>
+      <li><b>RetroArch</b>，PS1 核心用 Beetle PSX、SwanStation 或 PCSX ReARMed，並在設定 → 網絡開啟「網絡指令」</li>
+      <li><b>Python 3</b>（免費，從官方網站安裝；Mac 也可用 Apple 提供的版本）</li>
+      <li>遊戲：<b>數碼暴龍世界 日版 Rev 1</b>（SLPS-01797），或用它製作的<b>繁體中文漢化版</b>。網頁會自動偵測版本，漢化版會顯示遊戲內的用字</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>安全嗎？</h3>
+    <ul>
+      <li><span class="ok">沒有 .exe／.app</span>：全部是可以用記事本或文字編輯打開檢查的純文字檔</li>
+      <li><span class="ok">不連接互聯網</span>：只和你自己電腦上的 RetroArch 溝通</li>
+      <li><span class="ok">只讀不寫</span>：不會改動遊戲、存檔或任何檔案，不需要管理員權限；不想用了，刪除資料夾即可</li>
+      <li>第一次打開啟動檔時，Mac 和 Windows 會對網上下載的檔案顯示警告，這是正常的保護措施，安裝說明有教你怎樣處理</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>使用流程</h3>
+    <ol>
+      <li>開 RetroArch，載入遊戲，進入可以操控精靈的畫面（不需要先存檔）</li>
+      <li>雙擊啟動檔，小程式視窗出現「已連接 RetroArch」</li>
+      <li>瀏覽器開 <code>http://127.0.0.1:55356/</code>，左上角出現綠點就是實時中</li>
+      <li>想用 iPad／手機做副螢幕：改用「iPad 也可以看」的啟動檔</li>
+    </ol>
+  </section>
+
+  <section>
+    <h3>更新記錄與舊版本</h3>
+    <p style="margin:0">所有版本和更新內容：<a href="https://github.com/dw1-device/dw1/releases">GitHub Releases</a>。遇到問題或發現資料錯誤：<a href="https://github.com/dw1-device/dw1/issues/new/choose">回報問題</a>。</p>
+  </section>
+
+  <footer>非官方愛好者工具，免費使用，歡迎分享。「數碼暴龍／Digimon」及相關名稱屬其版權持有人（Bandai 等）。本工具不包含遊戲或 BIOS。</footer>
+</div>
+<script>
+(function(){ try{ var p=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||navigator.userAgent||'';
+  var id=/mac/i.test(p)?'mac':/win/i.test(p)?'win':null; if(id){ var e=document.getElementById(id); e.classList.add('mine'); if(id==='win'){ e.parentNode.insertBefore(e,e.parentNode.firstChild); } } }catch(e){} })();
+</script>
+</body>
+</html>
