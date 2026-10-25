@@ -388,7 +388,7 @@ if(S.sample){ ['cur','stats','weight','mis','win','tech','hap','dis','fat','live
 S.tab='save'; // \u6bcf\u6b21\u958b\u555f\u7db2\u9801\u5148\u986f\u793a\u4e0a\u8f09\u5b58\u6a94\uff0f\u5be6\u6642\u9023\u7dda
 /* \u7db2\u9801\u7248\u300c\u89e3\u9664\u9023\u7d50\u300d\uff1a\u6e05\u9664\u5b58\u6a94\u5e36\u5165\u7684\u8cc7\u6599\uff0c\u56de\u5230\u9810\u8a2d\u503c\uff1b\u4fdd\u7559\u8a13\u7df4\u5834\u5730\u3001\u4f11\u606f\u65b9\u5f0f\u3001\u75b2\u52de\u4e0a\u9650\u7b49\u504f\u597d */
 const UNLINK={armed:false,timer:null};
-const SV_KEYS=['svList','poop','planFor','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
+const SV_KEYS=['svList','poop','planFor','gameVerDet','svFile','svSel','svErr','svGoal','bag','storage','bagCap','cards','boost','drillCnt','recruited','gameDay','gameYear','arenaDay','arenaDaySet',
   'life','days','clock','evoDays','evoClock','cur','stats','weight','mis','win','hap','dis','fat','lives','age','tech','learned','raised','battles','evoGoal','evoPick','planTarget','planPath','fatKnown','ageKnown','chefIntro','log'];
 function svUnlink(){
   SV_KEYS.forEach(k=>{ if(k in DEF) S[k]=JSON.parse(JSON.stringify(DEF[k])); else delete S[k]; });
