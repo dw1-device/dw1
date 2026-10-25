@@ -228,6 +228,7 @@ ul.tips li{line-height:1.6}.cand.goal{box-shadow:inset 3px 0 0 var(--accent)}
 .homelink{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit;margin-left:8px}
 .raisedgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:4px 10px;margin-top:6px;font-size:13px}
 .fishbait table{font-size:12px;min-width:0}.fishbait th,.fishbait td{padding:4px 5px}.fishbait td:first-child{white-space:nowrap}
+.gv{display:inline-flex;gap:4px;align-items:center;margin-left:.6em;font-size:13px;white-space:nowrap}.gv select{font:inherit;padding:1px 4px}.gv .hint{font-size:12px}
 </style>
 
 <div class="wrap">
@@ -240,7 +241,7 @@ ul.tips li{line-height:1.6}.cand.goal{box-shadow:inset 3px 0 0 var(--accent)}
  <g fill="var(--lcd-ink)"><rect x="28" y="29" width="2" height="2"/><rect x="30" y="31" width="6" height="2"/><rect x="27" y="33" width="10" height="2"/><rect x="26" y="35" width="12" height="2"/><rect x="26" y="37" width="12" height="2"/><rect x="27" y="39" width="10" height="2"/><rect x="28" y="41" width="2" height="2"/><rect x="34" y="41" width="2" height="2"/></g>
  <g fill="var(--lcd)"><rect x="29" y="35" width="2" height="2"/><rect x="33" y="35" width="2" height="2"/></g>
  <g fill="var(--toy-btn)" stroke="var(--toy-ink)" stroke-width="1.5"><circle cx="22" cy="60" r="3.6"/><circle cx="32" cy="63" r="3.6"/><circle cx="42" cy="60" r="3.6"/></g>
-</svg></div><p>數碼暴龍世界（PS1 日版 Rev 1）育成、進化與學招輔助<span id="verlink"></span><button class="homelink" id="homelink" data-tab="save"></button></p></div>
+</svg></div><p>數碼暴龍世界（PS1 日版 Rev 1）育成、進化與學招輔助<span id="verlink"></span><span id="gamever"></span><button class="homelink" id="homelink" data-tab="save"></button></p></div>
   </header>
   <div class="bar"><button class="lcd" id="lcd" data-tab="me" aria-label="打開我的精靈"></button></div>
   <nav class="tabs" role="tablist" id="tabs"></nav>
@@ -370,7 +371,7 @@ const FOODS = [
 const BRAIN_TH = [150,250,350,450,550,650,750,800,850,900,950];
 
 /* ---------- state ---------- */
-const DEF = {tab:'save',cur:nid('亞古獸'),stats:{hp:800,mp:700,atk:60,def:50,spd:50,int:50},weight:20,mis:0,win:0,tech:0,hap:50,dis:50,fat:0,lives:3,age:24,battles:0,
+const DEF = {tab:'save',gameVer:'auto',gameVerDet:null,cur:nid('亞古獸'),stats:{hp:800,mp:700,atk:60,def:50,spd:50,int:50},weight:20,mis:0,win:0,tech:0,hap:50,dis:50,fat:0,lives:3,age:24,battles:0,
   learned:[], spec:'normal', gym:'green', manual:false, kuwa:false, kabu:false, itTen:false, food:'none', foe:'', foeUsed:{}, battlesN:10, brainN:20, log:[], target:nid('鳳凰獸'), sample:true, planTarget:nid('暴龍獸'), planPath:0, planGyms:['green'], planRest:'hosp', planCap:80, evoPick:{}};
 let S;
 try{ S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('dw1raise')||'{}')); }catch(e){ S = Object.assign({},DEF); }
@@ -755,6 +756,45 @@ const ITEM_ALIAS={'ペンペンペン草':'ペンペン草'};
 const ITEM_NORM=t=>String(t||'').normalize('NFKC');
 function itemRow(id){ const jp=ITEM_NORM(ITEM_ALIAS[ITEM_JP[id]]||ITEM_JP[id]); return ITEMS.find(r=>ITEM_NORM(r[2])===jp)||null; }
 function itemName(id){ const r=itemRow(id); return r? r[1] : (ITEM_JP[id]||('道具 '+id)); }
+// 遊戲版本用字（2026-10-25）：繁中漢化 1.0.0 的名稱，從漢化版遊戲主程式解碼（補丁字型逐字辨認，見資料統整 16.33～16.34）。
+// 網頁內部一律用原本的名稱做計算；選了漢化版時，只在顯示時把畫面上的文字換成漢化版用字。
+const ZH={"digi":{"1":"黑球獸","2":"滾球獸","3":"亞古獸","4":"比特獸","5":"暴龍獸","6":"惡魔獸","7":"飛龍獸","8":"巨龍獸","9":"火焰獸","10":"海龍獸","11":"鼻涕獸","12":"機械暴龍獸","13":"豆豆獸","14":"熊仔獸","15":"普尼獸","16":"獨角獸","17":"加布獸","18":"艾力獸","19":"比多獸","20":"天使獸","21":"巴多拉獸","22":"加魯魯獸","23":"雪人獸","24":"巨鯨獸","25":"鼻屎獸","26":"喪屍暴龍獸","27":"鋼鐵豆豆獸","28":"宇宙腦魔","29":"浮游獸","30":"迪哥獸","31":"巴達獸","32":"古尼獸","33":"獨角馬獸","34":"奧加獸","35":"貝殼獸","36":"人馬獸","37":"猛鬼獸","38":"鑽地獸","39":"大便獸","40":"安杜路獸","41":"炮彈獸","42":"悟空獸","43":"浮球獸","44":"種子獸","45":"比丘獸","46":"巴魯獸","47":"角龍獸","48":"獅子獸","49":"西拉獸","50":"巨雞獸","51":"古加獸","52":"毛人獸","53":"阿伯獸","54":"機械飛龍獸","55":"妖精獸","56":"蛋蛋獸","57":"企鵝獸","58":"伊賀獸","59":"鳳凰獸","60":"究極比多獸","61":"超海龍獸","62":"獸人加魯魯","63":"冰獅子獸","64":"藍機械飛龍獸","65":"鋼鐵悟空獸"},"item":{"0":"回復磁碟","1":"中回復磁碟","2":"大回復磁碟","3":"超回復磁碟","4":"ＭＰ磁碟","5":"中ＭＰ磁碟","6":"大ＭＰ磁碟","7":"雙磁碟","8":"彩色磁碟","9":"萬能磁碟","10":"對變化磁碟","11":"再生磁碟","12":"超再生磁碟","13":"膠布","14":"藥","15":"攻擊Ｐlug-in","16":"防禦Ｐlug-in","17":"高速Ｐlug-in","18":"萬能Ｐlug-in","19":"攻擊Ｐlug-inＳ","20":"防禦Ｐlug-inＳ","21":"高速Ｐlug-inＳ","22":"自動駕駛員","23":"攻擊晶片","24":"防禦晶片","25":"聰明晶片","26":"高速晶片","27":"ＨＰ－晶片","28":"ＭＰ－晶片","29":"惡魔晶片Ａ","30":"惡魔晶片Ｄ","31":"惡魔晶片Ｅ","32":"攜帶廁所","33":"訓練紀錄","34":"安眠枕頭","35":"拒敵守護符","36":"引敵鈴","37":"健康拖鞋","38":"肉","39":"巨大肉","40":"極上肉","41":"挑戰紅蘿蔔","42":"鳥型白蘿蔔","43":"減壓草","44":"數碼草菇","45":"雪之草菇","46":"高級草菇","47":"數碼鳳梨","48":"藍蘋果","49":"亞西羅果","50":"黃金筒","51":"紅車厘子","52":"天然果","53":"芒多久果","54":"食用仙人掌","55":"熱香蕉","56":"攻擊草果實","57":"強壯草果實","58":"速度草果實","59":"智慧草果實","60":"心心草果實","61":"舒暢草果實","62":"數碼扎多魚","63":"數碼般拿魚","64":"數碼麥士魚","65":"高級麥士魚","66":"數碼拿麥魚","67":"數碼加姆魚","68":"腐化肉","69":"不幸草菇","70":"沙利禁果","71":"灰色之爪","72":"炎之心","73":"燃燒之翼","74":"鐵之大蹄","75":"角龍石","76":"鋼鑽","77":"化石牙","78":"黑之翼","79":"狼牙棒","80":"光輝雄毛","81":"白之翼","82":"爛布","83":"電氣環","84":"七彩笛子","85":"風見雞","86":"神聖之角","87":"重頭盔","88":"古加鉗","89":"有機肥料","90":"以基流秘笈","91":"燒酒","92":"北極星之印","93":"紅貝殼","94":"堅硬魚","95":"米加路石","96":"冰水晶","97":"生髮水","98":"有型黑超","99":"金屬配件","100":"呼喚死亡之骨","101":"改造配件","102":"強化金屬爪","103":"銀玉","104":"金屬裝甲","105":"電鋸","106":"小型槍","107":"愛心膠布","108":"死光槍","109":"黃金香蕉","110":"謎之蛋","111":"奇跡寶石","112":"硬殼鑽石","113":"海洋守護符","114":"月光鏡","115":"湖之主笛子","116":"破舊釣竿","117":"高級釣竿","118":"獅子族石板","119":"館之匙","120":"齒輪","121":"天雨草果實","122":"血肉","123":"雪櫃鎖匙","124":"古文解讀器","125":"千兆手臂","126":"高貴鬃毛","127":"金屬香蕉"},"tech":{"0":"火焰塔","1":"日珥光束","2":"噴射火焰","3":"赤紅地獄","4":"熔岩炸彈","5":"熱浪","6":"無限燃燒","7":"熔爐","8":"雷霆正義","9":"旋轉射擊","10":"電氣雲","11":"巨型電火花","12":"靜電衝擊","13":"風刃","14":"混亂風暴","15":"颶風","16":"千兆凍結","17":"冰雕","18":"寒冬爆破","19":"冰針","20":"水流衝擊","21":"水之魔法","22":"極光凍結","23":"淚滴","24":"動力起重機","25":"全方位光束","26":"金屬衝刺","27":"脈衝激光","28":"刪除程序","29":"ＤＧ空間","30":"潛能全開","31":"逆向程序","32":"毒粉","33":"錯誤","34":"群體變形","35":"蟲災","36":"魅惑香氣","37":"毒爪","38":"危險毒刺","39":"綠色陷阱","40":"震地","41":"肌肉強化","42":"戰吼","43":"音速刺拳","44":"炸藥飛踢","45":"反擊","46":"百萬噸拳","47":"破壞俯衝","48":"炸藥飛踢","49":"惡臭噴射","50":"高速大便投擲","51":"巨大大便投擲","52":"巨大大便亂投","53":"大便亂投","54":"高速大便亂投","55":"絕交飛踢","56":"究極大便地獄","57":"絕交飛踢"},"cup":["級別Ｄ","級別Ｃ","級別Ｂ","級別Ａ","級別Ｓ","級別Ｒ","版本１杯","版本２杯","版本３杯","版本４杯","版本Ｏ杯","火焰杯","格鬥杯","雷風杯","冰水杯","自然杯","機械杯","污物杯","恐龍杯","飛行杯","獸型杯","人型杯","甲蟲杯"],"area":[["開始之街","初始之街"],["堅定森林","迷途森林"],["西拉海峽","西拉岬"],["龍眼湖","龍眠湖"],["地下二樓","地下２層"],["地下三樓","地下３層"],["數碼大橋","數碼橋"],["熱帶雨林","熱帶叢林"],["守望山崖","瞭望臺"],["守望山道","瞭望山路"],["守望緩坡","瞭望山麓"],["守望台","瞭望臺"],["守望山","瞭望山"],["熔岩洞","溶岩洞"],["超載幽谷","奧威爾"],["偉大渡橋","大峽谷橋"],["偉大峽谷","大峽谷"],["奧加山寨入口","要塞入口"],["奧加山寨","奧加要塞"],["黑暗貴族洋樓","黑暗貴族宅邸"],["齒輪莽原","齒輪草原"],["古代秘境時急域","恐龍古境急時區"],["古代秘境時靜域","恐龍古境靜時區"],["恐龍古代秘境","恐龍古境"],["冰結凍土","冰凍大地"],["寒霜聖殿","冰之聖域"],["深綠健身房","綠色訓練場"],["獅子獸祖先的洞窟","獅子獸祖先洞窟"],["朦朧群樹","迷霧森林"],["怪蛙溼地","怪蛙沼澤"],["巨音鄉","迪翁鄉"],["人馬獸醫院","人馬獸診所"],["爺爺獸的家","公公獸之家"],["爺爺獸","公公獸"],["玩具洋房","玩具館"],["秘密海洞","秘密海岸洞窟"],["工業之城","機械城鎮"],["鬥技場","競技場"],["甲蟲島","甲蟲樂園"],["阿彌陀森林","迷宮森林"],["古尼獸床鋪","古尼獸巢穴"],["食堂","餐廳"],["PS1 日版 Rev 1","PS1 日版 Rev 1・繁中漢化版"]],"g":{"33121":"七","33126":"丘","33128":"叢","33132":"絲","33138":"喪","33146":"義","33154":"之","33168":"亞","33170":"亡","33182":"仔","33188":"企","33197":"位","33202":"候","33205":"偶","33214":"公","33220":"獸","33224":"冰","33225":"衝","33228":"凍","33233":"鳳","33235":"凰","33236":"擊","33249":"動","33256":"匙","33258":"千","33273":"壓","33348":"變","33361":"２","33362":"３","33379":"Ｄ","33382":"Ｇ","33383":"Ｈ","33388":"Ｍ","33391":"Ｐ","33403":"員","33438":"哥","33699":"場","33701":"壞","33707":"城","33710":"堂","33715":"塔","33718":"殼","33719":"壺","33720":"處","33725":"頭","33734":"妖","33736":"姆","33740":"宅","33742":"實","33744":"宮","33749":"對","33750":"尋","33754":"爾","33757":"屍","33758":"尼","33763":"峽","33769":"巴","33774":"帶","33779":"幸","33781":"序","33786":"開","33859":"強","33860":"錄","33877":"惡","33890":"慧","33895":"戰","33898":"扎","33915":"拉","33925":"拿","33947":"攜","33960":"旋","33961":"無","33963":"舊","33964":"時","33972":"智","33978":"機","33981":"杜","33982":"束","33984":"極","33987":"林","33995":"樹","34000":"夢","34004":"樓","34014":"毀","34016":"比","34017":"毛","34018":"氣","34023":"沙","34025":"河","34031":"浪","34032":"浮","34033":"涕","34112":"滾","34118":"炸","34121":"爛","34123":"燒","34124":"熱","34125":"焰","34128":"熊","34129":"熔","34131":"片","34137":"獨","34138":"獅","34139":"獄","34140":"猛","34142":"玩","34143":"環","34145":"球","34148":"甲","34149":"電","34158":"百","34162":"眠","34166":"瞭","34168":"碼","34169":"破","34181":"種","34184":"程","34188":"窟","34190":"競","34191":"竿","34192":"笑","34194":"符","34207":"紅","34209":"級","34210":"紀","34214":"線","34215":"練","34220":"結","34223":"絕","34229":"綠","34233":"羅","34235":"群","34238":"耀","34249":"脈","34250":"腦","34252":"臉","34257":"致","34259":"舒","34260":"般","34261":"艾","34267":"藥","34270":"菇","34272":"蘿","34277":"藍","34285":"蛋","34286":"蛙","34295":"襲","34296":"裝","34372":"訓","34391":"誤","34395":"讀","34403":"谷","34404":"豆","34407":"貝","34414":"貴","34428":"路","34434":"轉","34435":"輪","34439":"輸","34444":"達","34448":"運","34453":"連","34455":"迪","34470":"邸","34473":"釣","34474":"鋼","34478":"鑽","34479":"鐵","34484":"錯","34487":"鎮","34490":"閃","34495":"間","34499":"阱","34505":"險","34507":"陷","34509":"隧","34511":"雕","34512":"雷","34513":"霧","34516":"霸","34533":"風","34534":"飛","34535":"餐","34543":"館","34545":"馬","34550":"鬼","34552":"魔","34554":"魯","34555":"鯨","34624":"雞","34625":"鵝","34626":"麥","34628":"黑","34630":"鼻","34632":"齒","34633":"龍","34639":"甜","34641":"腐","34679":"吼","34686":"威","34694":"橋","34695":"炮","34696":"愛","34702":"管","34711":"驗","34712":"雲","34715":"剪","34716":"廳","34718":"堅","34719":"塞","34724":"層","34734":"滴","34745":"鏢","34747":"伊","34751":"廁","34752":"雙","34759":"巢","34765":"潛","34772":"賀","34776":"雄","34797":"獵","34799":"粉","34810":"刃","34895":"蕉","34901":"閣","34902":"香","34905":"樂","34908":"兆","34909":"冬","34920":"曲","34934":"仙","34945":"喚","34947":"園","34949":"圾","34951":"垃","34953":"鄉","34955":"掌","34965":"沼","34966":"澤","34968":"滅","34970":"畔","34972":"盔","34976":"聰","34980":"愛","34983":"蘋","34992":"針","34993":"鋸","34999":"刺","35001":"聖","35007":"拒","35008":"安","35011":"暗","35016":"以","35017":"泡","35021":"臂","35028":"鏡","35031":"鬃","35032":"彩","35035":"枕","35040":"誘","35042":"鞋","35044":"駛","35045":"駕","35046":"域","35053":"刪","35059":"印","35064":"引","35065":"伯","35068":"屎","35142":"宇","35145":"胞","35146":"雨","35147":"翁","35148":"診","35149":"麓","35150":"俯","35151":"珥","35152":"農","35153":"劍","35154":"噸","35155":"噴","35156":"噩","35157":"彈","35158":"惑","35159":"拐","35160":"擲","35161":"淚","35162":"渦","35163":"漩","35164":"災","35165":"狐","35168":"狩","35169":"症","35170":"箭","35171":"肌","35172":"藤","35174":"蜜","35175":"螺","35178":"踢","35179":"逆","35180":"霆","35181":"颶","35182":"魅","35190":"阿","35193":"米","35210":"炎","35213":"岩","35217":"游","35218":"爐","35223":"禦","35227":"蔔","35228":"奧","35236":"王","35238":"迴","35241":"黃","35246":"屋","35249":"髮","35257":"音","35258":"下","35259":"化","35265":"加","35266":"可","35270":"家","35274":"果","35278":"火","35284":"花","35301":"牙","35312":"解","35313":"回","35318":"怪","35324":"改","35394":"械","35395":"海","35396":"灰","35404":"貝","35416":"街","35440":"角","35494":"寒","35545":"館","35549":"岸","35563":"危","35565":"器","35566":"基","35567":"奇","35648":"機","35662":"起","35664":"輝","35674":"技","35702":"久","35709":"急","35718":"究","35721":"級","35727":"居","35728":"巨","35739":"魚","35755":"境","35757":"強","35760":"恐","35785":"極","35786":"玉","35798":"禁","35808":"金","35810":"銀","35814":"區","35823":"具","35827":"空","35920":"訓","35934":"型","35936":"形","35971":"激","35978":"穴","35980":"血","35982":"月","35983":"件","35986":"健","35997":"拳","36009":"見","36019":"元","36020":"原","36024":"減","36032":"限","36035":"古","36036":"呼","36046":"湖","36069":"悟","36076":"護","36080":"交","36085":"光","36091":"口","36092":"向","36174":"康","36181":"攻","36196":"硬","36220":"鋼","36226":"高","36252":"骨","36268":"混","36285":"鎖","36292":"再","36434":"山","36455":"使","36462":"始","36465":"子","36480":"死","36511":"次","36521":"自","36555":"射","36581":"主","36583":"守","36584":"手","36592":"酒","36684":"臭","36698":"住","36708":"重","36745":"初","36746":"所","36764":"除","36772":"商","36780":"小","36795":"晶","36835":"上","36934":"色","36936":"食","36947":"心","36952":"森","36955":"深","36959":"神","36971":"震","36972":"人","36997":"水","37012":"數","37039":"星","37043":"正","37046":"生","37048":"精","37049":"聖","37052":"西","37059":"靜","37070":"石","37076":"赤","37077":"跡","37089":"雪","37094":"先","37202":"然","37203":"全","37219":"祖","37235":"壯","37252":"槍","37264":"草","37282":"造","37287":"息","37292":"速","37294":"屬","37296":"族","37309":"多","37324":"體","37348":"臺","37349":"大","37486":"地","37510":"中","37512":"宙","37518":"蟲","37543":"挑","37556":"超","37561":"鳥","37596":"爪","37610":"底","37703":"敵","37706":"笛","37718":"天","37720":"店","37732":"電","37734":"吐","37746":"途","37752":"度","37761":"刀","37770":"投","37802":"頭","37806":"動","37812":"洞","37817":"道","37825":"特","37829":"毒","37860":"謎","37879":"肉","37882":"日","37884":"入","37965":"熱","37970":"燃","37980":"能","38010":"配","38034":"白","38042":"爆","38077":"反","38082":"板","38121":"秘","38124":"肥","38259":"不","38266":"布","38273":"普","38295":"風","38300":"復","38326":"文","38358":"便","38363":"保","38374":"墓","38387":"寶","38395":"方","38464":"法","38492":"暴","38493":"望","38495":"棒","38504":"防","38507":"北","38556":"萬","38566":"岬","38567":"密","38576":"眠","38589":"命","38590":"明","38592":"迷","38633":"夜","38732":"有","38766":"溶","38768":"用","38774":"要","38787":"翼","38800":"亂","38808":"利","38816":"裡","38818":"裏","38828":"流","38847":"料","38858":"量","38861":"力","38891":"零","38899":"烈","38907":"練","38996":"狼","61248":"蹄","61249":"鉗","61250":"笈","61251":"膠","61252":"洋","61254":"－","61256":"Ａ","61257":"Ｄ","61258":"Ｅ","61259":"磁","61260":"碟","61261":"Ｐ","61262":"lu","61263":"g-","61264":"in","61265":"Ｓ","61266":"梨","61267":"筒","61268":"車","61269":"厘","61270":"芒","61271":"暢","61272":"士","61273":"鈴","61274":"拖","61275":"櫃","33359":"０","33360":"１","33363":"４","33364":"５","33365":"６","33366":"７","33367":"８","33368":"９","33376":"Ａ","33377":"Ｂ","33378":"Ｃ","33380":"Ｅ","33381":"Ｆ","33384":"Ｉ","33385":"Ｊ","33386":"Ｋ","33387":"Ｌ","33389":"Ｎ","33390":"Ｏ","33392":"Ｑ","33393":"Ｒ","33394":"Ｓ","33395":"Ｔ","33396":"Ｕ","33397":"Ｖ","33398":"Ｗ","33399":"Ｘ","33400":"Ｙ","33401":"Ｚ","33409":"ａ","33410":"ｂ","33411":"ｃ","33412":"ｄ","33413":"ｅ","33414":"ｆ","33415":"ｇ","33416":"ｈ","33417":"ｉ","33418":"ｊ","33419":"ｋ","33420":"ｌ","33421":"ｍ","33422":"ｎ","33423":"ｏ","33424":"ｐ","33425":"ｑ","33426":"ｒ","33427":"ｓ","33428":"ｔ","33429":"ｕ","33430":"ｖ","33431":"ｗ","33432":"ｘ","33433":"ｙ","33434":"ｚ","33242":"別","33957":"鬥","34020":"污","34132":"版","35433":"格","36211":"行","38004":"杯","38312":"物","38523":"本"}};
+let ZHV=null, ZHOBS=null;
+function gameVerEff(){ const m=S.gameVer||'auto'; if(m!=='auto') return m; return S.gameVerDet||'rev1'; }
+function zhPairs(){ if(ZHV) return ZHV; const P=new Map(); const add=(a,b)=>{ if(a&&b&&a!==b&&!P.has(a)) P.set(a,b); };
+  Object.entries(ZH.digi).forEach(([i,z])=>add(DG[i]&&DG[i].name,z));
+  Object.entries(ZH.item).forEach(([i,z])=>add(itemName(+i),z));
+  Object.entries(ZH.tech).forEach(([i,z])=>{ const t=D.techs.find(x=>x.id===+i); add(t&&t.name,z); });
+  if(typeof ARENA!=='undefined') ARENA.forEach((c,i)=>add(c[1],ZH.cup[i]));
+  ZH.area.forEach(([a,b])=>add(a,b));
+  const keys=[...P.keys()].sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  ZHV={re:new RegExp(keys.join('|'),'g'),map:P}; return ZHV; }
+function zhText(s){ if(gameVerEff()!=='zh'||!s) return s; const V=zhPairs(); return String(s).replace(V.re,m=>V.map.get(m)); }
+function zhApplyNode(root){ if(!root) return; const V=zhPairs(), rep=s=>s.replace(V.re,m=>V.map.get(m));
+  if(root.nodeType===3){ const r=rep(root.nodeValue); if(r!==root.nodeValue) root.nodeValue=r; return; }
+  if(root.nodeType!==1) return; if(/^(SCRIPT|STYLE|TEXTAREA)$/.test(root.nodeName)) return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode&&n.parentNode.nodeName)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}); const L=[];
+  while(w.nextNode()) L.push(w.currentNode);
+  L.forEach(n=>{ const r=rep(n.nodeValue); if(r!==n.nodeValue) n.nodeValue=r; });
+  const els=[root,...root.querySelectorAll('[title],[aria-label],[placeholder]')];
+  els.forEach(e=>{ for(const a of ['title','aria-label','placeholder']){ const v=e.getAttribute&&e.getAttribute(a); if(v){ const r=rep(v); if(r!==v) e.setAttribute(a,r); } } }); }
+const ZH_OPTS={childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['title','aria-label','placeholder']};
+function zhSync(){ const on=gameVerEff()==='zh'; document.documentElement.dataset.gamever=on?'zh':'rev1';
+  if(on && !ZHOBS){ const root=document.body; zhApplyNode(root);
+    ZHOBS=new MutationObserver(ms=>{ ZHOBS.disconnect(); ms.forEach(m=>{ if(m.type==='childList') m.addedNodes.forEach(n=>zhApplyNode(n)); else zhApplyNode(m.target); }); ZHOBS.takeRecords(); ZHOBS.observe(root,ZH_OPTS); });
+    ZHOBS.observe(root,ZH_OPTS); }
+  else if(!on && ZHOBS){ ZHOBS.disconnect(); ZHOBS=null; return true; }
+  return false; }
+// 漢化版存檔的標題用補丁自己的編碼：可以辨認的字照漢化字型解讀，其餘按 Shift-JIS
+function zhDecodeBytes(t){ let s=''; for(let i=0;i<t.length;i++){ const b=t[i]; if(b===0) break;
+    if((b>=0x81&&b<=0x9f)||(b>=0xe0&&b<=0xfc)){ const c=(b<<8)|t[i+1]; i++; const z=ZH.g[c]; if(z!==undefined){ s+=z; continue; }
+      try{ s+=new TextDecoder('shift_jis').decode(new Uint8Array([b,c&255])); }catch(e){ s+='?'; } }
+    else s+=String.fromCharCode(b); }
+  return s.replace(/　+/g,' ').trim(); }
+function zhLooksZh(t){ for(let i=0;i+1<t.length;i++){ const b=t[i]; if(b===0) break; if((b>=0x81&&b<=0x9f)||(b>=0xe0&&b<=0xfc)){ const c=(b<<8)|t[i+1]; if(c===0x81c4||(c>=0xef40&&c<=0xef65)) return true; i++; } } return false; }
+function gameVerHTML(){ const m=S.gameVer||'auto', eff=gameVerEff();
+  const det= m==='auto'? (S.gameVerDet? `（自動：${S.gameVerDet==='zh'?'偵測到漢化版':'偵測到日版'}）` : '（自動：未偵測，暫用日版）') : '';
+  return `<label class="gv">遊戲版本 <select id="gameVer"><option value="auto"${m==='auto'?' selected':''}>自動偵測</option><option value="rev1"${m==='rev1'?' selected':''}>日版 Rev 1</option><option value="zh"${m==='zh'?' selected':''}>繁體中文漢化版</option></select><span class="hint">${det}</span></label>`; }
 /* 進化道具（主程式 0x800ccdd0；道具 71～114 對照表 0x801348CC，125／126／127 → 64／63／65）：
    只限「目前等級＝目標等級 −1」才可以用，用了立即進化，不看任何條件、不用等時間。 */
 const EVO_ITEM={71:5,72:9,73:21,74:36,75:47,76:38,77:8,78:6,79:34,80:48,81:20,82:37,84:7,85:50,86:33,87:19,88:51,89:25,90:58,91:10,92:24,93:35,94:49,95:22,96:23,97:52,98:53,99:12,100:26,101:40,102:54,103:13,104:27,105:41,106:55,107:14,108:28,109:42,110:56,111:59,112:60,113:61,114:62,125:64,126:63,127:65};
@@ -1672,7 +1712,7 @@ function svParse(buf){
     if(u[o]!==0x53||u[o+1]!==0x43) continue;
     let c=-1; if(sumOk(o+0x200)) c=o+0x200; else if(sumOk(o+0x1100)) c=o+0x1100; if(c<0||seen.has(c)) continue;
     const sp=u32(c+440); if(!DG[sp]) continue; seen.add(c);
-    let title=''; if(dec){ const t=u.slice(o+4,o+68); const z=t.indexOf(0); title=dec.decode(z>=0?t.slice(0,z):t).replace(/　+/g,' ').trim(); }
+    let title='', zh=false; { const t=u.slice(o+4,o+68); zh=zhLooksZh(t); if(zh) title=zhDecodeBytes(t); else if(dec){ const z=t.indexOf(0); title=dec.decode(z>=0?t.slice(0,z):t).replace(/　+/g,' ').trim(); } }
     const P=c+480, learned=[], raised=[];
     for(let i=0;i<58;i++) if(u[c+444+(i>>3)]&(1<<(i&7))) learned.push(i);
     D.digis.forEach(x=>{ const n=512+x.id; if(u[c+656+245+(n>>3)]&(1<<(n&7))) raised.push(x.id); });
@@ -1680,7 +1720,7 @@ function svParse(buf){
     const recruited=RECRUITS.map(r=>r[0]).filter(nm=>{ const d=D.digis.find(x=>x.name===nm); return d? flag(200+d.id) : false; });
     const yr=i16(c+464);
     const cards=[]; for(let n=1;n<=66;n++){ const k=(u[c+656+212+(n>>1)]>>(4*(n&1)))&15; if(k) cards.push([n,k]); }  // 卡片：旗標表 +212，每張半個 byte
-    out.push({n:out.length+1, title, cur:sp, recruited, cards,
+    out.push({n:out.length+1, title, zh, cur:sp, recruited, cards,
       stats:{hp:i16(c+640), mp:i16(c+642), atk:i16(c+624), def:i16(c+626), spd:i16(c+628), int:i16(c+630)},
       dis:i16(P+40), hap:i16(P+42), days:i16(P+74), fat:i16(P+34), lives:u[c+1167],
       bag:[...Array(30).keys()].map(i=>[u[c+1036+i],u[c+1066+i]]).filter(x=>x[1]>0), bagCap:u[c+1126], storage:[...Array(128).keys()].map(i=>[i,u[c+656+84+i]]).filter(x=>x[1]>0), boost:{mask:i16(P+76),mult:i16(P+78),time:i16(P+80)}, drillCnt:[102,104,106,110,112,114].map(o=>i16(P+o)), sleep:[4,6,8,10].map(o=>i16(P+o)), weight:i16(P+66), life:i16(P+72), mis:i16(P+82), win:i16(P+84), age:i16(P+86), poop:i16(P+30),
@@ -1857,6 +1897,7 @@ function vSave(){
 }
 function svApply(){
   const v=(S.svList||[])[S.svSel]; if(!v) return;
+  if(typeof v.zh==='boolean' && S.gameVerDet!==(v.zh?'zh':'rev1')){ S.gameVerDet=v.zh?'zh':'rev1'; }
   const tot=v.days*24+v.hh-v.age;
   if(v.recruited) S.recruited=v.recruited.slice();
   if(Array.isArray(v.cards)) S.cards=v.cards.map(x=>x.slice());
@@ -1969,6 +2010,12 @@ function liveToV(j){
     bag: j.bag||undefined, bagCap: j.bagCap, storage: j.storage||undefined, cards: Array.isArray(j.cards)? j.cards : undefined, boost: j.para?{mask:j.para[38],mult:j.para[39],time:j.para[40]}:undefined, drillCnt: j.para?[51,52,53,55,56,57].map(i=>j.para[i]):undefined, sleep: j.para? j.para.slice(2,6):undefined};
 }
 function liveBusyInput(){ const a=document.activeElement; return a && a.closest && a.closest('#view') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.id!=='liveBtn'; }
+// 實時版自動判斷遊戲版本：道具「回復磁碟」名稱（RAM 0x8013364C）第 3 個字，日版是 0x8374（フ），漢化版是 0xEF4B（磁）
+async function liveDetectVer(){ if(LIVE.verChecked||LIVE.verBusy) return; LIVE.verBusy=true;
+  try{ const r=await fetch(liveUrl()+'/peek?a=8013364c&n=6',{cache:'no-store'}); const j=await r.json();
+    if(j.ok){ const h=j.hex.slice(8,12); const det= h==='ef4b'?'zh' : h==='8374'?'rev1' : null; LIVE.verChecked=true;
+      if(det && S.gameVerDet!==det){ S.gameVerDet=det; save(); render(); } } }catch(e){}
+  LIVE.verBusy=false; }
 async function liveTick(){
   if(LIVE.busy) return; LIVE.busy=true;
   try{
@@ -1976,7 +2023,7 @@ async function liveTick(){
     if(!j.ok){ LIVE.stat='wait'; LIVE.err=j.error||'讀不到遊戲'; LIVE.code=j.code||''; }
     else if(!DG[j.cur]){ LIVE.stat='wait'; LIVE.err='讀到的種類編號 '+j.cur+' 不正確（遊戲可能在標題畫面）'; LIVE.code='not_started'; }
     else {
-      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para; LIVE.clkRaw=j.clkRaw||null; liveClockFeed(j);
+      LIVE.stat='ok'; LIVE.err=''; LIVE.t=Date.now(); LIVE.para=j.para; liveDetectVer(); LIVE.clkRaw=j.clkRaw||null; liveClockFeed(j);
       const v=liveToV(j); const key=JSON.stringify(v);
       if(key!==LIVE.last){
         const first=!LIVE.last; LIVE.last=key; S.svList=[v]; S.svSel=0; S.svFile='RetroArch 實時'; S.svErr=''; svApply();
@@ -2068,7 +2115,7 @@ function liveDecorate(){
   }
 }
 function liveStart(){ if(LIVE.on) return; LIVE.on=true; LIVE.last=''; LIVE.stat=''; liveTick(); LIVE.timer=setInterval(liveTick,1000); LIVE.clkTimer=setInterval(liveClockPaint,200); render(); }
-function liveStop(){ LIVE.on=false; clearInterval(LIVE.timer); clearInterval(LIVE.clkTimer); LIVE.timer=null; LIVE.clk=null; LIVE.stat=''; render(); }
+function liveStop(){ LIVE.on=false; LIVE.verChecked=false; clearInterval(LIVE.timer); clearInterval(LIVE.clkTimer); LIVE.timer=null; LIVE.clk=null; LIVE.stat=''; render(); }
 document.addEventListener('toggle',e=>{ if(e.target&&e.target.id==='diner-tips') S.dinerTips=e.target.open; },true);
 document.addEventListener('focusout',()=>{ if(LIVE.pending){ setTimeout(()=>{ if(!liveBusyInput()&&LIVE.pending){ LIVE.pending=false; render(); } },50); } });
 // 連線失敗時按原因顯示處理步驟（同 live/使用說明.txt 第七節）
@@ -2108,7 +2155,7 @@ function renderLCD(){
     <div><span>開心度</span><b>${S.hap??0}</b></div><div><span>教養</span><b>${S.dis??0}</b></div><div${known('fat')?'':' title="*** 代表上載存檔才可以獲得該項數值"'}><span>疲勞</span><b>${known('fat')?S.fat:'***'}</b></div><div title="漠視數碼精靈呼叫的次數"><span>失誤</span><b>${S.mis??0}</b></div>${sleepText()?`<div title="想睡時間–起床時間（遊戲內時鐘）；疲勞高會提早想睡"><span>睡眠</span><b>${sleepText()}</b></div>`:''}${S.days!=null?`<div><span>年齡</span><b>${S.days}歲</b></div>`:''}${NOSAVE()?'<div title="*** 代表上載存檔才可以獲得該項數值"><span>壽命</span><b>***</b></div>':S.life!=null&&S.life!==''?`<div><span>壽命</span><b>${S.life}h</b></div>`:''}<div><span>生命</span><b>${'♥'.repeat(Math.max(0,S.lives))||'0'}</b></div></div>`;
 }
 function verLink(){ const el=$('#verlink'); if(el && BUILD!=='live' && !el.innerHTML) el.innerHTML=' ・ 網頁版'; if(el && BUILD==='live' && !el.innerHTML) el.innerHTML=` ・ 實時版 ・ <a class="offlink" href="${OFFLINE_URL}" target="_blank" rel="noopener">網頁版（手機、上載存檔）↗</a>`; }
-function render(){ verLink(); const hl=$('#homelink'); if(hl){ hl.textContent=BUILD==='live'?'⇦ 回到實時連線':'⇦ 回到上載存檔'; hl.hidden=S.tab==='save'; } renderTabs(); renderLCD(); const VIEWS={me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,bag:vBag,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena};
+function render(){ zhSync(); verLink(); const gv=$('#gamever'); if(gv){ const h=gameVerHTML(); if(gv.dataset.h!==h){ gv.innerHTML=h; gv.dataset.h=h; } } const hl=$('#homelink'); if(hl){ hl.textContent=BUILD==='live'?'⇦ 回到實時連線':'⇦ 回到上載存檔'; hl.hidden=S.tab==='save'; } renderTabs(); renderLCD(); const VIEWS={me:vMe,raise:vRaise,plan:vPlan,save:vSave,egg:vEgg,tech:vTech,battle:vBattle,brain:vBrain,items:vItems,bag:vBag,cards:vCards,map:vMap,recruit:vRecruit,diner:vDiner,arena:vArena};
   // 某一頁出錯時不要令整個網頁卡住：先清除該頁的舊設定再試一次，仍然出錯就顯示錯誤訊息
   try{ VIEWS[S.tab](); }catch(e){ console.error(e);
     const reset={plan:['planTarget','planPath','evoPick','planGyms','planRest','planCap'],raise:['gym','food','log'],map:['mapSel','mapRegion']}[S.tab]||[];
@@ -2506,6 +2553,7 @@ function mapSelect(id, fromBtn){
 document.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('g[data-mapsel]')){ e.preventDefault(); const id=e.target.dataset.mapsel; mapSelect(id,false); const g=$(`g[data-mapsel="${id}"]`); if(g) g.focus({preventScroll:true}); } });
 document.addEventListener('change',e=>{
   const t=e.target; if(t.id==='item-q') return;
+  if(t.id==='gameVer'){ S.gameVer=t.value; save(); const off=zhSync(); render(); if(off) render(); return; }
   if(t.id==='sv-file'){ const f=t.files&&t.files[0]; if(!f) return; const rd=new FileReader();
     rd.onload=()=>{ try{ const L=svParse(rd.result); S.svList=L; S.svSel=0; S.svFile=f.name; S.svErr= L.length?'':'這個檔案裡找不到「數碼暴龍世界」（日版）的存檔，或存檔已損壞。'; if(L.length){ S.svGoal=undefined; svApply(); S.log.push(`讀取存檔 ${f.name}：${DG[L[0].cur].name}，所有頁面已更新。`); } }catch(err){ S.svList=[]; S.svErr='讀取失敗：'+err.message; } render(); };
     rd.readAsArrayBuffer(f); return; }
