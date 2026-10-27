@@ -36,7 +36,6 @@ ol,ul{margin:0;padding-left:1.4em}
 li{margin:3px 0}
 a{color:var(--acc)}
 .ok{color:var(--ok);font-weight:700}
-.cnt{font-size:13px;color:var(--muted);margin:0;min-height:1.2em}
 footer{color:var(--muted);font-size:13px;margin-top:26px}
 </style>
 </head>
@@ -52,13 +51,11 @@ footer{color:var(--muted);font-size:13px;margin-top:26px}
       <h2>Mac 版 <span class="tag">你的電腦</span></h2>
       <p>macOS 適用。內含啟動檔（.command）與安裝說明。</p>
       <a class="btn" id="dl-mac" href="DW1-Monitor-Mac.zip">下載 Mac 版（.zip）</a>
-      <p class="cnt" id="cnt-mac"></p>
     </div>
     <div class="card" id="win">
       <h2>Windows 版 <span class="tag">你的電腦</span></h2>
       <p>Windows 10／11 適用。內含啟動檔（.bat）與安裝說明。</p>
       <a class="btn" id="dl-win" href="DW1-Monitor-Windows.zip">下載 Windows 版（.zip）</a>
-      <p class="cnt" id="cnt-win"></p>
     </div>
   </div>
   <p class="note">下載後解壓縮，先打開「先讀我」安裝說明，照步驟做約 15 分鐘。用手機或平板玩、或者不用 RetroArch？請用<a href="https://dw1-device.github.io/dw1/">網頁版</a>（上載記憶卡存檔即可，不用安裝）。</p>
@@ -106,13 +103,13 @@ footer{color:var(--muted);font-size:13px;margin-top:26px}
 (function(){ try{ var p=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||navigator.userAgent||'';
   var id=/mac/i.test(p)?'mac':/win/i.test(p)?'win':null; if(id){ var e=document.getElementById(id); e.classList.add('mine'); if(id==='win'){ e.parentNode.insertBefore(e,e.parentNode.firstChild); } } }catch(e){} })();
 
-// 下載統計：如果 GitHub Releases 有這兩個檔案，就改由 Releases 下載（GitHub 會計算下載次數），並顯示累計次數；否則用網站上的檔案
+// 如果 GitHub Releases 有這兩個檔案，就改由 Releases 下載（GitHub 會記錄下載次數，頁面不顯示）；否則用網站上的檔案
 (function(){ if(!window.fetch) return;
   fetch('https://api.github.com/repos/dw1-device/dw1/releases?per_page=100',{headers:{'Accept':'application/vnd.github+json'}})
   .then(function(r){ return r.ok? r.json() : []; }).then(function(rel){ if(!Array.isArray(rel)||!rel.length) return;
     var tot={mac:0,win:0}, latest={};
     rel.forEach(function(R,ri){ if(R.draft) return; (R.assets||[]).forEach(function(a){ var k=/Mac/i.test(a.name)?'mac':/Win/i.test(a.name)?'win':null; if(!k) return; tot[k]+=a.download_count||0; if(!latest[k]&&!R.prerelease) latest[k]=a.browser_download_url; }); });
-    ['mac','win'].forEach(function(k){ if(latest[k]) document.getElementById('dl-'+k).href=latest[k]; if(latest[k]||tot[k]) document.getElementById('cnt-'+k).textContent='已下載 '+tot[k].toLocaleString()+' 次'; });
+    ['mac','win'].forEach(function(k){ if(latest[k]) document.getElementById('dl-'+k).href=latest[k]; });
   }).catch(function(){});
 })();
 </script>
