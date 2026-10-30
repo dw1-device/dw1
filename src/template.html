@@ -670,6 +670,82 @@ function numemonHelper(){
   else NH_CNT=null;
   return `<div class="nhelp">${head}${stat}${cnt}${chg}${warn}${rec}${tbl}${caps}${drl}<p class="hint">判定由成長期 72 小時開始每小時一次，到 96 小時沒有候選合資格就變成鼻涕獸；這段時間都要保持在建議範圍內。</p></div>`;
 }
+/* 宇宙腦魔助手（2026-10-30）：任何成熟期，形態計時滿 240 小時後每次稱讚或責罵 50% 進化成宇宙腦魔；剛好 360 小時自動擲一次 50%。
+   144 小時起每小時判定完全體，所以 144～240 小時之間要令所有完全體候選都少於 3 組（用「失誤 × 體重」控制，能力、技能、戰勝不會下降）。 */
+const VADEMON=nid('宇宙腦魔');
+let VD_CNT=null;
+// 找出令所有完全體候選都少於 3 組的「失誤 × 體重」組合；st 是要檢驗的能力（練滿＝練多少都安全）
+function vdGrid(ctx, st, m0, span){ const rows=[]; for(let m=m0;m<=m0+span;m++){ const ws=[]; for(let w=1;w<=99;w++) if(predictEvo({...ctx,stats:st,weight:w,mis:m}).best===-1) ws.push(w); rows.push({m,ws}); } return rows; }
+function vdRanges(ws){ const out=[]; let a=null,b=null; ws.forEach(w=>{ if(a===null){a=b=w;} else if(w===b+1) b=w; else { out.push([a,b]); a=b=w; } }); if(a!==null) out.push([a,b]);
+  return out.map(([a,b])=>a===1&&b===99?'任何體重':a===b?`${a}g`:a===1?`${b}g 或以下`:b===99?`${a}g 或以上`:`${a}～${b}g`).join('、'); }
+function vdBest(G, m0, w0){ let best=null; G.forEach(r=>r.ws.forEach(w=>{ const c=(r.m-m0)*3+Math.abs(w-w0); if(!best||c<best.c) best={c,w,m:r.m,ws:r.ws}; })); return best; }
+const VD_MAX={hp:9999,mp:9999,atk:999,def:999,spd:999,int:999};
+function vdCountHTML(){
+  const c=VD_CNT; if(!c) return ''; const now=nhNowMin(); if(now==null) return '';
+  const l240=c.t240-now, l144=c.t144-now, l360=c.t360-now; const real=m=>{ const r=LIVE.clk&&LIVE.clk.rate>0? m/(LIVE.clk.rate*60000) : m/3/60; return r<1? '不到 1 分鐘' : `約 ${Math.round(r)} 分鐘`; };
+  const age=Math.min(360,Math.max(0,360-l360/60));
+  const big= l240>0? `<div><span class="hint">距離 240 小時（可以開始稱讚或責罵）</span><br><b>${nhFmt(l240)}</b> <span class="hint">遊戲時間・真實時間${real(l240)}</span></div>`
+    : `<div><span class="hint">已滿 240 小時</span><br><b>現在稱讚或責罵</b> <span class="hint">每次 50% 進化成宇宙腦魔${l360>0?`；${nhFmt(l360)} 後（360 小時）會自動再擲一次`:''}</span></div>`;
+  return big+`<div class="meter" style="position:relative"><i style="width:${(age/360*100).toFixed(1)}%"></i><s style="position:absolute;left:40%;top:-3px;bottom:-3px;border-left:2px solid var(--ink);opacity:.5"></s><s style="position:absolute;left:66.7%;top:-3px;bottom:-3px;border-left:2px solid var(--ok,#3c7d2a);opacity:.8"></s></div>`
+    + `<div class="hint" style="flex:1 1 100%">${l144>0?`第一條豎線是 144 小時：再過 ${nhFmt(l144)}（遊戲時間）開始每到整點判定完全體。`:l240>0?'已過 144 小時：每到整點判定完全體，到 240 小時前都要保持沒有完全體合資格。':''}第二條豎線是 240 小時。</div>`;
+}
+function vdCountPaint(){ const el=$('#vdCount'); if(el) el.innerHTML=vdCountHTML(); }
+function vademonHelper(){
+  const base={cur:S.cur, stats:{...S.stats}, weight:S.weight, mis:S.mis??0, win:S.win, hap:S.hap, dis:S.dis, tech:S.tech, raised:S.raised};
+  const age=known('age')? S.age : null, m0=Math.max(0,base.mis|0), w0=base.weight, train=!!S.vdTrain;
+  const head=`<h3>宇宙腦魔助手</h3><p class="hint">任何成熟期，<b>成熟期滿 240 小時後，每次稱讚或責罵都有 50% 機會</b>立即進化成宇宙腦魔（沒成功就再稱讚或責罵，次數不限）；剛好 360 小時時遊戲還會自動擲一次 50%。要做的只有一件事：<b>240 小時前不要先進化成完全體</b>（成熟期 144 小時起每到整點判定一次）。</p>
+    <label style="display:block;margin-bottom:6px"><input type="checkbox" id="c-vdtrain"${train?' checked':''}> 我會繼續訓練（只建議練多少都不怕的組合）</label>`;
+  const now=predictEvo(base); let stat='';
+  if(age!=null && age>=240) stat=`<div class="nstat g">✓ 已滿 240 小時：現在<b>稱讚或責罵</b>就有 50% 機會進化成宇宙腦魔。連續 1 次 50%、2 次 75%、3 次 88%、5 次 97%。稱讚會降教養、責罵會升教養，交替使用可以保持數值。</div>`;
+  else if(now.best===-1) stat=`<div class="nstat g">✓ 按目前數值（失誤 ${m0} 次、體重 ${w0}g），沒有任何完全體合資格。保持到 240 小時就可以。</div>`;
+  else { const r=now.rows.find(x=>x.id===now.best); stat=`<div class="nstat r">✗ 按目前數值，${age!=null&&age<144?`到 144 小時（還有 ${144-age} 小時）時`:'下一個整點判定時'}會進化成 <b>${DG[now.best].name}</b>（${r.groups.filter(g=>g.ok).map(g=>g.name).join('、')}符合）。請照下面的建議調整。</div>`; }
+  // 建議組合
+  let G=vdGrid(base, train?VD_MAX:base.stats, m0, 15), proof=train;
+  if(train && !G.some(r=>r.ws.length)){ proof=false; G=vdGrid(base, base.stats, m0, 15); }
+  const best=vdBest(G,m0,w0); let rec='';
+  if(age!=null && age>=240) rec='';
+  else if(!best) rec=`<div class="note">在失誤 ${m0}～${m0+15} 次、體重 1～99g 內都找不到令所有完全體候選少於 3 組的組合（已達成的能力、技能、戰勝不會下降）。這隻成熟期很難撐到 240 小時；可以考慮下一隻精靈改養推薦的成熟期（成長期時把目標設為宇宙腦魔就會列出）。</div>`;
+  else { const add=best.m-m0, dw=best.w-w0;
+    rec=`<p><b>建議</b>：失誤 <b>${best.m} 次</b>${add?`（再漠視呼叫 ${add} 次）`:'（維持現在）'}，體重保持在 <b>${vdRanges(best.ws)}</b>${dw?`（目前 ${w0}g，要${dw<0?'減':'增'} ${Math.abs(dw)}g）`:''}。${proof?'這個組合就算能力全部練滿也成立，可以放心訓練。':'這個組合按目前能力成立；之後訓練要留意下面的提醒。'}</p>`;
+    const merged=[]; G.forEach(r=>{ const k=r.ws.join(','); const L=merged[merged.length-1]; if(L&&L.k===k) L.m2=r.m; else merged.push({k,m1:r.m,m2:r.m,ws:r.ws}); });
+    rec+=`<details><summary>所有可行的失誤 × 體重組合</summary><div class="tw"><table class="stk"><thead><tr><th>失誤次數</th><th>體重要在</th></tr></thead><tbody>${merged.map(x=>`<tr${best.m>=x.m1&&best.m<=x.m2?' class="hl"':''}><td data-l="失誤">${x.m1===x.m2?x.m1+' 次':x.m1+'～'+x.m2+' 次'}</td><td data-l="體重">${x.ws.length?vdRanges(x.ws):'—（不可行）'}</td></tr>`).join('')}</tbody></table></div><p class="hint">失誤只會增加（進化後才歸零）。</p></details>`; }
+  // 差一次訓練的預警
+  let warn='';
+  if(best && !proof && !(age!=null&&age>=240)){ const lv=DG[S.cur].level; const by={};
+    GYMS.forEach(g=>g.items.forEach(([n,b,main])=>{ const gain=trainGain(g,b,lv,false,main); const st={...base.stats}; for(const k in gain) st[k]=Math.min(k==='hp'||k==='mp'?9999:999,st[k]+gain[k]);
+      const q=predictEvo({...base,weight:best.w,mis:best.m,stats:st}); if(q.best!==-1) (by[DG[q.best].name]=by[DG[q.best].name]||[]).push((g.id==='green'?'':g.name+'・')+n); }));
+    if(Object.keys(by).length) warn=`<div class="nstat o">⚠ 差一次訓練：${Object.entries(by).map(([to,l])=>`再做一次 ${l.join('、')} 就會令 <b>${to}</b> 合資格`).join('；')}。</div>`; }
+  // 差一步就會進化（單一數值改變）
+  const guard= (age!=null&&age>=240)? '' : (now.best===-1? guardHTML(guardList(null,-1),-1) : '');
+  // 壽命
+  let life='';
+  if(known('life') && S.life!=null && age!=null && age<240){ const need=240-age; life= S.life<need? `<div class="nstat r">✗ 壽命只剩約 ${S.life} 小時，撐不到 240 小時（還要 ${need} 小時）。提高心情可以減慢壽命減少。</div>` : `<p class="hint">壽命約剩 ${S.life} 小時，足夠撐到 240 小時（還要 ${need} 小時）。</p>`; }
+  // 倒數
+  let cnt='';
+  if(age!=null){ const nm=nhNowMin(); if(nm!=null){ const hs=nm-nm%60; VD_CNT={t144:hs+(144-age)*60, t240:hs+(240-age)*60, t360:hs+(360-age)*60}; cnt=`<div class="ncount" id="vdCount">${vdCountHTML()}</div>`; } }
+  else { VD_CNT=null; cnt='<p class="hint">要知道成熟期已過多少小時，請上載存檔或用實時版。</p>'; }
+  return `<div class="nhelp">${head}${stat}${cnt}${life}${warn}${guard}${rec}</div>`;
+}
+// 想變宇宙腦魔：按目前的記錄（能力、技能數、戰勝、心情、教養），推薦較容易撐到 240 小時而不先進化成完全體的成熟期
+function vademonRecommend(){
+  const d=DG[S.cur]; const rows=[];
+  D.digis.filter(x=>x.level===4 && D.evo[x.id] && !D.evo[x.id].special).forEach(x=>{
+    const paths=forwardPaths(x.id); if(!paths.length) return;
+    const ctx={cur:x.id, win:S.win??0, tech:S.tech??0, hap:S.hap, dis:S.dis, raised:S.raised};
+    const Gp=vdGrid(ctx, VD_MAX, 0, 15); const bp=vdBest(Gp,0,20);
+    const st={...VD_MAX}; const Gc= bp? null : vdGrid(ctx, {...S.stats}, 0, 15); const bc= bp? null : vdBest(Gc,0,20);
+    const b=bp||bc; if(!b) return;
+    const cands=(D.evo[x.id].to||[]).map(i=>DG[i].name);
+    rows.push({x, proof:!!bp, b, cands, path:paths[0], score:(bp?0:100)+b.m*3+(b.ws.length>=30?0:5)});
+  });
+  rows.sort((a,b)=>a.score-b.score);
+  if(!rows.length) return `<section class="panel"><h2>推薦的成熟期 <small>宇宙腦魔</small></h2><p>按目前的記錄，找不到容易撐到 240 小時的成熟期。宇宙腦魔要由成熟期進化，請先育成任何一隻成熟期，再把目標設為宇宙腦魔。</p></section>`;
+  const top=rows.slice(0,5);
+  return `<section class="panel"><h2>推薦的成熟期 <small>想變宇宙腦魔</small></h2>
+    <p>宇宙腦魔要由<b>成熟期</b>進化：成熟期滿 240 小時後，每次稱讚或責罵都有 50% 機會。關鍵是成熟期 144～240 小時之間<b>不要先符合任何完全體的條件</b>。按你目前的記錄（技能 ${S.tech??0}、戰勝 ${S.win??0}${S.raised&&S.raised.length?'、養過的精靈':''}），這些成熟期最容易做到：</p>
+    <div class="tw"><table class="stk"><thead><tr><th>成熟期</th><th>要擋住的完全體</th><th>成熟期時要保持</th><th>路線</th></tr></thead><tbody>${top.map(r=>`<tr><td data-l="成熟期"><b>${r.x.name}</b>${r.proof?' <span class="pill ok">練多少都安全</span>':' <span class="pill w">要控制能力</span>'}</td><td data-l="完全體">${r.cands.join('、')}</td><td data-l="保持">失誤 ${r.b.m} 次${r.b.m?'（成熟期時漠視呼叫 '+r.b.m+' 次）':''}，體重 ${vdRanges(r.b.ws)}</td><td data-l="路線">${r.path.map(i=>DG[i].name).join(' → ')}</td></tr>`).join('')}</tbody></table></div>
+    <p class="hint">「練多少都安全」：就算能力全部練滿，只要失誤和體重在範圍內，那些完全體都不會合資格。失誤進化後由 0 計起，只會增加。想育成其中一隻，可以先把上面的目標改成那隻成熟期，進化後再把目標改回宇宙腦魔，就會出現 240 小時倒數。</p></section>`;
+}
 function evoAdvice(goal, ctx){
   const p=predictEvo(ctx); const tips=[];
   if(goal===NUMEMON){
@@ -1026,6 +1102,8 @@ function vPlan(){
     body= numOk? `<section class="panel numtop">${numemonHelper()}</section>` : `<section class="panel"><p class="hint">鼻涕獸助手要用失誤次數等遊戲不顯示的數值，上載存檔後才可以使用。</p></section>`;
   } else if(tgt===NUMEMON){
     body=`<section class="panel"><h2>鼻涕獸</h2><p>任何成長期養到 96 小時，仍然沒有任何成熟期合資格，就會變成鼻涕獸。</p><p class="hint">你的精靈是成長期時，選這個目標會出現鼻涕獸助手和 96 小時倒數。</p></section>`;
+  } else if(tgt===VADEMON && d.level<=4){
+    body= d.level===4? `<section class="panel numtop">${vademonHelper()}</section>` : vademonRecommend();
   } else if(spSame(DG[tgt]) && !forwardPaths(tgt).length){
     const sps=SPECIAL.filter(z=>z.to===DG[tgt].name && ((z.from&&z.from.includes(d.name))||(z.stage&&z.stage===d.level)||(z.stageMin&&d.level>=z.stageMin)));
     body=`<section class="panel"><h2>${d.name} → ${DG[tgt].name} <small>特殊進化</small></h2>${sps.map(spCard).join('')}</section>`;
@@ -2053,7 +2131,7 @@ function liveClockHTML(){
   const Y=Math.floor(day/30)+1, D=day%30+1;  // 遊戲只有年、日：每年 30 日
   return `<span${LIVE.clk.yr!=null?` title="遊戲開始後第 ${day+1} 日"`:''}>${LIVE.clk.yr!=null?Y+'年':''}${D}日${LIVE.clk.yr==null?'（小程式是舊版，請更新 dw1_bridge.py）':''}</span><b>${p2(hh)}<i>:</i>${p2(mm)}</b>`;
 }
-function liveClockPaint(){ nhCountPaint(); liveCallsPaint(); const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
+function liveClockPaint(){ nhCountPaint(); vdCountPaint(); liveCallsPaint(); const el=$('#lcdClock'); if(!el) return; el.innerHTML=liveClockHTML(); el.classList.toggle('run', !!(LIVE.clk&&LIVE.clk.rate>0&&Date.now()-LIVE.clk.at<1500)); }
 /* 精靈呼叫（只限實時版）：育成狀態 +0 是呼叫旗標（1 想睡、2 疲倦、4 肚餓、8 想大便、0x20 生病、0x40 受傷）。
    肚餓：+62 下次肚餓倒數（遊戲分鐘）→ 0 時亮燈，+64＝180，每 10 frame −1（90 遊戲分鐘）；到 0 時飽足度 +60 未達門檻（種類表 0x8012EBDC +9）→ 失誤。吃到門檻即解除。
    想大便：+24 每 10 遊戲分鐘 −1 → 0 時亮燈，+32＝12×(教養+20) frame，每 frame −1；到 0 在地上大便 → 失誤。
@@ -2569,6 +2647,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.rec){ const n=t.dataset.rec; S.recruited=(S.recruited||[]).filter(x=>x!==n); if(t.checked) S.recruited.push(n); render(); return; }
   if(t.id==='sel-evogoal'){ S.evoGoal=+t.value; render(); return; }
   if(t.id==='c-numtrain'){ S.numTrain=t.checked; render(); return; }
+  if(t.id==='c-vdtrain'){ S.vdTrain=t.checked; render(); return; }
   if(t.dataset.raised){ const id=+t.dataset.raised; S.raised=(S.raised||[]).filter(x=>x!==id); if(t.checked) S.raised.push(id); render(); return; }
   if(t.id==='sel-mreg'){ S.mapRegion=t.value; if(!t.value) S._mapWasZoom=true; render(); return; }
   if(t.id==='sel-cur'){ const old=S.cur, nw=+t.value; S.cur=nw; if(S.tab==='battle') S.foe='';
